@@ -1,0 +1,125 @@
+name: X4 Thai (build, test, release)
+
+# This fork's CI. Upstream's workflows only run in crosspoint-reader/crosspoint-reader.
+#  - every push to main and every PR: host tests + the x4_th firmware build
+#  - a tag like 1.6.5-th.5: the same, then a GitHub release with the firmware and
+#    the notes in docs/personal/releases/<tag>.md (Thai first, English below)
+
+on:
+  push:
+    branches: [main]
+    tags: ['*-th.*']
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: personal-${{ github.ref }}
+  cancel-in-progress: ${{ !startsWith(github.ref, 'refs/tags/') }}
+
+jobs:
+  tests:
+    name: Host tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          submodules: recursive
+
+      - name: Install build tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake ninja-build libexpat1-dev
+
+      - name: Cache googletest source
+        uses: actions/cache@v4
+        with:
+          path: build/test/_deps/googletest-src
+          key: ${{ runner.os }}-googletest-${{ hashFiles('test/CMakeLists.txt') }}
+
+      - name: Build and run
+        run: |
+          cmake -S test -B build/test -G Ninja -DCMAKE_BUILD_TYPE=Release
+          cmake --build build/test
+          ctest --test-dir build/test --output-on-failure -j
+
+  firmware:
+    name: Build x4_th
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          submodules: recursive
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.13'
+
+      - name: Install PlatformIO (pioarduino 6.1.19)
+        # 6.2.x breaks the link step (SCons FortranCommon); see docs/personal/development.md.
+        run: pip install -U https://github.com/pioarduino/platformio-core/archive/refs/tags/v6.1.19.zip
+
+      - name: Cache PlatformIO packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.platformio
+          key: pio-x4th-${{ runner.os }}-${{ hashFiles('platformio.ini', 'platformio.personal.ini') }}
+          restore-keys: pio-x4th-${{ runner.os }}-
+
+      - name: Read the version
+        id: version
+        run: |
+          v=$(sed -n 's/^version = //p' platformio.personal.ini | head -1)
+          echo "version=$v" >> "$GITHUB_OUTPUT"
+          if [[ "$GITHUB_REF" == refs/tags/* && "${GITHUB_REF#refs/tags/}" != "$v" ]]; then
+            echo "::error::tag ${GITHUB_REF#refs/tags/} does not match version $v in platformio.personal.ini"
+            exit 1
+          fi
+
+      - name: Build
+        run: pio run -e x4_th
+
+      - name: Size
+        run: |
+          size=$(stat -c %s .pio/build/x4_th/firmware.bin)
+          echo "firmware.bin: $size bytes ($((size * 100 / 6710886))% of the 6.4 MiB app partition)" >> "$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: crosspoint-${{ steps.version.outputs.version }}-x3-x4
+          path: .pio/build/x4_th/firmware.bin
+          if-no-files-found: error
+
+  release:
+    name: Publish release
+    if: startsWith(github.ref, 'refs/tags/')
+    needs: [tests, firmware]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: crosspoint-${{ needs.firmware.outputs.version }}-x3-x4
+
+      - name: Create the release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          notes="docs/personal/releases/$TAG.md"
+          if [ ! -f "$notes" ]; then
+            echo "::error::missing $notes (write the Thai + English notes before tagging)"
+            exit 1
+          fi
+          bin="crosspoint-$TAG-x3-x4.bin"
+          mv firmware.bin "$bin"
+          sha=$(sha256sum "$bin" | cut -d' ' -f1)
+          { cat "$notes"; printf '\n\nSHA-256 (`%s`): `%s`\n' "$bin" "$sha"; } > notes.md
+          gh release create "$TAG" "$bin" --title "$TAG" --notes-file notes.md --verify-tag

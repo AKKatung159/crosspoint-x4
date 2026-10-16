@@ -1,6 +1,6 @@
 # Licences
 
-Back to the [README](../../README.md).
+Back to the README: [ไทย](../../README.md) · [English](../../README.en.md).
 
 | Source | Licence | Used for |
 | --- | --- | --- |

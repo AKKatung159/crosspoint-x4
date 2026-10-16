@@ -1,41 +1,42 @@
-# Installing on the X4
+# ติดตั้งลง X4
 
-Back to the [README](../../README.md).
+**ภาษาไทย** · [English](install.en.md)
 
-Download `crosspoint-<version>-x3-x4.bin` (for example `crosspoint-1.6.5-th.3-x3-x4.bin`) from this repo's
-[Releases](https://github.com/AKKatung159/crosspoint-x4/releases), or build it ([development.md](development.md)). It is a normal app image, the
-same kind of file as the official `crosspoint-1.6.5-x3-x4.bin`.
+กลับไปที่ [README](../../README.md)
 
-**Keep a rollback image before flashing.** From the
-[Halo 2 v2.2.15 release](https://github.com/kocha01/crosspoint-halo2-custom/releases/tag/v2.2.15),
-`firmware.bin` has SHA-256
-`b0156ec5760dce61dafe24bb76f7de58c25a3f0f8ee7f340d69420b09e151929`.
+ดาวน์โหลดไฟล์ `crosspoint-<เวอร์ชัน>-x3-x4.bin` (เช่น `crosspoint-1.6.5-th.4-x3-x4.bin`) จากหน้า
+[Releases](https://github.com/AKKatung159/crosspoint-x4/releases) ของ repo นี้ หรือ build เอง
+([development.md](development.md)) ไฟล์นี้เป็น app image ธรรมดา แบบเดียวกับ
+`crosspoint-1.6.5-x3-x4.bin` ของทางการ
 
-## Option A: web flasher (USB-C, Chrome/Edge)
+**เก็บไฟล์สำหรับย้อนกลับไว้ก่อนแฟลช** เช่น `firmware.bin` จาก
+[Halo 2 v2.2.15](https://github.com/kocha01/crosspoint-halo2-custom/releases/tag/v2.2.15)
+(SHA-256 `b0156ec5760dce61dafe24bb76f7de58c25a3f0f8ee7f340d69420b09e151929`)
 
-1. Connect the X4 by USB-C and wake it.
-2. Open https://crosspointreader.com/#flash-tools, choose **X4**, then **Custom .bin**, and pick the file.
-3. Wait for it to finish, then let the device reboot. Do not unplug while flashing.
+## วิธี A: web flasher (สาย USB-C, Chrome หรือ Edge)
 
-## Option B: from the SD card (no computer connection)
+1. ต่อ X4 ด้วยสาย USB-C แล้วกดปลุกเครื่อง
+2. เปิด https://crosspointreader.com/#flash-tools เลือก **X4** แล้ว **Custom .bin** แล้วเลือกไฟล์
+3. รอจนเสร็จ แล้วปล่อยให้เครื่องรีบูต ห้ามถอดสายระหว่างแฟลช
 
-1. Copy the `.bin` to the SD card.
-2. On the device: **Settings → System → SD Card Firmware Update**, then pick the
-   file. Use this only if the firmware currently running has that menu.
+## วิธี B: จากการ์ด SD (ไม่ต้องต่อคอม)
 
-## Option C: esptool
+1. คัดลอกไฟล์ `.bin` ลงการ์ด SD
+2. บนเครื่อง: **Settings → System → SD Card Firmware Update** แล้วเลือกไฟล์
+   (ใช้ได้เฉพาะเมื่อเฟิร์มแวร์ที่รันอยู่มีเมนูนี้)
+
+## วิธี C: esptool
 
 ```bash
-esptool.py --chip esp32c3 --port COM5 --baud 921600 write_flash 0x10000 crosspoint-1.6.5-th.3-x3-x4.bin
+esptool.py --chip esp32c3 --port COM5 --baud 921600 write_flash 0x10000 crosspoint-1.6.5-th.4-x3-x4.bin
 ```
 
-Use `0x10000` only. Writing elsewhere can break the bootloader or the partition table.
+ใช้ address `0x10000` เท่านั้น เขียนที่อื่นอาจทำ bootloader หรือตาราง partition เสีย
 
-## Rollback
+## ย้อนกลับ
 
-Flash the Halo 2 `firmware.bin` (or the official `crosspoint-1.6.5-x3-x4.bin`)
-the same way. Books, progress and settings on the SD card are kept. Each
-firmware rebuilds its own layout cache the first time a book is opened.
+แฟลช `firmware.bin` ของ Halo 2 (หรือ `crosspoint-1.6.5-x3-x4.bin` ของทางการ) ด้วยวิธีเดียวกัน
+หนังสือ ตำแหน่งที่อ่าน และการตั้งค่าบนการ์ดยังอยู่ครบ แต่ละเฟิร์มแวร์จะจัดหน้าหนังสือใหม่ตอนเปิดครั้งแรก
 
-After installing: **Settings → System → Language → ไทย**. Built-in fonts already
-include Thai. SD-card fonts without Thai borrow Thai from the built-in fonts.
+หลังติดตั้ง: **Settings → System → Language → ไทย** ฟอนต์ในเครื่องมีอักษรไทยอยู่แล้ว
+ฟอนต์จากการ์ดที่ไม่มีอักษรไทยจะยืมตัวไทยจากฟอนต์ในเครื่อง

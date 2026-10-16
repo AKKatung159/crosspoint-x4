@@ -12,6 +12,7 @@ permissions:
 
 jobs:
   build-release:
+    if: github.repository == 'crosspoint-reader/crosspoint-reader'  # PERSONAL: upstream-only (this fork builds in personal.yml)
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -109,6 +110,7 @@ jobs:
           compression-level: 0
 
   publish-release:
+    if: github.repository == 'crosspoint-reader/crosspoint-reader'  # PERSONAL: upstream-only (this fork builds in personal.yml)
     needs: build-release
     runs-on: ubuntu-latest
     permissions:

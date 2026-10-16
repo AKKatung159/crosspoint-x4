@@ -1,7 +1,7 @@
 # Building and testing
 
 How to build this fork on Windows, run the tests, drive a real X4 over USB, and use the emulator.
-Back to the [README](../../README.md).
+Back to the README: [ไทย](../../README.md) · [English](../../README.en.md).
 
 ## Build (Windows notes)
 
@@ -80,3 +80,17 @@ python scripts/emu/drive_win.py <eink-qemu> flash.bin sd.img log.txt wait:30 pre
 Put `.crosspoint/settings.json` with `{"language":"TH","textAntiAliasing":0}` in
 `books/` to boot in Thai. The X4 panel model shows only the anti-aliasing gray
 planes in screen dumps, so turn anti-aliasing off for clean captures.
+
+## Releasing
+
+`.github/workflows/personal.yml` runs the host tests and builds `x4_th` on every
+push to `main` and every PR (upstream's workflows are limited to the upstream
+repo). To release:
+
+1. Bump `version` in `platformio.personal.ini` (e.g. `1.6.5-th.5`).
+2. Write `docs/personal/releases/<version>.md`: Thai first, then English inside
+   `<details><summary>English</summary> … </details>`.
+3. Commit, then `git tag <version> && git push origin <version>`.
+
+The tag build checks that the tag matches the version, then publishes the
+release with `crosspoint-<version>-x3-x4.bin` and its SHA-256.

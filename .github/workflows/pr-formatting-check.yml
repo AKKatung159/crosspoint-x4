@@ -13,6 +13,7 @@ permissions:
 
 jobs:
   title-check:
+    if: github.repository == 'crosspoint-reader/crosspoint-reader'  # PERSONAL: upstream-only (this fork builds in personal.yml)
     name: Title Check
     runs-on: ubuntu-latest
     steps:

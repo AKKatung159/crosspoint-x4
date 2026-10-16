@@ -5,6 +5,7 @@ on:
 
 jobs:
   build-release-candidate:
+    if: github.repository == 'crosspoint-reader/crosspoint-reader'  # PERSONAL: upstream-only (this fork builds in personal.yml)
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false

@@ -1,125 +1,106 @@
-# What each phase changed
+# แต่ละเฟสเปลี่ยนอะไรบ้าง
 
-Details behind the [README](../../README.md). The design of the Thai code and every change to upstream files: [lib/Thai/README.md](../../lib/Thai/README.md).
+**ภาษาไทย** · [English](changelog.en.md)
 
-## Phase 1 (1.6.5-th.1): Thai reading
+รายละเอียดเพิ่มเติมจาก [README](../../README.md) ส่วนการออกแบบโค้ดภาษาไทย และทุกจุดที่แก้ไฟล์ของต้นฉบับ
+อยู่ใน [lib/Thai/README.md](../../lib/Thai/README.md) (ภาษาอังกฤษ)
 
-- **Thai word breaking.** Thai has no spaces between words. Lines break between
-  dictionary words (37,883 words in th.1, 53,994 since th.4; CC0) and never inside a syllable. Unknown
-  names wrap only at likely syllable starts. This covers EPUB and TXT.
-- **Stacked vowels and tone marks.** Marks such as `ที่ ปั้ม น้ำ ฟื้น กตัญญู` are
-  positioned using the C90 variant-glyph rules (ported from CrosspointTH).
-- **Justified Thai without holes.** The gaps between Thai words stretch by at most
-  1 px; real spaces take the rest. Nothing is ever stretched inside a word.
-- **Thai in every built-in font.** Noto Sans/Serif 12–18 in all styles, the UI
-  fonts and the status-bar font, using Sarabun's Thai glyphs.
-- **Thai UI language.** *Settings → System → Language → ไทย* (all 515 strings).
-- **OTA safety.** "Check for update" looks at this repo's releases, so it can
-  never replace this build with stock CrossPoint (which has no Thai).
+## 1.6.5-th.4: ปกคม บรรทัดไทยเรียบร้อยขึ้น
 
-## Phase 2 (1.6.5-th.2): speed and battery
+- **ปกหน้าหลักเป็นสีเทา** ธีมปกเต็มและมินิมอลวาดปกด้วยเทา 4 ระดับ แทนจุดขาวดำ
+  (ใช้ภาพย่อ 2 บิต `thumbg_<ความสูง>.bmp` แล้วรีเฟรชสีเทาเฉพาะตรงปกอีกรอบ)
+  หนังสือ XTC ยังใช้หน้าแรกแบบขาวดำเป็นปก
+- **เห็นปกเต็มใบ** ปกที่กว้างกว่าสัดส่วน 0.6 : 1 แสดงเต็มใบ อยู่กึ่งกลาง ไม่ถูกตัดขอบซ้ายขวาแล้ว
+- **ปกกลับมาเองหลังแคชถูกลบ** เดิมหน้าหลักต้องใช้แคชของหนังสือในการสร้างภาพปก
+  ถ้าไม่มีแคชจะถือว่า "ไม่มีปก" จนกว่าจะเปิดเล่มนั้นอีกครั้ง ตอนนี้อ่านปกจากไฟล์ EPUB โดยตรง
+- **แก้หนังสือที่อยู่บนการ์ดแล้ว** `scripts/personal/x4_fix_covers.py` แปลงรูปในไฟล์ EPUB
+  ทุกเล่มบน X4 ผ่าน Wi-Fi (โหมดถ่ายโอนไฟล์) ด้วยกฎเดียวกับ epub.lan สำรองไฟล์เดิมลงคอมก่อน
+  และเก็บตำแหน่งที่อ่านกับสรุปบนหน้าหลักไว้ (X4 ลบแคชของหนังสือไปพร้อมกับไฟล์)
+- **บรรทัดไทยไม่มีช่องโหว่** ช่องระหว่างคำไทยยืดได้ไม่เกิน 3 px ที่เหลือปล่อยไว้ท้ายบรรทัด
+  เดิมบรรทัดที่ไม่มีเว้นวรรคจะเกลี่ยที่ว่างทั้งหมดไปตามช่องระหว่างคำ จนเป็นรู 6–8 px
+- **พจนานุกรมใหญ่ขึ้น (53,994 คำ)** ตัวสร้างพจนานุกรมเคยตัดคำยาว 8 ตัวอักษรขึ้นไปที่แยกเป็นคำสั้นได้ทิ้ง
+  ทำให้คำธรรมดาอย่าง `ประโยชน์` หายไป (แล้วถูกตัดเป็น `ประ|โยชน์` ตอนขึ้นบรรทัดใหม่)
+  ตอนนี้เกณฑ์เป็น 12 ตัวอักษร เทียบกับ deepcut แล้ว ความแม่นขึ้นจาก 93.5% เป็น 95.2%
+  จุดตัดบรรทัดที่เสนอได้ลดจาก 88% เป็น 82% (น้อยลงแต่ปลอดภัยกว่า) ใช้ flash เพิ่ม 130 KB
+  หนังสือทุกเล่มจะจัดหน้าใหม่หนึ่งครั้ง
 
-- **Personal word lists.** Put names and series terms one per line in a
-  `thai-words.txt` (UTF-8, `#` for comments) at the card root (all books), in a
-  book's folder (one series; epub.lan uses one folder per series), or as
-  `<book name>.words.txt` next to the book. They count as dictionary words, so
-  `ซาร์ทาเนียลโวลเดอร์ไมเออร์` stays whole instead of breaking at odd places.
-  When a list changes, the affected book is laid out again automatically.
-- **Thai in any SD font.** SD fonts without Thai (Latin-only `.cpfont`s)
-  borrow Thai, including the stacked-mark variants, from the built-in font of
-  the nearest size. Lines can look tight with fonts that have a small line
-  height; raise line spacing if so.
-- **Fewer SD writes.** The reading position is saved every 5 pages and when
-  you leave the book or the device sleeps, not on every page turn. A crash or
-  dead battery can lose up to 4 pages of position.
-- **XTC without big allocations.** Black-and-white XTC pages are drawn
-  straight from the card (no 48 KB buffer per page). Grayscale pages fall back
-  to black and white if the 96 KB buffer is unavailable, instead of showing an
-  error.
-- **Fix:** tone marks above `ิ ี ึ ื` (e.g. `ที่`, `เปลี่ยน`) collided with the
-  vowel in 1.6.5-th.1.
-
-All of this was tested end to end on a real X4 (see [development.md](development.md#testing-on-a-real-x4-over-usb)).
-
-## Phase 3 (1.6.5-th.3): looks and covers
+## เฟส 3 (1.6.5-th.3): หน้าตาและปก
 
 <p align="center">
-  <img src="../showcase/home-cover.png" alt="Cover home theme on the X4" width="30%">
-  <img src="../showcase/home-minimal.png" alt="Minimal home theme on the X4" width="30%">
+  <img src="../showcase/home-cover.png" alt="หน้าหลักธีมปกเต็มบน X4" width="30%">
+  <img src="../showcase/home-minimal.png" alt="หน้าหลักธีมมินิมอลบน X4" width="30%">
 </p>
 
-- **Two home themes** (*Settings → Display → UI Theme*, ตั้งค่า → หน้าจอ → ธีมหน้าจอ), Lyra everywhere except
-  the home screen:
-  - **ปกเต็ม (Cover):** a big cover, the book title, author · current chapter,
-    a progress bar with "อ่านแล้ว N%", dots for the last 5 books, and icon
-    tiles with short labels.
-  - **มินิมอล (ไอคอน) (Minimal):** a bigger cover, the progress bar and icons
-    only, with no text at all (the battery and the button hints are icons too).
-  - Both use one solid icon set (`scripts/personal/home_icons.py`). Up/Down
-    walk the books first, then the tiles. The percent and chapter are saved in
-    the book's cache (`home-summary.txt`) when you leave it, so books opened
-    only on older firmware show no summary until you read them once.
-- **Noto Sans only.** Noto Serif is no longer built in (it saves about 1 MB of
-  flash). A saved Serif setting reads as Sans, and SD fonts still work.
-  Flash is now 5.04 MB (77%), with about 1.5 MB free.
-- **Sharper covers from epub.lan.** Books sent to the X4 (Send to X4 and OPDS)
-  have every picture rewritten as a baseline greyscale JPEG at 480×800 or
-  smaller. The X4 decodes those quickly and cleanly; progressive or large JPEGs
-  used to look blocky (the decoder only reads 1/8 of a progressive JPEG).
+- **หน้าหลักสองธีม** (ตั้งค่า → หน้าจอ → ธีมหน้าจอ) หน้าอื่นใช้หน้าตาแบบ Lyra เหมือนเดิม
+  - **ปกเต็ม:** ปกใหญ่ ชื่อเรื่อง ผู้แต่ง · บทที่อ่านอยู่ แถบความคืบหน้าพร้อม "อ่านแล้ว N%"
+    จุดบอกหนังสือ 5 เล่มล่าสุด และปุ่มไอคอนพร้อมป้ายสั้นๆ
+  - **มินิมอล (ไอคอน):** ปกใหญ่ขึ้น มีแค่แถบความคืบหน้ากับไอคอน ไม่มีตัวหนังสือเลย
+    (แบตและปุ่มด้านล่างก็เป็นไอคอน)
+  - ทั้งสองธีมใช้ชุดไอคอนทึบชุดเดียวกัน (`scripts/personal/home_icons.py`) ปุ่มขึ้น/ลง
+    เลื่อนไปตามหนังสือก่อน แล้วค่อยไปที่ปุ่ม เปอร์เซ็นต์และชื่อบทบันทึกไว้ในแคชของหนังสือ
+    (`home-summary.txt`) ตอนออกจากเล่ม เล่มที่เคยเปิดแค่บนเฟิร์มแวร์เก่าจะยังไม่มีสรุปจนกว่าจะเปิดอ่านอีกครั้ง
+- **เหลือแค่ Noto Sans** ไม่ได้ฝัง Noto Serif แล้ว (ประหยัด flash ประมาณ 1 MB)
+  ถ้าเคยตั้งเป็น Serif จะใช้ Sans แทน ฟอนต์จากการ์ดยังใช้ได้ตามปกติ
+- **ปกคมขึ้นจาก epub.lan** หนังสือที่ส่งเข้า X4 (Send to X4 และ OPDS) มีรูปทุกรูปแปลงเป็น
+  JPEG สีเทาแบบ baseline ขนาดไม่เกิน 480×800 X4 ถอดได้เร็วและคม
+  (JPEG แบบ progressive เดิมเครื่องอ่านได้แค่ 1/8 ความละเอียด ภาพเลยเป็นก้อน)
 
-Tested on a real X4: both themes, the home summary after reading, and Thai
-reading with Sans only.
+เทสบน X4 เครื่องจริงแล้ว: ทั้งสองธีม สรุปบนหน้าหลักหลังอ่าน และการอ่านไทยด้วย Sans อย่างเดียว
 
-## 1.6.5-th.4: sharp covers, tidier Thai lines
+## เฟส 2 (1.6.5-th.2): ความเร็วและแบต
 
-- **Grey home covers.** The Cover and Minimal themes draw the home cover in 4
-  grey levels instead of black-and-white dots: a 2-bit thumbnail
-  (`thumbg_<height>.bmp`) plus one grey refresh of just the cover. XTC books
-  still use their 1-bit first page.
-- **Whole covers.** Covers wider than 0.6 : 1 are shown whole, centred, instead
-  of having their sides cut off.
-- **Covers come back after a cache wipe.** Home used to need a book's cache to
-  build its thumbnail, and otherwise marked the book "no cover" until it was
-  opened again. It now reads the cover straight from the EPUB.
-- **Fixing books already on the card.** `scripts/personal/x4_fix_covers.py`
-  applies epub.lan's picture rewrite to every EPUB on the X4 over Wi-Fi (File
-  Transfer mode). It backs each changed book up on the PC first and keeps the
-  reading position and home summary (the X4 deletes a book's cache together
-  with the book).
-- **No more holes in Thai lines.** A Thai word gap now stretches by at most
-  3 px; whatever is left stays at the end of the line. Before, a line with no
-  real space spread all its slack over the word gaps, which could open 6–8 px
-  holes.
-- **Bigger dictionary (53,994 words).** The generator used to drop every entry
-  of 8+ codepoints that splits into shorter entries, which removed everyday
-  words such as `ประโยชน์` (then cut as `ประ|โยชน์` at a line end). The limit
-  is now 12. Against deepcut, precision goes from 93.5% to 95.2% and recall
-  from 88% to 82% (fewer, safer break points), for 130 KB more flash.
-  Books are laid out again once (`SECTION_FILE_VERSION` 50, TXT cache 5).
+- **รายการคำส่วนตัว** ใส่ชื่อหรือศัพท์ของเรื่องบรรทัดละคำในไฟล์ `thai-words.txt`
+  (UTF-8, ใช้ `#` สำหรับหมายเหตุ) วางไว้ที่ราก card (ใช้กับทุกเล่ม) ในโฟลเดอร์ของหนังสือ
+  (ใช้กับทั้งชุด epub.lan แยกโฟลเดอร์ตามชุดอยู่แล้ว) หรือเป็น `<ชื่อหนังสือ>.words.txt`
+  ข้างไฟล์หนังสือ คำเหล่านี้นับเป็นคำในพจนานุกรม เช่น `ซาร์ทาเนียลโวลเดอร์ไมเออร์` จะไม่ถูกตัดแปลกๆ
+  ถ้าแก้รายการคำ หนังสือที่เกี่ยวข้องจะจัดหน้าใหม่เอง
+- **ไทยได้ทุกฟอนต์** ฟอนต์จากการ์ดที่ไม่มีอักษรไทย (`.cpfont` แบบละตินอย่างเดียว)
+  จะยืมตัวไทยรวมถึงรูปสระวรรณยุกต์ซ้อนจากฟอนต์ในเครื่องขนาดใกล้เคียงที่สุด
+  ถ้าฟอนต์มีระยะบรรทัดแคบ บรรทัดอาจดูเบียด ให้เพิ่มระยะห่างบรรทัด
+- **เขียนการ์ดน้อยลง** บันทึกตำแหน่งที่อ่านทุก 5 หน้า และตอนออกจากเล่มหรือเครื่องเข้าโหมดพัก
+  ไม่ใช่ทุกครั้งที่พลิกหน้า ถ้าเครื่องค้างหรือแบตหมด อาจย้อนไปได้ไม่เกิน 4 หน้า
+- **XTC ไม่ต้องจองหน่วยความจำก้อนใหญ่** หน้า XTC ขาวดำวาดจากการ์ดโดยตรง
+  (ไม่ต้องใช้บัฟเฟอร์ 48 KB ต่อหน้า) หน้าสีเทาถ้าจองบัฟเฟอร์ 96 KB ไม่ได้จะแสดงเป็นขาวดำแทน ไม่ขึ้นข้อผิดพลาด
+- **แก้:** วรรณยุกต์บน `ิ ี ึ ื` (เช่น `ที่`, `เปลี่ยน`) ทับสระใน 1.6.5-th.1
 
+เทสครบบน X4 เครื่องจริง (ดู [development.md](development.md#testing-on-a-real-x4-over-usb))
 
-## Word breaker: why this one
+## เฟส 1 (1.6.5-th.1): อ่านภาษาไทย
 
-I compared three breakers on 3,000 paragraphs from two Thai books translated by
-epub.lan. The reference is PyThaiNLP's `deepcut` (a neural segmenter, independent
-of any dictionary). Tool: `scripts/thai/eval_segmentation.py`.
+- **ตัดคำไทย** ภาษาไทยไม่เว้นวรรคระหว่างคำ บรรทัดจะขึ้นใหม่ตรงรอยต่อระหว่างคำในพจนานุกรม
+  (37,883 คำใน th.1, 53,994 คำตั้งแต่ th.4; CC0) และไม่ตัดกลางพยางค์ ชื่อที่ไม่รู้จัก
+  จะตัดเฉพาะตรงที่น่าจะเป็นต้นพยางค์ ใช้ได้กับ EPUB และ TXT
+- **สระและวรรณยุกต์ซ้อน** เช่น `ที่ ปั้ม น้ำ ฟื้น กตัญญู` วางตามกฎรูปอักษรแปรของ C90
+  (นำมาจาก CrosspointTH)
+- **จัดชิดขอบโดยไม่มีช่องโหว่** ช่องระหว่างคำไทยยืดได้นิดเดียว ที่ว่างที่เหลือไปอยู่ที่ช่องเว้นวรรคจริง
+  และไม่ยืดกลางคำเด็ดขาด
+- **อักษรไทยในฟอนต์ในเครื่องทุกตัว** Noto Sans/Serif ขนาด 12–18 ทุกแบบ ฟอนต์ของเมนู
+  และฟอนต์แถบสถานะ ใช้ตัวไทยจาก Sarabun
+- **เมนูภาษาไทย** ตั้งค่า → ระบบ → ภาษา → ไทย (ครบทั้ง 515 ข้อความ)
+- **อัปเดตอย่างปลอดภัย** "ตรวจหาอัปเดต" ดูจาก Releases ของ repo นี้ จึงไม่มีทางเอา
+  CrossPoint ต้นฉบับ (ที่ไม่มีภาษาไทย) มาทับ
 
-| Breaker | Precision (breaks that are real word boundaries) | Recall (word boundaries offered) |
+## ทำไมเลือกตัวตัดคำนี้
+
+เทียบตัวตัดคำสามตัวกับ 3,000 ย่อหน้าจากหนังสือไทยสองเล่มที่แปลด้วย epub.lan
+โดยใช้ `deepcut` ของ PyThaiNLP (โมเดลตัดคำแบบ neural ไม่ขึ้นกับพจนานุกรมใด) เป็นตัวอ้างอิง
+เครื่องมือ: `scripts/thai/eval_segmentation.py`
+
+| ตัวตัดคำ | ความแม่น (จุดตัดที่เป็นรอยต่อคำจริง) | ความครอบคลุม (รอยต่อคำที่เสนอให้ตัดได้) |
 | --- | --- | --- |
-| **This fork** (DP + cluster rules, CC0 dictionary), th.4 | **95.2%** | 82.2% |
-| This fork, th.1–th.3 (smaller dictionary) | 93.5% | 87.9% |
-| Halo 2 v2.2.15 (DP, ORST dictionary) | 91.5% | 94.4% |
-| CrosspointTH v1.6.0-th.1.0 (greedy longest match) | 92.2% | 95.3% |
+| **ของเรา** (DP + กฎพยางค์, พจนานุกรม CC0), th.4 | **95.2%** | 82.2% |
+| ของเรา th.1–th.3 (พจนานุกรมเล็กกว่า) | 93.5% | 87.9% |
+| Halo 2 v2.2.15 (DP, พจนานุกรม ราชบัณฑิตฯ) | 91.5% | 94.4% |
+| CrosspointTH v1.6.0-th.1.0 (จับคำยาวสุดแบบ greedy) | 92.2% | 95.3% |
 
-For line breaking, precision matters most: a false break is a word cut in half
-at the end of a line. This fork makes the fewest. It keeps some compounds
-(`กินข้าว`) whole, which costs recall. Greedy matching also fails on classic
-traps, for example `ไปหามเหสี` → `ไป|หาม|เห|สี`.
+สำหรับการตัดบรรทัด ความแม่นสำคัญที่สุด เพราะจุดตัดที่ผิดคือคำที่ถูกหั่นครึ่งตอนขึ้นบรรทัดใหม่
+ของเราผิดน้อยที่สุด แลกกับการเก็บคำประสมบางคำ (`กินข้าว`) ไว้ทั้งก้อน ความครอบคลุมเลยต่ำกว่า
+การจับคำแบบ greedy ยังพลาดกับกับดักคลาสสิก เช่น `ไปหามเหสี` → `ไป|หาม|เห|สี`
 
-## Known limits
+## ข้อจำกัดที่รู้อยู่
 
-- Justified Thai lines with no real space can end a few pixels short of the
-  margin (Thai word gaps stretch at most 3 px, `kMaxThaiShareGapPx` in
-  `lib/Thai/ThaiJustify.h`).
-- The Thai Back/Home button label `« หน้าหลัก` wraps onto two lines in the button bar.
-- Peak heap during layout of long Thai chapters is about 6 KB lower than stock, because Thai text is split into finer tokens (same-pages emulator run: 30.9 KB vs 36.6 KB minimum free).
+- บรรทัดไทยที่จัดชิดขอบแต่ไม่มีเว้นวรรคเลย อาจจบสั้นกว่าขอบขวาไม่กี่พิกเซล
+  (ช่องระหว่างคำยืดได้ไม่เกิน 3 px, `kMaxThaiShareGapPx` ใน `lib/Thai/ThaiJustify.h`)
+- ป้ายปุ่ม `« หน้าหลัก` ขึ้นสองบรรทัดในแถบปุ่ม
+- ตอนจัดหน้าบทยาวๆ หน่วยความจำเหลือน้อยกว่าเฟิร์มแวร์ต้นฉบับประมาณ 6 KB
+  เพราะข้อความไทยถูกแบ่งเป็นชิ้นเล็กกว่า (ทดสอบใน emulator ด้วยหน้าเดียวกัน: เหลือต่ำสุด 30.9 KB เทียบกับ 36.6 KB)

@@ -1,57 +1,54 @@
 # CrossPoint X4 Thai
 
-Personal firmware for the **Xteink X4**, built on
-[CrossPoint Reader 1.6.5](https://github.com/crosspoint-reader/crosspoint-reader/tree/1.6.5):
-proper Thai reading and a home screen built around the book cover.
+**ภาษาไทย** · [English](README.en.md)
+
+เฟิร์มแวร์ส่วนตัวสำหรับ **Xteink X4** ต่อยอดจาก
+[CrossPoint Reader 1.6.5](https://github.com/crosspoint-reader/crosspoint-reader/tree/1.6.5)
+อ่านภาษาไทยได้ถูกต้อง และมีหน้าหลักที่เน้นปกหนังสือ
 
 <p align="center">
-  <img src="docs/showcase/home-cover.png" alt="Cover home theme with Alice's Adventures in Wonderland" width="30%">
-  <img src="docs/showcase/read-thai.png" alt="A Thai page of Alice in Wonderland" width="30%">
-  <img src="docs/showcase/home-minimal.png" alt="Minimal home theme, icons only" width="30%">
+  <img src="docs/showcase/home-cover.png" alt="หน้าหลักธีมปกเต็ม กับ Alice's Adventures in Wonderland" width="30%">
+  <img src="docs/showcase/read-thai.png" alt="หน้าอ่าน Alice ในแดนมหัศจรรย์ ฉบับภาษาไทย" width="30%">
+  <img src="docs/showcase/home-minimal.png" alt="หน้าหลักธีมมินิมอล มีแต่ไอคอน" width="30%">
 </p>
 
-<sub>Screenshots from a real X4. The book is *Alice's Adventures in Wonderland* (Project Gutenberg, public domain) and its Thai translation made with epub.lan.</sub>
+<sub>ภาพจาก X4 เครื่องจริง หนังสือคือ *Alice's Adventures in Wonderland* (Project Gutenberg, สาธารณสมบัติ) และฉบับแปลไทยที่แปลด้วย epub.lan</sub>
 
-## Features
+## ทำอะไรได้บ้าง
 
-- **Thai that reads right.** Lines break between words, never inside one.
-  Tone marks and stacked vowels sit in the right place, and justified lines
-  have no big holes. The menus are in Thai too.
-- **Your own words.** Put character and place names in `thai-words.txt` and
-  they never get split.
-- **Thai in any font.** SD-card fonts without Thai borrow it from the built-in
-  font.
-- **Two home screens.**
-  - **ปกเต็ม (Cover):** a big cover, the chapter and how far you are.
-  - **มินิมอล (Minimal):** the cover and icons, no text.
-- **Sharp grey covers.** Covers are shown in 4 grey levels. Books sent from
-  epub.lan (Send to X4, or OPDS at `http://epub.lan/opds`) come with pictures
-  the X4 decodes cleanly.
-- **Gentler on the SD card and battery.** The reading position is saved every
-  5 pages, and XTC pages stream straight from the card.
+- **อ่านไทยได้ถูกต้อง** ตัดบรรทัดระหว่างคำ ไม่ตัดกลางคำ สระและวรรณยุกต์ซ้อนวางถูกที่
+  จัดชิดขอบแล้วไม่มีช่องโหว่กลางประโยค และเมนูทั้งหมดเป็นภาษาไทย
+- **คำของเราเอง** ใส่ชื่อตัวละครหรือชื่อสถานที่ไว้ใน `thai-words.txt` แล้วจะไม่ถูกตัดกลางคำอีก
+- **ไทยได้ทุกฟอนต์** ฟอนต์จากการ์ด SD ที่ไม่มีอักษรไทยจะยืมตัวไทยจากฟอนต์ในเครื่อง
+- **หน้าหลักสองแบบ**
+  - **ปกเต็ม:** ปกใหญ่ บทที่อ่านอยู่ และอ่านไปแล้วกี่เปอร์เซ็นต์
+  - **มินิมอล:** มีแค่ปกกับไอคอน ไม่มีตัวหนังสือเลย
+- **ปกคม เป็นสีเทา** ปกแสดงด้วยเทา 4 ระดับ หนังสือที่ส่งจาก epub.lan
+  (ปุ่ม Send to X4 หรือ OPDS ที่ `http://epub.lan/opds`) มีรูปที่ X4 ถอดได้คมชัด
+- **ถนอมการ์ดและแบต** บันทึกตำแหน่งที่อ่านทุก 5 หน้า และไฟล์ XTC อ่านตรงจากการ์ด
 
-## Install
+## ติดตั้ง
 
-Download the latest `crosspoint-…-x3-x4.bin` from
-[Releases](https://github.com/AKKatung159/crosspoint-x4/releases) and flash it
-with the [CrossPoint web flasher](https://crosspointreader.com/#flash-tools)
-(**X4 → Custom .bin**). Then pick **Settings → System → Language → ไทย**.
-Other ways to install, and how to go back: [install.md](docs/personal/install.md).
+ดาวน์โหลดไฟล์ `crosspoint-…-x3-x4.bin` ตัวล่าสุดจาก
+[Releases](https://github.com/AKKatung159/crosspoint-x4/releases) แล้วแฟลชผ่าน
+[CrossPoint web flasher](https://crosspointreader.com/#flash-tools)
+(**X4 → Custom .bin**) จากนั้นไปที่ **Settings → System → Language → ไทย**
+วิธีติดตั้งแบบอื่น และวิธีย้อนกลับ: [install.md](docs/personal/install.md)
 
-## What's next
+## ต่อไปจะทำอะไร
 
-| Phase | Plan |
+| เฟส | แผน |
 | --- | --- |
-| 4 | A status bar with widgets (clock, battery, chapter progress), and a homelab dashboard image as the sleep screen. |
-| 5 | Reading stats (time, pages, finished books) synced to the homelab, and updates straight from this repo. |
+| 4 | แถบสถานะแบบ widget (นาฬิกา แบต ความคืบหน้าในบท) และใช้ภาพ dashboard จาก homelab เป็นหน้าจอพักเครื่อง |
+| 5 | สถิติการอ่าน (เวลา จำนวนหน้า เล่มที่อ่านจบ) ซิงก์ขึ้น homelab และอัปเดตเฟิร์มแวร์จาก repo นี้โดยตรง |
 
-Phases 1–3 are done; see [what each phase changed](docs/personal/changelog.md).
+เฟส 1–3 เสร็จแล้ว ดู[สิ่งที่แต่ละเฟสเปลี่ยน](docs/personal/changelog.md)
 
-## More
+## อ่านเพิ่ม
 
-- [What each phase changed](docs/personal/changelog.md), word-breaker comparison and known limits
-- [Installing and rolling back](docs/personal/install.md)
-- [Building, tests, testing on a real X4, emulator](docs/personal/development.md)
-- [How the Thai code works](lib/Thai/README.md)
-- [Licences](docs/personal/licences.md) (all MIT, CC0 or OFL)
-- [Upstream CrossPoint README](docs/upstream-README.md)
+- [สิ่งที่แต่ละเฟสเปลี่ยน](docs/personal/changelog.md) ผลเทียบตัวตัดคำ และข้อจำกัดที่รู้อยู่
+- [ติดตั้งและย้อนกลับ](docs/personal/install.md)
+- [Build, เทสต์, เทสบนเครื่องจริง, emulator](docs/personal/development.md) (ภาษาอังกฤษ)
+- [โค้ดภาษาไทยทำงานยังไง](lib/Thai/README.md) (ภาษาอังกฤษ)
+- [สัญญาอนุญาต](docs/personal/licences.md) (ทั้งหมดเป็น MIT, CC0 หรือ OFL)
+- [README ของ CrossPoint ต้นฉบับ](docs/upstream-README.md)
