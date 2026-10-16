@@ -462,10 +462,9 @@ static void renderCharScaled(const GfxRenderer& renderer, GfxRenderer::RenderMod
                              const EpdFontFamily& fontFamily, const uint32_t cp, int cursorX, int cursorY,
                              const bool pixelState, const EpdFontFamily::Style style) {
   if (renderer.grayPlanesAreAbsolute()) renderMode = GfxRenderer::BW;
-  const EpdGlyph* glyph = fontFamily.getGlyph(cp, style);
+  const auto [glyph, fontData] = fontFamily.resolveGlyph(cp, style);  // PERSONAL-HOOK(thai-fallback)
   if (!glyph) return;
 
-  const EpdFontData* fontData = fontFamily.getData(style);
   const uint8_t* bitmap = renderer.getGlyphBitmap(fontData, glyph);
   if (!bitmap) return;
 
@@ -531,20 +530,19 @@ static void renderCharImpl(const GfxRenderer& renderer, GfxRenderer::RenderMode 
                            const EpdFontFamily& fontFamily, const uint32_t cp, int cursorX, int cursorY,
                            const bool pixelState, const EpdFontFamily::Style style) {
   if (renderer.grayPlanesAreAbsolute()) renderMode = GfxRenderer::BW;
-  const EpdGlyph* glyph = fontFamily.getGlyph(cp, style);
+  const auto [glyph, fontData] = fontFamily.resolveGlyph(cp, style);  // PERSONAL-HOOK(thai-fallback)
   if (!glyph) {
     LOG_ERR("GFX", "No glyph for codepoint %d", cp);
     return;
   }
 
-  const EpdFontData* fontData = fontFamily.getData(style);
   if constexpr (rotation == TextRotation::None) {
     // THAI-HOOK(tone): seat C90 high-tier tone marks 1 px above this font's
     // SARA II (they otherwise touch the vowel or float, depending on size).
     if (ThaiShaping::isHighTone(cp)) {
       int vowelTop = 0;
       for (const uint32_t vowel : {0x0E35u, 0x0E36u, 0x0E37u}) {  // SARA II, UE, UEE: tallest wins
-        if (const EpdGlyph* v = fontFamily.getGlyph(vowel, style)) vowelTop = std::max<int>(vowelTop, v->top);
+        if (const EpdGlyph* v = fontFamily.resolveGlyph(vowel, style).glyph) vowelTop = std::max<int>(vowelTop, v->top);
       }
       if (vowelTop > 0) cursorY += ThaiShaping::highToneAdjustPx(cp, glyph->top, glyph->height, vowelTop);
     }
@@ -778,7 +776,7 @@ void GfxRenderer::drawText(const int fontId, const int x, const int y, const cha
       lastBaseX += fp4::toPixel(prevAdvanceFP + kernFP) + trackingBetween(prevCp, cp, tracking);
     }
 
-    const EpdGlyph* glyph = font.getGlyph(cp, style);
+    const EpdGlyph* glyph = font.resolveGlyph(cp, style).glyph;  // PERSONAL-HOOK(thai-fallback)
 
     lastBaseLeft = glyph ? glyph->left : 0;
     lastBaseWidth = glyph ? glyph->width : 0;
@@ -2172,7 +2170,7 @@ int GfxRenderer::getTextAdvanceX(const int fontId, const char* text, EpdFontFami
       int32_t advFP = sdIt->second->getAdvance(cp, styleIdx);
       if (!utf8IsCombiningMark(cp)) {
         if (advFP == 0) {
-          const EpdGlyph* glyph = font.getGlyph(cp, style);
+          const EpdGlyph* glyph = font.resolveGlyph(cp, style).glyph;  // PERSONAL-HOOK(thai-fallback)
           advFP = glyph ? glyph->advanceX : 0;
         }
         trackingPx += trackingBetween(prevCp, cp, tracking);
@@ -2211,7 +2209,7 @@ int GfxRenderer::getTextAdvanceX(const int fontId, const char* text, EpdFontFami
       widthPx += fp4::toPixel(prevAdvanceFP + kernFP) + trackingBetween(prevCp, cp, tracking);
     }
 
-    const EpdGlyph* glyph = font.getGlyph(cp, style);
+    const EpdGlyph* glyph = font.resolveGlyph(cp, style).glyph;  // PERSONAL-HOOK(thai-fallback)
     prevAdvanceFP = glyph ? glyph->advanceX : 0;
     if ((style & (EpdFontFamily::SUP | EpdFontFamily::SUB)) != 0) {
       prevAdvanceFP = (prevAdvanceFP + 1) / 2;
@@ -2315,7 +2313,7 @@ void GfxRenderer::drawTextRotated90CW(const int fontId, const int x, const int y
       lastBaseY -= fp4::toPixel(prevAdvanceFP + kernFP);       // snap 12.4 fixed-point to nearest pixel
     }
 
-    const EpdGlyph* glyph = font.getGlyph(cp, style);
+    const EpdGlyph* glyph = font.resolveGlyph(cp, style).glyph;  // PERSONAL-HOOK(thai-fallback)
 
     lastBaseLeft = glyph ? glyph->left : 0;
     lastBaseWidth = glyph ? glyph->width : 0;

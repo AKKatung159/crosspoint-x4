@@ -146,3 +146,28 @@ TEST(ThaiBrk, HandlesLongMixedThaiAscii) {
   ASSERT_FALSE(ThaiBrk::wordBreakByteOffsets(line).empty());
   expectValidBreaks(line);
 }
+
+// A personal word list (thai-words.txt) turns made-up names into single words.
+TEST(ThaiBrk, UserWordsKeepNamesWhole) {
+  const std::string text = "เจ้าชายลีโอนาร์ดแห่งอาณาจักรเวสเทอเรีย";
+  ThaiBrk::clearUserWords();
+  EXPECT_EQ(ThaiBrk::userWordsHash(), 0u);
+  const std::string before = segmented(text);
+  EXPECT_NE(before.find("เวส|เทอ"), std::string::npos) << before;
+
+  EXPECT_EQ(ThaiBrk::setUserWords("# names from the series glossary\r\nลีโอนาร์ด\nเวสเทอเรีย  \nNotThai\nก\n"), 2u);
+  EXPECT_NE(ThaiBrk::userWordsHash(), 0u);
+  const std::string after = segmented(text);
+  EXPECT_NE(after.find("|ลีโอนาร์ด|"), std::string::npos) << after;
+  EXPECT_EQ(after.substr(after.size() - std::string("|เวสเทอเรีย").size()), "|เวสเทอเรีย") << after;
+  expectValidBreaks(text);
+
+  const uint32_t h = ThaiBrk::userWordsHash();
+  ThaiBrk::setUserWords("เวสเทอเรีย\nลีโอนาร์ด\n");  // same set, other order: same hash
+  EXPECT_EQ(ThaiBrk::userWordsHash(), h);
+  ThaiBrk::setUserWords("เวสเทอเรีย\n");
+  EXPECT_NE(ThaiBrk::userWordsHash(), h);
+
+  ThaiBrk::clearUserWords();
+  EXPECT_EQ(segmented(text), before);
+}

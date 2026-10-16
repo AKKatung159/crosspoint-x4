@@ -16,6 +16,7 @@
 #include "ProgressFile.h"
 #include "ReaderActivity.h"
 #include "ReaderUtils.h"
+#include "ThaiUserDictionary.h"
 #include "components/UITheme.h"
 #include "fontIds.h"
 
@@ -37,6 +38,8 @@ bool TxtReaderActivity::loadBook() {
     return false;
   }
   txt->setupCacheDir();
+  // PERSONAL-HOOK(thai-words): re-paginate if the personal word list changed.
+  ThaiUserDictionary::invalidateStaleLayout(txt->getCachePath(), txt->getCachePath() + "/index.bin");
   return true;
 }
 
@@ -296,8 +299,11 @@ void TxtReaderActivity::renderBook() {
   renderPage(renderer);
   markPageRendered();
 
-  // Save progress
-  saveProgress();
+  // Save progress (PERSONAL-HOOK(progress): every few pages, and on exit)
+  if (!deferProgressWrite()) {
+    saveProgress();
+    progressWritten();
+  }
 }
 
 void TxtReaderActivity::renderPage(GfxRenderer& renderer) {

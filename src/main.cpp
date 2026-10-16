@@ -335,6 +335,11 @@ void setupDisplayAndFonts(bool seamless = false) {
   renderer.insertFont(NOTOSANS_14_FONT_ID, notosans14FontFamily);
   renderer.insertFont(NOTOSANS_16_FONT_ID, notosans16FontFamily);
   renderer.insertFont(NOTOSANS_18_FONT_ID, notosans18FontFamily);
+  // PERSONAL-HOOK(thai-fallback): built-in families that SD fonts borrow Thai from.
+  EpdFontFamily::registerBuiltinThaiFallback(12, &notosans12FontFamily);
+  EpdFontFamily::registerBuiltinThaiFallback(14, &notosans14FontFamily);
+  EpdFontFamily::registerBuiltinThaiFallback(16, &notosans16FontFamily);
+  EpdFontFamily::registerBuiltinThaiFallback(18, &notosans18FontFamily);
 #endif  // OMIT_FONTS
   renderer.insertFont(UI_10_FONT_ID, ui10FontFamily);
   renderer.insertFont(UI_12_FONT_ID, ui12FontFamily);

@@ -45,6 +45,15 @@ uint32_t step(const uint32_t node, const uint8_t ch) {
 
 inline bool isTerminal(const uint32_t node) { return (thaiDict::DAWG[node] & 0x80) != 0; }
 
+// --- User words (thai-words.txt): RAM, sorted, bucketed by first letter ------
+
+// Each word is stored as one byte per codepoint (cp - U+0E00), all Thai.
+std::vector<std::string> gUserWords;
+// gUserBucket[b] .. gUserBucket[b + 1] index the words starting with byte b.
+std::vector<uint16_t> gUserBucket;
+uint32_t gUserHash = 0;
+constexpr size_t kBuckets = 0x5C + 1;
+
 // --- Structural rules ------------------------------------------------------
 
 constexpr bool isThaiDigit(const uint32_t cp) { return cp >= 0x0E50 && cp <= 0x0E59; }
@@ -259,6 +268,28 @@ class Segmenter {
         }
       }
 
+      // User words starting at i (character names, series terms).
+      if (!gUserWords.empty()) {
+        const auto first = static_cast<uint8_t>(c[i].cp - 0x0E00);
+        for (size_t w = gUserBucket[first]; w < gUserBucket[first + 1]; ++w) {
+          const std::string& word = gUserWords[w];
+          const size_t end = i + word.size();
+          if (end > n || !boundary_[end] || !cells_[end].valid) continue;
+          bool match = true;
+          for (size_t k = 1; k < word.size() && match; ++k) {
+            match = c[i + k].cp - 0x0E00 == static_cast<uint8_t>(word[k]);
+          }
+          if (!match) continue;
+          const Cell& tail = cells_[end];
+          const int32_t len = static_cast<int32_t>(word.size());
+          const uint16_t segs = static_cast<uint16_t>(tail.segments + 1);
+          const int32_t sq = tail.sq + len * len;
+          if (better(tail.unknown, segs, sq, best)) {
+            best = Cell{static_cast<uint16_t>(end), tail.unknown, segs, 1, 1, sq};
+          }
+        }
+      }
+
       // Out-of-vocabulary fallback: one grapheme cluster.
       size_t e = i + 1;
       while (e < n && !boundary_[e]) ++e;
@@ -412,5 +443,56 @@ std::vector<size_t> wordBreakByteOffsets(const std::string_view text) {
 }
 
 size_t dictionaryWordCount() { return thaiDict::WORD_COUNT; }
+
+size_t setUserWords(const std::string_view text) {
+  std::vector<std::string> words;
+  size_t pos = 0;
+  while (pos < text.size() && words.size() < kMaxUserWords) {
+    size_t eol = text.find('\n', pos);
+    if (eol == std::string_view::npos) eol = text.size();
+    std::string_view line = text.substr(pos, eol - pos);
+    pos = eol + 1;
+    if (const size_t hash = line.find('#'); hash != std::string_view::npos) line = line.substr(0, hash);
+    // Decode; keep the line only if every codepoint (ignoring spaces/CR/BOM) is Thai.
+    std::string bytes;
+    bool ok = true;
+    const auto* p = reinterpret_cast<const unsigned char*>(line.data());
+    const auto* end = p + line.size();
+    while (p < end && ok) {
+      const uint32_t cp = utf8NextCodepoint(&p);
+      if (cp == ' ' || cp == 0x09 || cp == 0x0D || cp == 0xFEFF) continue;  // space, tab, CR, BOM
+      if (!isThai(cp)) {
+        ok = false;
+        break;
+      }
+      bytes.push_back(static_cast<char>(cp - 0x0E00));
+    }
+    if (ok && bytes.size() >= 2 && bytes.size() <= kMaxUserWordLen) words.push_back(std::move(bytes));
+  }
+  std::sort(words.begin(), words.end());
+  words.erase(std::unique(words.begin(), words.end()), words.end());
+
+  gUserBucket.assign(kBuckets + 1, 0);
+  uint32_t h = 2166136261u;  // FNV-1a over the sorted list
+  for (const std::string& w : words) {
+    gUserBucket[static_cast<uint8_t>(w[0]) + 1]++;
+    for (const char ch : w) h = (h ^ static_cast<uint8_t>(ch)) * 16777619u;
+    h = (h ^ 0xFFu) * 16777619u;
+  }
+  for (size_t b = 1; b <= kBuckets; ++b) gUserBucket[b] += gUserBucket[b - 1];
+  gUserWords = std::move(words);
+  gUserHash = gUserWords.empty() ? 0 : (h ? h : 1);
+  return gUserWords.size();
+}
+
+void clearUserWords() {
+  std::vector<std::string>().swap(gUserWords);
+  std::vector<uint16_t>().swap(gUserBucket);
+  gUserHash = 0;
+}
+
+size_t userWordCount() { return gUserWords.size(); }
+
+uint32_t userWordsHash() { return gUserHash; }
 
 }  // namespace ThaiBrk

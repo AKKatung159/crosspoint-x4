@@ -27,6 +27,23 @@ class EpdFontFamily {
   void getTextDimensions(const char* string, int* w, int* h, Style style = REGULAR) const;
   const EpdFontData* getData(Style style = REGULAR) const;
   const EpdGlyph* getGlyph(uint32_t cp, Style style = REGULAR) const;
+
+  // PERSONAL-HOOK(thai-fallback): SD-card fonts without Thai borrow Thai and the
+  // C90 variant glyphs from a built-in family of the nearest point size.
+  /// A glyph together with the font data that owns its bitmap (they must travel
+  /// together: getGlyphBitmap() resolves the bitmap relative to that data).
+  struct GlyphSource {
+    const EpdGlyph* glyph;
+    const EpdFontData* data;
+  };
+  /// Like getGlyph()/getData(), but a Thai or C90 PUA codepoint this family
+  /// lacks comes from its Thai fallback family, when one is set.
+  GlyphSource resolveGlyph(uint32_t cp, Style style = REGULAR) const;
+  void setThaiFallback(const EpdFontFamily* family) { thaiFallback = family; }
+  /// Built-in Thai-capable families by point size, registered once at boot.
+  static void registerBuiltinThaiFallback(uint8_t pointSize, const EpdFontFamily* family);
+  /// The registered family of `pointSize`, else the nearest size; nullptr if none.
+  static const EpdFontFamily* builtinThaiFallback(uint8_t pointSize);
   /// Returns true if the resolved style's font can render `cp` directly
   /// (interval coverage only — see EpdFont::hasCodepoint).
   bool hasCodepoint(uint32_t cp, Style style = REGULAR) const;
@@ -41,6 +58,7 @@ class EpdFontFamily {
   const EpdFont* bold;
   const EpdFont* italic;
   const EpdFont* boldItalic;
+  const EpdFontFamily* thaiFallback = nullptr;  // PERSONAL-HOOK(thai-fallback)
 
   const EpdFont* getFont(Style style) const;
 };

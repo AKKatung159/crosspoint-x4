@@ -55,6 +55,8 @@ int SdCardFontManager::loadFile(const SdCardFontFileInfo& file, const char* fami
   LOG_DBG("SDMGR", "Loaded %s size=%u id=%d styles=%u", file.path.c_str(), file.pointSize, fontId, font->styleCount());
 
   EpdFontFamily fontFamily(font->getEpdFont(0), font->getEpdFont(1), font->getEpdFont(2), font->getEpdFont(3));
+  // PERSONAL-HOOK(thai-fallback): Thai the SD font lacks comes from the built-in fonts.
+  fontFamily.setThaiFallback(EpdFontFamily::builtinThaiFallback(file.pointSize));
   renderer.insertFont(fontId, fontFamily);
   return fontId;
 }

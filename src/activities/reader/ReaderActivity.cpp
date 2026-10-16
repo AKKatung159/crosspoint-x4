@@ -13,6 +13,7 @@
 #include "ReaderUtils.h"
 #include "RecentBooksStore.h"
 #include "SdCardFontSystem.h"
+#include "ThaiUserDictionary.h"
 #include "TxtReaderActivity.h"
 #include "XtcReaderActivity.h"
 
@@ -69,6 +70,9 @@ void ReaderActivity::onEnter() {
   sdFontSystem.ensureLoaded(renderer);
   applyInitialOrientation();
 
+  // PERSONAL-HOOK(thai-words): personal word lists for this book, before layout.
+  ThaiUserDictionary::loadForBook(bookPath);
+
   if (!loadBook()) {
     finish();
     return;
@@ -87,6 +91,14 @@ void ReaderActivity::rememberBookOnceRendered() {
 
 void ReaderActivity::onExit() {
   Activity::onExit();
+
+  // PERSONAL-HOOK(progress): write the deferred reading position (runs under the
+  // render lock, before the reader's book state is torn down; also on sleep).
+  if (progressPending > 0) {
+    flushProgress();
+    progressPending = 0;
+  }
+  ThaiUserDictionary::unload();  // PERSONAL-HOOK(thai-words)
 
   // Keep rebuildable font buffers from pinning the heap between reading sessions.
   if (auto* fontCache = renderer.getFontCacheManager()) {

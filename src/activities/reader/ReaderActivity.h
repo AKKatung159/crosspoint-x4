@@ -21,6 +21,18 @@ class ReaderActivity : public Activity {
   void markPageRendered() { pageRendered.store(true, std::memory_order_release); }
   void rememberBookOnceRendered();
 
+  // PERSONAL-HOOK(progress): reading position is written to the SD card every
+  // kProgressWriteEvery page renders and always on exit (which sleep also runs),
+  // instead of on every page turn: each save is a temp write + remove + rename,
+  // i.e. several FAT updates. A crash or dead battery loses at most a few pages.
+  static constexpr uint8_t kProgressWriteEvery = 5;
+  uint8_t progressPending = 0;
+  /// Call where a page render would save progress; true = skip it for now.
+  bool deferProgressWrite() { return ++progressPending < kProgressWriteEvery; }
+  void progressWritten() { progressPending = 0; }
+  /// Writes the current position now (override in readers; default no-op).
+  virtual void flushProgress() {}
+
   explicit ReaderActivity(const char* name, GfxRenderer& renderer, MappedInputManager& mappedInput,
                           std::string bookPath, bool allowFastInitialRefresh);
 

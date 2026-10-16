@@ -60,4 +60,17 @@ std::vector<size_t> wordBreakByteOffsets(std::string_view text);
 /// Thai word count in the built-in dictionary (for diagnostics/tests).
 size_t dictionaryWordCount();
 
+/// Extra words (character names, series terms) that count as dictionary words
+/// on top of the built-in DAWG, e.g. from a "thai-words.txt" next to a book.
+/// Accepts UTF-8 lines; keeps pure-Thai entries of 2..kMaxUserWordLen
+/// codepoints, at most kMaxUserWords of them; '#' starts a comment. Replaces any
+/// previous list. Returns the number of words kept.
+constexpr size_t kMaxUserWords = 1500;
+constexpr size_t kMaxUserWordLen = 40;
+size_t setUserWords(std::string_view wordListText);
+void clearUserWords();
+size_t userWordCount();
+/// Stable hash of the active user words (0 when none), for cache invalidation.
+uint32_t userWordsHash();
+
 }  // namespace ThaiBrk

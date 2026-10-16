@@ -40,6 +40,7 @@
 #include "ReaderUtils.h"
 #include "RecentBooksStore.h"
 #include "SdCardFontSystem.h"
+#include "ThaiUserDictionary.h"
 #include "activities/settings/TextSettingsActivity.h"
 #include "components/UITheme.h"
 #include "fontIds.h"
@@ -205,6 +206,8 @@ bool EpubReaderActivity::loadBook() {
   });
 
   epub->setupCacheDir();
+  // PERSONAL-HOOK(thai-words): re-lay out the book if the personal word list changed.
+  ThaiUserDictionary::invalidateStaleLayout(epub->getCachePath(), epub->getCachePath() + "/sections");
 
   HalFile f;
   if (Storage.openFileForRead("ERS", epub->getCachePath() + "/progress.bin", f)) {
@@ -1453,11 +1456,8 @@ void EpubReaderActivity::renderBook() {
 
   if (currentSpineIndex != lastSavedSpineIndex || section->currentPage != lastSavedPage ||
       section->pageCount != lastSavedPageCount) {
-    if (saveProgress(currentSpineIndex, section->currentPage, section->estimatedTotalPages())) {
-      lastSavedSpineIndex = currentSpineIndex;
-      lastSavedPage = section->currentPage;
-      lastSavedPageCount = section->estimatedTotalPages();
-    }
+    // PERSONAL-HOOK(progress): written every few pages and on exit/sleep.
+    if (!deferProgressWrite()) flushProgress();
   }
 
   showPendingSyncSaveError();
@@ -1534,6 +1534,17 @@ bool EpubReaderActivity::applyDeferredReposition() {
 void EpubReaderActivity::clearDeferredReposition() {
   cachedChapterTotalPageCount = 0;
   cachedVisibleTextOffset.reset();
+}
+
+void EpubReaderActivity::flushProgress() {
+  // PERSONAL-HOOK(progress): the save the page render used to do every turn.
+  if (!epub || !section) return;
+  if (saveProgress(currentSpineIndex, section->currentPage, section->estimatedTotalPages())) {
+    lastSavedSpineIndex = currentSpineIndex;
+    lastSavedPage = section->currentPage;
+    lastSavedPageCount = section->estimatedTotalPages();
+  }
+  progressWritten();
 }
 
 bool EpubReaderActivity::saveProgress(int spineIndex, int currentPage, int pageCount) {

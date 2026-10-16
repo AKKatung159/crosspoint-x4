@@ -23,6 +23,7 @@ class XtcReaderActivity final : public ReaderActivity {
   void renderStatusBarOverlay(GfxRenderer& renderer, StatusBarOverlayPosition position) const;
   StatusBarInfo getStatusBarInfo() const;
   void saveProgress() const;
+  void flushProgress() override { saveProgress(); }  // PERSONAL-HOOK(progress)
   void loadProgress();
 
   bool loadBook() override;

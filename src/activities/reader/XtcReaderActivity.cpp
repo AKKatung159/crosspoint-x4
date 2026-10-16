@@ -107,7 +107,10 @@ void XtcReaderActivity::renderBook() {
   }
 
   renderPage();
-  saveProgress();
+  if (!deferProgressWrite()) {  // PERSONAL-HOOK(progress)
+    saveProgress();
+    progressWritten();
+  }
 }
 
 XtcReaderActivity::StatusBarInfo XtcReaderActivity::getStatusBarInfo() const {
