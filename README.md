@@ -1,3 +1,185 @@
+# CrossPoint X4 (personal fork): Thai reading
+
+Personal firmware for an **Xteink X4**, built on upstream
+[CrossPoint Reader 1.6.5](https://github.com/crosspoint-reader/crosspoint-reader/tree/1.6.5)
+and kept mergeable with it. Phase 1 (this release) adds proper Thai reading;
+later phases are in the [roadmap](#roadmap).
+
+<p align="center">
+  <img src="docs/thai/th-home.png" alt="Home screen in Thai" width="30%">
+  <img src="docs/thai/th-files.png" alt="File browser in Thai" width="30%">
+</p>
+
+Screenshots come from the [eink-qemu](https://github.com/serialx/eink-qemu) X4 emulator, running this firmware.
+
+## What phase 1 adds
+
+- **Thai word breaking.** Thai has no spaces between words. Lines break between
+  dictionary words (37,883 words, CC0) and never inside a syllable. Unknown
+  names wrap only at likely syllable starts. This covers EPUB and TXT.
+- **Stacked vowels and tone marks.** Marks such as `ที่ ปั้ม น้ำ ฟื้น กตัญญู` are
+  positioned using the C90 variant-glyph rules (ported from CrosspointTH).
+- **Justified Thai without holes.** The gaps between Thai words stretch by at most
+  1 px; real spaces take the rest. Nothing is ever stretched inside a word.
+- **Thai in every built-in font.** Noto Sans/Serif 12–18 in all styles, the UI
+  fonts and the status-bar font, using Sarabun's Thai glyphs.
+- **Thai UI language.** *Settings → System → Language → ไทย* (all 515 strings).
+- **OTA safety.** "Check for update" looks at this repo's releases, so it can
+  never replace this build with stock CrossPoint (which has no Thai).
+
+The design and every change to upstream files are described in
+[lib/Thai/README.md](lib/Thai/README.md).
+
+### Word breaker: why this one
+
+I compared three breakers on 3,000 paragraphs from two Thai books translated by
+epub.lan. The reference is PyThaiNLP's `deepcut` (a neural segmenter, independent
+of any dictionary). Tool: `scripts/thai/eval_segmentation.py`.
+
+| Breaker | Precision (breaks that are real word boundaries) | Recall (word boundaries offered) |
+| --- | --- | --- |
+| **This fork** (DP + cluster rules, CC0 dictionary) | **93.5%** | 87.9% |
+| Halo 2 v2.2.15 (DP, ORST dictionary) | 91.5% | 94.4% |
+| CrosspointTH v1.6.0-th.1.0 (greedy longest match) | 92.2% | 95.3% |
+
+For line breaking, precision matters most: a false break is a word cut in half
+at the end of a line. This fork makes the fewest. It keeps some compounds
+(`กินข้าว`) whole, which costs recall. Greedy matching also fails on classic
+traps, for example `ไปหามเหสี` → `ไป|หาม|เห|สี`.
+
+## Licences
+
+| Source | Licence | Used for |
+| --- | --- | --- |
+| [crosspoint-reader/crosspoint-reader](https://github.com/crosspoint-reader/crosspoint-reader) 1.6.5 | MIT | the base firmware |
+| [JTIAPBNAI/CrosspointTH](https://github.com/JTIAPBNAI/CrosspointTH) v1.6.0-th.1.0 | MIT | Thai shaping rules and tests, SarabunTH fonts, PUA patch script, Thai UI strings, dictionary trie format |
+| [kocha01/crosspoint-halo2-custom](https://github.com/kocha01/crosspoint-halo2-custom) v2.2.15 | MIT | ideas only: the DP word-break objective and syllable-aware fallback (reimplemented) |
+| [PyThaiNLP](https://github.com/PyThaiNLP/pythainlp) `words_th.txt` | CC0-1.0 | the Thai dictionary |
+| [Sarabun](https://github.com/cadsondemak/Sarabun) | SIL OFL 1.1 | Thai glyphs in the built-in fonts (`lib/EpdFont/builtinFonts/source/SarabunTH/OFL.txt`) |
+
+`crosspoint-thai-wordcut` is binary-only and is not used. CrosspointTH's
+dictionary (libthai, LGPL-2.1) is not used either.
+
+## Install on the X4
+
+Download `crosspoint-<version>-x3-x4.bin` (for example `crosspoint-1.6.5-th.1-x3-x4.bin`) from this repo's
+[Releases](../../releases), or build it (below). It is a normal app image, the
+same kind of file as the official `crosspoint-1.6.5-x3-x4.bin`.
+
+**Keep a rollback image before flashing.** From the
+[Halo 2 v2.2.15 release](https://github.com/kocha01/crosspoint-halo2-custom/releases/tag/v2.2.15),
+`firmware.bin` has SHA-256
+`b0156ec5760dce61dafe24bb76f7de58c25a3f0f8ee7f340d69420b09e151929`.
+
+### Option A: web flasher (USB-C, Chrome/Edge)
+
+1. Connect the X4 by USB-C and wake it.
+2. Open https://crosspointreader.com/#flash-tools, choose **X4**, then **Custom .bin**, and pick the file.
+3. Wait for it to finish, then let the device reboot. Do not unplug while flashing.
+
+### Option B: from the SD card (no computer connection)
+
+1. Copy the `.bin` to the SD card.
+2. On the device: **Settings → System → SD Card Firmware Update**, then pick the
+   file. Use this only if the firmware currently running has that menu.
+
+### Option C: esptool
+
+```bash
+esptool.py --chip esp32c3 --port COM5 --baud 921600 write_flash 0x10000 crosspoint-1.6.5-th.1-x3-x4.bin
+```
+
+Use `0x10000` only. Writing elsewhere can break the bootloader or the partition table.
+
+### Rollback
+
+Flash the Halo 2 `firmware.bin` (or the official `crosspoint-1.6.5-x3-x4.bin`)
+the same way. Books, progress and settings on the SD card are kept. Each
+firmware rebuilds its own layout cache the first time a book is opened.
+
+After installing: **Settings → System → Language → ไทย**. Built-in fonts already
+include Thai. SD-card fonts without Thai glyphs show boxes (see Known limits).
+
+## Build (Windows notes)
+
+```bash
+pip install https://github.com/pioarduino/platformio-core/archive/refs/tags/v6.1.19.zip
+pio run -e x4_th     # -> .pio/build/x4_th/firmware.bin
+```
+
+- Run it from **PowerShell or cmd**, not Git Bash: ESP-IDF's installer refuses
+  MSYS ("MSys/Mingw is not supported").
+- Set `PLATFORMIO_CORE_DIR=C:\pio`. A deep core directory exceeds Windows'
+  260-character path limit while unpacking the ESP32 libraries.
+- Set `PYTHONUTF8=1` on Thai-locale Windows (code page cp874). Otherwise build
+  output containing non-Thai characters crashes PlatformIO's logger.
+- Use PlatformIO **6.1.19** (pioarduino) in both your venv and `C:\pio\penv`.
+  6.2.x installs SCons 4.11 in the middle of the build, and the link step fails
+  with `No module named 'SCons.Tool.FortranCommon'`.
+
+The `x4_th` env lives in `platformio.personal.ini`. It is upstream's
+`gh_release` profile plus this fork's version and OTA URL.
+
+Current size: 6,121,456 bytes = 93.2% of the 6.4 MiB app partition
+(stock 1.6.5: 5,589,776). That leaves about 430 KB of headroom.
+
+### Host tests
+
+The tests are plain CMake + GoogleTest. On Windows I used `zig c++` (from
+`pip install ziglang`) as the compiler.
+
+```bash
+cmake -S test -B build/test -G Ninja && cmake --build build/test && ctest --test-dir build/test
+```
+
+`test/thai` has 25 tests (word breaking, shaping, justification). The upstream
+suites pass as on stock 1.6.5. On Windows, upstream's
+`CssParserTest.FailedPromotionRestoresTheOnlyBackupCache` fails (fake-storage
+path matching), and `ChapterHtmlSlimParserTest` does not compile
+(`path.c_str()` is `wchar_t*`). Both fail the same way on stock 1.6.5. With a
+local `.string()` fix, the latter's 16 tests pass with this fork's layout code.
+
+### Emulator
+
+`scripts/emu/` runs the [eink-qemu](https://github.com/serialx/eink-qemu) 0.5.0
+Windows build (riscv32, machine `x4`) without WSL:
+
+```bash
+python <eink-qemu>/eink-qemu/mkflash.py --machine x4 .pio/build/x4_th/firmware.bin flash.bin
+python scripts/emu/mksd_win.py sd.img 512 books/       # FAT32 card; pyfatfs, no mtools
+python scripts/emu/drive_win.py <eink-qemu> flash.bin sd.img log.txt wait:30 press:confirm wait:8 press:confirm wait:45 press:down wait:10 shot:page.png
+```
+
+Put `.crosspoint/settings.json` with `{"language":"TH","textAntiAliasing":0}` in
+`books/` to boot in Thai. The X4 panel model shows only the anti-aliasing gray
+planes in screen dumps, so turn anti-aliasing off for clean captures.
+
+## Known limits (phase 1)
+
+- SD-card fonts without Thai glyphs show boxes for Thai. CrosspointTH's fallback
+  to the built-in glyphs is not ported yet.
+- Lines with no space at all spread their slack across the Thai word gaps, which
+  can look loose. The cap is tunable in `lib/Thai/ThaiJustify.h`.
+- The Thai Back/Home button label `« หน้าหลัก` wraps onto two lines in the button bar.
+- Not yet checked on real hardware. Only the emulator and host tests have run.
+
+## Roadmap
+
+| Phase | Goal | Notes |
+| --- | --- | --- |
+| **1 (done)** | Thai on 1.6.5 | This release |
+| **2** | Speed and battery | Read XTC page tables on demand, as upstream does (Halo 2 loads the whole table and mallocs a page per turn). From YACP: 10 MHz CPU when idle, debounced progress writes, SD fonts loaded lazily. Port the SD-font Thai fallback. A personal word list on SD: names exported from epub.lan's series glossary. |
+| **3** | Looks and covers | CrossInk themes, upstream cover grid. Covers come from thumbnails epub.lan makes at the device's size, delivered over OPDS or pushed to the X4 web server, so the device never decodes a full cover. |
+| **4** | Status bar and dashboard | A widget status bar (clock, battery, chapter progress). A dashboard image rendered by the homelab (480×800, 1/2-bit) and fetched over Wi-Fi on wake or used as the sleep screen. |
+| **5** | Reading stats and sync | CPR-vCodex style stats (time, pages, sessions, finished books), batched SD writes, optional upload to the homelab. OTA from this repo's releases, plus CI for the `x4_th` build. |
+
+Flash budget: about 430 KB is left. Phases 3–4 may need to move the Thai
+dictionary (244 KB) or some font sizes to the SD card.
+
+---
+
+*Upstream README follows.*
+
 # CrossPoint Reader
 
 [![Fund contributors](https://img.shields.io/badge/%F0%9F%91%91_Fund_contributors-royalty.dev-BB953A?style=for-the-badge&labelColor=1a1a1a)](https://app.royalty.dev/crosspoint-reader/crosspoint-reader)

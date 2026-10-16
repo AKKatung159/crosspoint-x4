@@ -34,7 +34,9 @@ def main() -> None:
         vol = os.path.join(tmp, "vol.img")
         with open(vol, "wb") as f:
             f.truncate(vol_sectors * SECTOR)
-        PyFat().mkfs(vol, fat_type=PyFat.FAT_TYPE_FAT32, size=vol_sectors * SECTOR, label="X4SD")
+        fat = PyFat()
+        fat.mkfs(vol, fat_type=PyFat.FAT_TYPE_FAT32, size=vol_sectors * SECTOR, label="X4SD")
+        fat.close()  # mkfs keeps the file open; the FAT is only flushed on close
         if a.dir_to_copy:
             fs = PyFatFS(vol, preserve_case=True)
             try:
