@@ -2,8 +2,8 @@
 
 Personal firmware for an **Xteink X4**, built on upstream
 [CrossPoint Reader 1.6.5](https://github.com/crosspoint-reader/crosspoint-reader/tree/1.6.5)
-and kept mergeable with it. Phase 1 (this release) adds proper Thai reading;
-later phases are in the [roadmap](#roadmap).
+and kept mergeable with it. Phase 1 adds proper Thai reading, phase 2 speed and
+battery, phase 3 the home themes; later phases are in the [roadmap](#roadmap).
 
 <p align="center">
   <img src="docs/thai/th-home.png" alt="Home screen in Thai" width="30%">
@@ -50,6 +50,36 @@ Screenshots come from the [eink-qemu](https://github.com/serialx/eink-qemu) X4 e
   vowel in 1.6.5-th.1.
 
 All of this was tested end to end on a real X4 (see "Testing on a real X4").
+
+### Phase 3 (1.6.5-th.3)
+
+<p align="center">
+  <img src="docs/themes/device-cover.png" alt="Cover home theme on the X4" width="30%">
+  <img src="docs/themes/device-minimal.png" alt="Minimal home theme on the X4" width="30%">
+</p>
+
+- **Two home themes** (*Settings → Display → UI Theme*, ตั้งค่า → หน้าจอ → ธีมหน้าจอ), Lyra everywhere except
+  the home screen:
+  - **ปกเต็ม (Cover):** a big cover, the book title, author · current chapter,
+    a progress bar with "อ่านแล้ว N%", dots for the last 5 books, and icon
+    tiles with short labels.
+  - **มินิมอล (ไอคอน) (Minimal):** a bigger cover, the progress bar and icons
+    only, with no text at all (the battery and the button hints are icons too).
+  - Both use one solid icon set (`scripts/personal/home_icons.py`). Up/Down
+    walk the books first, then the tiles. The percent and chapter are saved in
+    the book's cache (`home-summary.txt`) when you leave it, so books opened
+    only on older firmware show no summary until you read them once.
+- **Noto Sans only.** Noto Serif is no longer built in (it saves about 1 MB of
+  flash). A saved Serif setting reads as Sans, and SD fonts still work.
+  Flash is now 5.04 MB (77%), with about 1.5 MB free.
+- **Sharper covers from epub.lan.** On the epub.lan branch
+  `x4-baseline-images`, books sent to the X4 (Send to X4 and OPDS) have every
+  picture rewritten as a baseline greyscale JPEG at 480×800 or smaller. The X4
+  decodes those quickly and cleanly; progressive or large JPEGs used to look
+  blocky or fail. (Not merged into epub.lan yet.)
+
+Tested on a real X4: both themes, the home summary after reading, and Thai
+reading with Sans only.
 
 The design and every change to upstream files are described in
 [lib/Thai/README.md](lib/Thai/README.md).
@@ -215,12 +245,11 @@ planes in screen dumps, so turn anti-aliasing off for clean captures.
 | --- | --- | --- |
 | **1 (done)** | Thai on 1.6.5 | This release |
 | **2 (done)** | Speed and battery | Done in 1.6.5-th.2: XTC pages streamed from SD, progress writes every 5 pages + on exit/sleep, SD-font Thai fallback, personal word lists. Already in upstream 1.6.5: on-demand XTC page tables, lower CPU clock when idle. Still open: have epub.lan write `thai-words.txt` from its series glossary. |
-| **3** | Looks and covers | CrossInk themes, upstream cover grid. Covers come from thumbnails epub.lan makes at the device's size, delivered over OPDS or pushed to the X4 web server, so the device never decodes a full cover. |
+| **3 (done)** | Looks and covers | Done in 1.6.5-th.3: Cover and Minimal home themes, one solid icon set, Noto Sans only (−1 MB flash), and baseline greyscale JPEGs from epub.lan (branch `x4-baseline-images`). Still open: merge and deploy the epub.lan branch. |
 | **4** | Status bar and dashboard | A widget status bar (clock, battery, chapter progress). A dashboard image rendered by the homelab (480×800, 1/2-bit) and fetched over Wi-Fi on wake or used as the sleep screen. |
 | **5** | Reading stats and sync | CPR-vCodex style stats (time, pages, sessions, finished books), batched SD writes, optional upload to the homelab. OTA from this repo's releases, plus CI for the `x4_th` build. |
 
-Flash budget: about 430 KB is left. Phases 3–4 may need to move the Thai
-dictionary (244 KB) or some font sizes to the SD card.
+Flash budget: about 1.5 MB is left after dropping Noto Serif in phase 3.
 
 ---
 

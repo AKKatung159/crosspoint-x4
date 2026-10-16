@@ -50,7 +50,16 @@ def prev(px):
 def nxt(px):
     im, d, n = _canvas(px); u = n / 48
     d.polygon([(14*u, 8*u), (14*u, 40*u), (38*u, 24*u)], fill=255); return _finish(im, px)
-ICONS = {"library": library, "folder": folder, "transfer": transfer, "settings": settings,
+def catalog(px):   # OPDS catalogue: solid cloud with a download arrow knocked out
+    im, d, n = _canvas(px); u = n / 48
+    d.ellipse([4*u, 18*u, 22*u, 36*u], fill=255); d.ellipse([13*u, 8*u, 35*u, 30*u], fill=255)
+    d.ellipse([27*u, 16*u, 45*u, 34*u], fill=255); d.rectangle([13*u, 24*u, 36*u, 36*u], fill=255)
+    d.ellipse([4*u, 18*u, 22*u, 40*u], fill=255); d.ellipse([27*u, 16*u, 45*u, 40*u], fill=255)
+    d.rectangle([13*u, 24*u, 36*u, 40*u], fill=255)
+    d.rectangle([21*u, 14*u, 27*u, 28*u], fill=0)
+    d.polygon([(14*u, 26*u), (34*u, 26*u), (24*u, 36*u)], fill=0)
+    return _finish(im, px)
+ICONS = {"library": library, "folder": folder, "transfer": transfer, "settings": settings, "catalog": catalog,
          "resume": resume, "select": select, "prev": prev, "next": nxt}
 def stamp(canvas, mask, x, y, ink=0):
     """Paint the icon mask (white = shape) onto canvas in `ink`."""

@@ -44,8 +44,8 @@ const uint8_t* menuIcon(const UIIcon icon, const bool small) {
       return small ? HomeTransfer28 : HomeTransfer44;
     case Settings:
       return small ? HomeSettings28 : HomeSettings44;
-    case Blocks:  // OPDS catalogue: the library shape reads as "more books"
-      return small ? HomeLibrary28 : HomeLibrary44;
+    case Blocks:  // OPDS catalogue
+      return small ? HomeCatalog28 : HomeCatalog44;
     case Book:
       return small ? HomeResume28 : HomeResume44;
     default:
@@ -64,6 +64,8 @@ const char* tileLabel(const UIIcon icon) {
       return tr(STR_TILE_TRANSFER);
     case Settings:
       return tr(STR_TILE_SETTINGS);
+    case Blocks:
+      return "OPDS";
     default:
       return nullptr;
   }
@@ -222,10 +224,10 @@ void CoverTheme::drawButtonMenu(GfxRenderer& renderer, const Rect rect, const in
     renderer.fillRoundedRect(x, rect.y, tileW, h, 14, selected ? Color::Black : Color::LightGray);
     if (icon) drawIconIn(renderer, icon, x + (tileW - kMenuIcon) / 2, rect.y + 8, kMenuIcon, !selected);
     const char* shortLabel = rowIcon ? tileLabel(rowIcon(i)) : nullptr;
-    const std::string label = renderer.truncatedText(UI_10_FONT_ID, shortLabel ? shortLabel : buttonLabel(i).c_str(),
-                                                     tileW - 8, EpdFontFamily::BOLD);
-    const int lw = renderer.getTextWidth(UI_10_FONT_ID, label.c_str(), EpdFontFamily::BOLD);
-    renderer.drawText(UI_10_FONT_ID, x + (tileW - lw) / 2, rect.y + 54, label.c_str(), !selected, EpdFontFamily::BOLD);
+    const std::string label =
+        renderer.truncatedText(UI_10_FONT_ID, shortLabel ? shortLabel : buttonLabel(i).c_str(), tileW - 6);
+    const int lw = renderer.getTextWidth(UI_10_FONT_ID, label.c_str());
+    renderer.drawText(UI_10_FONT_ID, x + (tileW - lw) / 2, rect.y + 54, label.c_str(), !selected);
   }
 }
 
