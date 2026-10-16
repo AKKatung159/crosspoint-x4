@@ -59,16 +59,21 @@ jobs:
         with:
           python-version: '3.13'
 
-      - name: Install PlatformIO (pioarduino 6.1.19)
-        # 6.2.x breaks the link step (SCons FortranCommon); see docs/personal/development.md.
-        run: pip install -U https://github.com/pioarduino/platformio-core/archive/refs/tags/v6.1.19.zip
-
       - name: Cache PlatformIO packages
         uses: actions/cache@v4
         with:
           path: ~/.platformio
-          key: pio-x4th-${{ runner.os }}-${{ hashFiles('platformio.ini', 'platformio.personal.ini') }}
-          restore-keys: pio-x4th-${{ runner.os }}-
+          key: pio-x4th-v2-${{ runner.os }}-${{ hashFiles('platformio.ini', 'platformio.personal.ini') }}
+          restore-keys: pio-x4th-v2-${{ runner.os }}-
+
+      - name: Install PlatformIO (pioarduino 6.1.19)
+        # 6.2.x breaks the link step (SCons FortranCommon). The platform also
+        # builds into its own ~/.platformio/penv, so pin that one too.
+        run: |
+          core=https://github.com/pioarduino/platformio-core/archive/refs/tags/v6.1.19.zip
+          pip install -U "$core"
+          [ -x ~/.platformio/penv/bin/python ] || python -m venv ~/.platformio/penv
+          ~/.platformio/penv/bin/pip install -U "$core"
 
       - name: Read the version
         id: version
