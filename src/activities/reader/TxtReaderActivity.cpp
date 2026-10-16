@@ -7,7 +7,10 @@
 #include <I18n.h>
 #include <Memory.h>
 #include <Serialization.h>
+#include <ThaiBrk.h>
 #include <Utf8.h>
+
+#include <algorithm>
 
 #include "CrossPointSettings.h"
 #include "ProgressFile.h"
@@ -20,7 +23,7 @@ namespace {
 constexpr size_t CHUNK_SIZE = 8 * 1024;  // 8KB chunk for reading
 // Cache file magic and version
 constexpr uint32_t CACHE_MAGIC = 0x54585449;  // "TXTI"
-constexpr uint8_t CACHE_VERSION = 3;          // Increment when cache format changes
+constexpr uint8_t CACHE_VERSION = 4;          // Increment when cache format changes (4: THAI-HOOK(txt) breaks)
 }  // namespace
 
 bool TxtReaderActivity::loadBook() {
@@ -187,12 +190,30 @@ bool TxtReaderActivity::loadPageAtOffset(const GfxRenderer& renderer, size_t off
 
       // Find break point
       size_t breakPos = line.length();
+      // THAI-HOOK(txt): Thai words have no spaces; dictionary break offsets
+      // are candidate break points next to the spaces.
+      const std::vector<size_t> thaiBreaks = ThaiBrk::wordBreakByteOffsets(line);
       while (breakPos > 0 && renderer.getTextAdvanceX(cachedFontId, line.substr(0, breakPos).c_str(),
                                                       EpdFontFamily::REGULAR) > viewportWidth) {
         // Try to break at space
         size_t spacePos = line.rfind(' ', breakPos - 1);
-        if (spacePos != std::string::npos && spacePos > 0) {
+        const auto thaiIt = std::lower_bound(thaiBreaks.begin(), thaiBreaks.end(), breakPos);
+        const size_t thaiPos = thaiIt == thaiBreaks.begin() ? 0 : *(thaiIt - 1);
+        if (thaiPos > 0 && (spacePos == std::string::npos || thaiPos > spacePos)) {
+          breakPos = thaiPos;
+        } else if (spacePos != std::string::npos && spacePos > 0) {
           breakPos = spacePos;
+        } else if (ThaiBrk::containsThai(line)) {
+          // No word break fits: cut only where a line may start (not before a
+          // Thai vowel or tone mark), keeping grapheme clusters whole.
+          const auto startsCluster = [&](const size_t pos) {
+            const auto* p = reinterpret_cast<const unsigned char*>(line.c_str() + pos);
+            return !ThaiBrk::isThaiNoBreakBefore(utf8NextCodepoint(&p));
+          };
+          breakPos--;
+          while (breakPos > 0 && ((line[breakPos] & 0xC0) == 0x80 || !startsCluster(breakPos))) {
+            breakPos--;
+          }
         } else {
           // Break at character boundary for UTF-8
           breakPos--;

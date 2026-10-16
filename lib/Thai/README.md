@@ -1,0 +1,104 @@
+# lib/Thai: Thai reading support
+
+Self-contained Thai support for this fork of CrossPoint Reader. Everything Thai
+lives here; the rest of the firmware calls in through a few small, tagged hooks
+(listed below) so upstream merges stay easy.
+
+| File | What it does |
+| --- | --- |
+| `ThaiBrk.h/.cpp` | Line-break opportunities: dictionary maximal matching + Thai cluster rules |
+| `ThaiDictData.h` | Generated word DAWG in flash (`scripts/thai/gen_thai_dict.py`) |
+| `ThaiShaping.h/.cpp` | Stacked vowel/tone glyph selection (WTT 2.0 rules, C90 PUA glyphs) |
+| `ThaiJustify.h` | How justified lines share spare width between spaces and Thai word gaps |
+| `data/thai_words_extra.txt` | This fork's extra dictionary words (loanwords, fantasy/wuxia terms) |
+
+## How it works
+
+**Word breaking.** Thai has no spaces between words. For each run of Thai text
+`ThaiBrk::wordBreakByteOffsets` runs a dynamic program over every dictionary
+match and picks the split with the fewest unknown codepoints, then the fewest
+segments, then the most even word lengths. It never breaks inside a grapheme
+cluster, and Thai Character Cluster rules keep fixed syllable shapes
+(`เ-ีย`, `เ-ือ`, `-ัว`, `เ-อ`, `-ั-`, `เ-็-`, silent finals with `์`) whole.
+Unknown words, typically transliterated names, get extra break points only at
+likely syllable starts. A stranded final consonant is merged back into the
+previous segment. Work is done in windows of at most 384 codepoints, about
+6 KB of temporary heap.
+
+**Dictionary.** PyThaiNLP `words_th.txt` (CC0) plus `data/thai_words_extra.txt`.
+One-letter entries are dropped, and so are entries of 8+ codepoints that are made
+up entirely of other entries (mostly phrases such as `ธนาคารแห่งประเทศไทย`).
+The result is 37,883 words in a 244 KB DAWG with shared suffixes. It lives in
+flash and uses no RAM.
+
+**Shaping.** `ThaiShaping` swaps in the C90 Private Use Area variant glyphs:
+the high tone tier above an upper vowel, left-shifted marks over `ป ฝ ฟ ฬ`, the
+descender-less `ญ ฐ`, a lowered `ุ ู` under `ฎ ฏ`, and `ำ` split into `ํ`+`า`.
+Shaping runs inside GfxRenderer's draw/measure funnel, and only for fonts that
+contain the PUA glyphs. Section caches therefore keep plain Unicode, and an SD
+font without the variants still draws unshaped Thai.
+
+**Justification.** A Thai word gap (a break with no visible space) gets at most
+1 px of stretch. Real spaces take the rest, up to 10 px each, and anything left
+over is shared evenly by the Thai gaps. Nothing is ever added inside a word.
+
+**Fonts.** Every built-in font (Noto Sans/Serif 12–18 in four styles, Ubuntu
+UI 10/12, the 8 pt status font) also contains Thai and the C90 variants from
+SarabunTH (Sarabun, OFL, with PUA variants encoded by
+`scripts/thai/thai_pua_patch.py`). Noto keeps priority for every glyph it has.
+
+## Core hooks
+
+Every change outside `lib/Thai` is tagged `THAI-HOOK(<name>)` or
+`PERSONAL-HOOK` (`git grep -n "THAI-HOOK\|PERSONAL-HOOK"`):
+
+| Tag | File | Change |
+| --- | --- | --- |
+| `words` | `lib/Epub/Epub/ParsedText.cpp` `addWord()` | Thai words are split at `ThaiBrk` offsets into zero-width-gap tokens (same mechanism as CJK); no focus-reading split for Thai |
+| `glue` | `ParsedText.cpp` `addWord()` | Thai fragments split by inline markup (`<b>`, `<span>`) keep a break opportunity |
+| `justify` | `ParsedText.cpp` `extractLine()` | Counts Thai word gaps; `ThaiJustify::distribute` splits the spare width; the LTR and RTL gap loops use the per-gap value |
+| `shape` | `lib/GfxRenderer/GfxRenderer.cpp` | `resolveVisualText()` shapes Thai after bidi for C90-capable fonts; called from `drawText`, `getTextWidth`, `getTextAdvanceX` |
+| `tone` | `GfxRenderer.cpp` `renderCharImpl()` | Lowers C90 high-tier tone glyphs by ascender/8 (from CrosspointTH) |
+| — | `lib/Epub/Epub/Section.cpp` | `SECTION_FILE_VERSION` 48 → 49, so books laid out by older firmware are laid out again |
+| `txt` | `src/activities/reader/TxtReaderActivity.cpp` | TXT wrapping prefers the nearest Thai word break and never cuts a cluster; `CACHE_VERSION` 3 → 4 |
+| `fonts` | `lib/EpdFont/scripts/convert-builtin-fonts.sh` | Adds SarabunTH and the Thai/PUA intervals to every built-in font; headers in `builtinFonts/` are regenerated |
+| `PERSONAL` | `platformio.ini` | `extra_configs` also loads `platformio.personal.ini` (this fork's `x4_th` env) |
+| `PERSONAL` | `src/network/OtaUpdater.cpp` | Release URL is overridable (`CROSSPOINT_RELEASES_API`), so OTA never swaps this build for stock upstream |
+
+Other additions outside `lib/Thai`: `lib/I18n/translations/thai.yaml` (picked up
+automatically by `scripts/gen_i18n.py`), `test/thai/` plus one
+`add_subdirectory` line in `test/CMakeLists.txt`, and `scripts/thai/`.
+
+### After an upstream merge
+
+1. Resolve conflicts at the hook sites above. If upstream changed
+   `SECTION_FILE_VERSION`, take upstream's value + 1.
+2. If upstream changed a font source or `fontconvert.py`, regenerate:
+   `bash lib/EpdFont/scripts/convert-builtin-fonts.sh`.
+3. If upstream added UI strings, translate them in `thai.yaml` (missing keys fall
+   back to English, with a build warning).
+4. Run the host tests (`test/thai` and the rest) and `pio run -e x4_th`.
+
+## Known limits
+
+- **SD-card fonts without Thai** show boxes for Thai. CrosspointTH falls back to
+  the built-in Thai glyphs for these; porting that touches `EpdFontFamily` and
+  every glyph lookup in GfxRenderer, so it is left for a later phase. SD fonts
+  that do have Thai work, and are shaped if they also have the C90 glyphs.
+- Rotated text (`drawTextRotated90CW`) and scaled sup/sub glyphs are not shaped.
+- Dictionary breaking can still split unknown names unusually. Personal word
+  lists (for example the series glossary from epub.lan) are on the roadmap.
+
+## Credits and licences
+
+- Shaping rules and test cases, SarabunTH fonts, the high-tone lowering and the
+  dictionary trie format come from
+  [JTIAPBNAI/CrosspointTH](https://github.com/JTIAPBNAI/CrosspointTH) (MIT).
+- The DP objective (fewest unknowns, then fewest segments) and syllable-aware
+  fallback follow
+  [kocha01/crosspoint-halo2-custom](https://github.com/kocha01/crosspoint-halo2-custom)
+  (MIT), reimplemented here on a flash DAWG with bounded memory.
+- Word list: [PyThaiNLP](https://github.com/PyThaiNLP/pythainlp) `words_th.txt`,
+  CC0-1.0.
+- Sarabun: Cadson Demak / The Sarabun Project, SIL OFL 1.1
+  (`lib/EpdFont/builtinFonts/source/SarabunTH/OFL.txt`).

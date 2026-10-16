@@ -18,8 +18,13 @@
 #include "FirmwareBoardTag.h"
 #include "FirmwareFlasher.h"
 
+// PERSONAL-HOOK(ota): forks point OTA at their own releases (platformio.personal.ini).
+#ifndef CROSSPOINT_RELEASES_API
+#define CROSSPOINT_RELEASES_API "https://api.github.com/repos/crosspoint-reader/crosspoint-reader/releases/latest"
+#endif
+
 namespace {
-constexpr char latestReleaseUrl[] = "https://api.github.com/repos/crosspoint-reader/crosspoint-reader/releases/latest";
+constexpr char latestReleaseUrl[] = CROSSPOINT_RELEASES_API;
 }  // namespace
 
 OtaUpdater::OtaUpdaterError OtaUpdater::checkForUpdate() {

@@ -35,6 +35,15 @@ target_compile_options(crosspoint_test_common INTERFACE
   -pedantic
 )
 
+# Personal fork: ParsedText.cpp and GfxRenderer.cpp call into lib/Thai, so every
+# suite that compiles them needs these sources (see lib/Thai/README.md).
+add_library(crosspoint_thai STATIC
+  ${REPO_ROOT}/lib/Thai/ThaiBrk.cpp
+  ${REPO_ROOT}/lib/Thai/ThaiShaping.cpp
+)
+target_include_directories(crosspoint_thai PUBLIC ${REPO_ROOT}/lib/Thai ${REPO_ROOT}/lib/Utf8)
+target_link_libraries(crosspoint_test_common INTERFACE crosspoint_thai)
+
 enable_testing()
 include(GoogleTest)
 
@@ -60,6 +69,7 @@ add_subdirectory(font_cache_manager)
 add_subdirectory(css_parser)
 add_subdirectory(chapter_html_slim_parser)
 add_subdirectory(korean_line_breaking)
+add_subdirectory(thai)  # personal fork: lib/Thai (see lib/Thai/README.md)
 add_subdirectory(ligature_guard)
 add_subdirectory(page_link)
 add_subdirectory(content_opf_parser)

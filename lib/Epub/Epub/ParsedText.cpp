@@ -4,6 +4,8 @@
 #include <GfxRenderer.h>
 #include <Logging.h>
 #include <Memory.h>
+#include <ThaiBrk.h>
+#include <ThaiJustify.h>
 #include <Utf8.h>
 
 #include <algorithm>
@@ -491,7 +493,9 @@ void ParsedText::addWord(std::string word, const EpdFontFamily::Style fontStyle,
   // whitespace separated the two words, that space is content and must be rendered: Korean
   // is a space-delimited script written in Hangul, which utf8IsCjkBreakable() covers.
   if (attachToPrevious && !words.empty() &&
-      hasCjkBreakOpportunityBetween(lastCodepoint(wordStore.view(words.back())), firstCodepoint(word))) {
+      (hasCjkBreakOpportunityBetween(lastCodepoint(wordStore.view(words.back())), firstCodepoint(word)) ||
+       // THAI-HOOK(glue): Thai fragments split by inline markup keep a break opportunity.
+       ThaiBrk::boundaryAllowsBreak(lastCodepoint(wordStore.view(words.back())), firstCodepoint(word)))) {
     effectiveAttachToPrevious = false;
     effectiveNoSpaceBefore = true;
   }
@@ -518,6 +522,34 @@ void ParsedText::addWord(std::string word, const EpdFontFamily::Style fontStyle,
     wordLinkIds.reserve(newCapacity);
     wordVisibleOffsetDeltas.reserve(newCapacity);
   };
+
+  // THAI-HOOK(words): dictionary word boundaries become zero-width break
+  // opportunities, like the CJK path below. Tokens stay unshaped Unicode; the
+  // renderer shapes at draw/measure time. Thai never takes the focus-reading
+  // split, which would cut through grapheme clusters.
+  if (ThaiBrk::containsThai(word)) {
+    const auto breakOffsets = ThaiBrk::wordBreakByteOffsets(word);
+    ensureTokenCapacity(breakOffsets.size() + 1);
+    bool firstToken = true;
+    size_t tokenStart = 0;
+    uint32_t tokenVisibleOffset = visibleTextOffset;
+    const auto pushThai = [&](const std::string_view token) {
+      pushToken(token, firstToken ? effectiveAttachToPrevious : false, firstToken ? effectiveNoSpaceBefore : true,
+                /*focusBoundary=*/0, tokenVisibleOffset);
+      tokenVisibleOffset += countCodepoints(token);
+      firstToken = false;
+    };
+    for (const size_t breakOffset : breakOffsets) {
+      if (breakOffset <= tokenStart || breakOffset > word.size()) continue;
+      pushThai(std::string_view(word.data() + tokenStart, breakOffset - tokenStart));
+      tokenStart = breakOffset;
+    }
+    if (tokenStart < word.size()) pushThai(std::string_view(word).substr(tokenStart));
+    if (wordStartsRtl) {
+      hasRtlWord = true;
+    }
+    return;
+  }
 
   if (auto breakOffsets = cjkCharacterBreakByteOffsets(word); !breakOffsets.empty()) {
     // CJK-heavy paragraphs can push hundreds of tiny tokens quickly when CSS toggles
@@ -1401,6 +1433,7 @@ void ParsedText::extractLine(const size_t breakIndex, const int pageWidth, const
   // and accumulate total natural gap widths (including space kerning adjustments).
   int lineWordWidthSum = 0;
   size_t actualGapCount = 0;
+  size_t thaiGapCount = 0;  // THAI-HOOK(justify): subset of actualGapCount
   int totalNaturalGaps = 0;
 
   for (size_t wordIdx = 0; wordIdx < lineWordCount; wordIdx++) {
@@ -1410,6 +1443,11 @@ void ParsedText::extractLine(const size_t breakIndex, const int pageWidth, const
     const bool isSpaceToken = lineWords[wordIdx] == " ";
     if (TokenBoundary::isJustifiableGap(continuesVec[boundaryIdx], noSpaceBeforeVec[boundaryIdx], isSpaceToken)) {
       actualGapCount++;
+      if (!continuesVec[boundaryIdx] &&
+          ThaiJustify::isThaiWordGap(noSpaceBeforeVec[boundaryIdx], lastCodepoint(lineWords[wordIdx - 1]),
+                                     firstCodepoint(lineWords[wordIdx]))) {
+        thaiGapCount++;
+      }
     }
     if (continuesVec[boundaryIdx]) {
       totalNaturalGaps +=
@@ -1439,9 +1477,23 @@ void ParsedText::extractLine(const size_t breakIndex, const int pageWidth, const
   // For justified text, compute per-gap extra to distribute remaining space evenly.
   // extraEndOffset reserves space for any ruby group at the right edge of the line.
   const int spareSpace = effectivePageWidth - extraStartOffset - extraEndOffset - lineWordWidthSum - totalNaturalGaps;
-  const int justifyExtra = (effectiveAlignment == CssTextAlign::Justify && !isLastLine)
-                               ? computeJustifyExtra(spareSpace, actualGapCount)
-                               : 0;
+  int justifyExtra = (effectiveAlignment == CssTextAlign::Justify && !isLastLine)
+                         ? computeJustifyExtra(spareSpace, actualGapCount)
+                         : 0;
+  // THAI-HOOK(justify): Thai word gaps (no visible space) stretch at most a
+  // pixel or so; real spaces take the rest (see ThaiJustify::distribute).
+  int thaiJustifyExtra = justifyExtra;
+  if (thaiGapCount > 0 && effectiveAlignment == CssTextAlign::Justify && !isLastLine) {
+    const auto split = ThaiJustify::distribute(spareSpace, thaiGapCount, actualGapCount - thaiGapCount);
+    thaiJustifyExtra = split.thaiGap;
+    justifyExtra = split.otherGap;
+  }
+  const auto gapExtra = [&](const size_t wordIdx, const bool nextNoSpace) {
+    return ThaiJustify::isThaiWordGap(nextNoSpace, lastCodepoint(lineWords[wordIdx]),
+                                      firstCodepoint(lineWords[wordIdx + 1]))
+               ? thaiJustifyExtra
+               : justifyExtra;
+  };
 
   // BiDi processing: reorder words with UAX#9 in full-line context.
   visualOrderScratch.clear();
@@ -1625,7 +1677,7 @@ void ParsedText::extractLine(const size_t breakIndex, const int pageWidth, const
                                            wordSpacingPercent);
           }
           if (wordIdx + 1 < lineWordCount && effectiveAlignment == CssTextAlign::Justify && !isLastLine) {
-            gap += justifyExtra;
+            gap += gapExtra(wordIdx, nextNoSpace);  // THAI-HOOK(justify)
           }
           xpos -= gap;
         }
@@ -1668,7 +1720,7 @@ void ParsedText::extractLine(const size_t breakIndex, const int pageWidth, const
                                            wordSpacingPercent);
           }
           if (wordIdx + 1 < lineWordCount && effectiveAlignment == CssTextAlign::Justify && !isLastLine) {
-            gap += justifyExtra;
+            gap += gapExtra(wordIdx, nextNoSpace);  // THAI-HOOK(justify)
           }
           xpos += wordWidths[lastBreakAt + wordIdx] + gap;
         }

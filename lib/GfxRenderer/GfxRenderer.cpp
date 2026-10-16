@@ -8,6 +8,8 @@
 #include <Logging.h>
 #include <MemoryManager.h>
 #include <SdCardFont.h>
+#include <ThaiBrk.h>
+#include <ThaiShaping.h>
 #include <TtfEpdFont.h>
 #include <Utf8.h>
 
@@ -45,7 +47,9 @@ uint16_t getSdCardSpaceAdvance(SdCardFont& font, const EpdFontFamily::Style styl
 }  // namespace
 
 namespace {
-const char* resolveVisualText(const char* text, std::string& visualBuffer, BidiUtils::BidiBaseDir baseDir);
+const char* resolveVisualText(const char* text, std::string& visualBuffer, BidiUtils::BidiBaseDir baseDir,
+                              bool thaiShaping = false);
+bool fontHasThaiPua(const std::map<int, EpdFontFamily>& fonts, int fontId, EpdFontFamily::Style style);
 
 // Appends the shaped visual form of every RTL token in `text` to `shapedOut`.
 // getTextAdvanceX() measures the bidi-reordered, Arabic-shaped codepoint stream,
@@ -534,6 +538,11 @@ static void renderCharImpl(const GfxRenderer& renderer, GfxRenderer::RenderMode 
   }
 
   const EpdFontData* fontData = fontFamily.getData(style);
+  if constexpr (rotation == TextRotation::None) {
+    // THAI-HOOK(tone): C90 high-tier tone marks keep an OpenType bearing that
+    // floats them a tier too high without GPOS; pull them down proportionally.
+    cursorY += ThaiShaping::highToneLoweringPx(cp, fontData->ascender);
+  }
   const bool is2Bit = fontData->is2Bit;
   const uint8_t width = glyph->width;
   const uint8_t height = glyph->height;
@@ -660,7 +669,8 @@ int GfxRenderer::getTextWidth(const int fontId, const char* text, const EpdFontF
   }
 
   std::string visual;
-  const char* renderedText = resolveVisualText(text, visual, baseDir);
+  const char* renderedText =
+      resolveVisualText(text, visual, baseDir, fontHasThaiPua(fontMap, resolvedFontId, style));  // THAI-HOOK(shape)
 
   // Redirected to the SD fallback: batch-load the string's glyphs so the
   // per-codepoint measurement loop below doesn't fault them in one SD read
@@ -693,7 +703,8 @@ void GfxRenderer::drawText(const int fontId, const int x, const int y, const cha
   const int resolvedFontId = resolveTextFontId(fontId, text, style);
 
   std::string visual;
-  const char* renderedText = resolveVisualText(text, visual, baseDir);
+  const char* renderedText =
+      resolveVisualText(text, visual, baseDir, fontHasThaiPua(fontMap, resolvedFontId, style));  // THAI-HOOK(shape)
 
   // Baseline from the resolved font; when the string was redirected to the
   // fallback, the caller positioned this line with the REQUESTED font's
@@ -786,7 +797,28 @@ void GfxRenderer::drawText(const int fontId, const int x, const int y, const cha
 }
 
 namespace {
-const char* resolveVisualText(const char* text, std::string& visualBuffer, const BidiUtils::BidiBaseDir baseDir) {
+const char* resolveBidiText(const char* text, std::string& visualBuffer, BidiUtils::BidiBaseDir baseDir);
+
+// THAI-HOOK(shape): Thai contextual glyph selection (lib/Thai/ThaiShaping.h)
+// rides the same funnel as bidi/Arabic shaping, so drawText, getTextWidth and
+// getTextAdvanceX always agree. Only fonts carrying the C90 PUA variants are
+// shaped; others draw plain Unicode. Shaped text is shaped again as a no-op.
+bool fontHasThaiPua(const std::map<int, EpdFontFamily>& fonts, const int fontId, const EpdFontFamily::Style style) {
+  const auto it = fonts.find(fontId);
+  return it != fonts.end() && it->second.hasCodepoint(ThaiShaping::PUA_PROBE, style);
+}
+
+const char* resolveVisualText(const char* text, std::string& visualBuffer, const BidiUtils::BidiBaseDir baseDir,
+                              const bool thaiShaping) {
+  const char* visual = resolveBidiText(text, visualBuffer, baseDir);
+  if (thaiShaping && visual && ThaiBrk::containsThai(visual) && ThaiShaping::needsShaping(visual)) {
+    visualBuffer = ThaiShaping::shapeUtf8(visual);
+    return visualBuffer.c_str();
+  }
+  return visual;
+}
+
+const char* resolveBidiText(const char* text, std::string& visualBuffer, const BidiUtils::BidiBaseDir baseDir) {
   if (!text || *text == '\0') return text;
 
   if (baseDir != BidiUtils::BidiBaseDir::RTL) {
@@ -2108,7 +2140,7 @@ int GfxRenderer::getTextAdvanceX(const int fontId, const char* text, EpdFontFami
   // lines come out wider than they draw — uneven word gaps and a ragged
   // right margin.
   std::string visual;
-  text = resolveVisualText(text, visual, baseDir);
+  text = resolveVisualText(text, visual, baseDir, fontHasThaiPua(fontMap, resolvedFontId, style));  // THAI-HOOK(shape)
 
   // Advance table fast-path for SD card fonts during layout.
   // No kerning/ligature lookup — consistent with previous metadataOnly behavior
