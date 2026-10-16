@@ -22,6 +22,7 @@
 #include "MappedInputManager.h"
 #include "OpdsServerStore.h"
 #include "RecentBooksStore.h"
+#include "activities/reader/ReaderUtils.h"
 #include "components/UITheme.h"
 #include "fontIds.h"
 
@@ -175,14 +176,32 @@ void HomeActivity::loadRecentCovers(int coverHeight) {
       if (showingLoading) GUI.fillPopupProgress(renderer, popupRect, progress * 100 / recentBooks.size());
       continue;
     }
+    // PERSONAL: on grey-cover themes a book whose cover path was cleared (its
+    // cache was wiped, so the thumb could not be made) gets another try.
+    bool recoveredPath = false;
+    if (book.coverBmpPath.empty() && GUI.homeGreyCovers() && FsHelpers::hasEpubExtension(book.path)) {
+      book.coverBmpPath = Epub(book.path, "/.crosspoint").getThumbBmpPath();
+      recoveredPath = true;
+    }
     if (!book.coverBmpPath.empty()) {
       std::string coverPath = UITheme::getCoverThumbPath(book.coverBmpPath, thumbHeight);
-      if (!Storage.exists(coverPath.c_str())) {
+      // PERSONAL: grey-cover themes use the 2-bit EPUB thumb (thumbg_<height>.bmp).
+      const bool greyThumb = GUI.homeGreyCovers() && FsHelpers::hasEpubExtension(book.path);
+      if (greyThumb) {
+        const size_t slash = coverPath.rfind("/thumb_");
+        if (slash != std::string::npos) coverPath.replace(slash, 7, "/thumbg_");
+      }
+      if (recoveredPath && Storage.exists(coverPath.c_str())) {
+        // PERSONAL: the thumb is already there; remember the path and redraw.
+        RECENT_BOOKS.updateBook(book.path, book.title, book.author, book.coverBmpPath);
+        coverRendered = false;
+        requestUpdate();
+      } else if (!Storage.exists(coverPath.c_str())) {
         // If epub, try to load the metadata for title/author and cover
         if (FsHelpers::hasEpubExtension(book.path)) {
           Epub epub(book.path, "/.crosspoint");
           // Skip loading css since we only need metadata here
-          epub.load(false, true);
+          const bool cached = epub.load(false, true);
 
           // Try to generate thumbnail image for Continue Reading card
           if (!showingLoading) {
@@ -190,10 +209,14 @@ void HomeActivity::loadRecentCovers(int coverHeight) {
             popupRect = GUI.drawPopup(renderer, tr(STR_LOADING_POPUP));
           }
           GUI.fillPopupProgress(renderer, popupRect, 10 + progress * (90 / recentBooks.size()));
-          bool success = epub.generateThumbBmp(thumbHeight);
+          // PERSONAL: without a cache (never opened, or wiped) read the cover straight from the EPUB.
+          bool success = cached ? epub.generateThumbBmp(thumbHeight, greyThumb)
+                                : epub.generateThumbBmpFromSource(thumbHeight, greyThumb);
           if (!success) {
             RECENT_BOOKS.updateBook(book.path, book.title, book.author, "");
             book.coverBmpPath = "";
+          } else if (recoveredPath) {
+            RECENT_BOOKS.updateBook(book.path, book.title, book.author, book.coverBmpPath);  // PERSONAL
           }
           coverRendered = false;
           requestUpdate();
@@ -537,6 +560,9 @@ void HomeActivity::render(RenderLock&&) {
   GUI.drawButtonHints(renderer, labels.btn1, labels.btn2, labels.btn3, labels.btn4);
 
   renderer.displayBuffer(cleanInitialRefresh && !firstRenderDone ? HalDisplay::HALF_REFRESH : HalDisplay::FAST_REFRESH);
+  // PERSONAL: grey home cover. The B/W pass drew every non-white cover pixel
+  // black; this pass redraws only the cover into the grey planes.
+  if (GUI.homeCoverIsGrey()) ReaderUtils::renderAntiAliased(renderer, [this] { GUI.homeCoverGreyPass(renderer); });
 
   if (!firstRenderDone) {
     firstRenderDone = true;

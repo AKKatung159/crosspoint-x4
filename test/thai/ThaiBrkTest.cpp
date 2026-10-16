@@ -60,8 +60,10 @@ TEST(ThaiBrk, DictionaryIsLoaded) { EXPECT_GT(ThaiBrk::dictionaryWordCount(), 30
 
 TEST(ThaiBrk, SegmentsSimpleSentences) {
   EXPECT_EQ(segmented("วันนี้อากาศดี"), "วันนี้|อากาศ|ดี");
-  EXPECT_EQ(segmented("เขาเดินทางไปต่างประเทศเมื่อปีที่แล้ว"), "เขา|เดินทาง|ไป|ต่าง|ประเทศ|เมื่อ|ปี|ที่แล้ว");
-  EXPECT_EQ(segmented("การที่เขาทำเช่นนั้นทำให้ทุกคนตกใจ"), "การ|ที่|เขา|ทำ|เช่น|นั้น|ทำให้|ทุกคน|ตกใจ");
+  EXPECT_EQ(segmented("เขาเดินทางไปต่างประเทศเมื่อปีที่แล้ว"), "เขา|เดินทาง|ไป|ต่างประเทศ|เมื่อ|ปี|ที่แล้ว");
+  EXPECT_EQ(segmented("การที่เขาทำเช่นนั้นทำให้ทุกคนตกใจ"), "การ|ที่|เขา|ทำ|เช่นนั้น|ทำให้|ทุกคน|ตกใจ");
+  // 8-11 codepoint words stay in the dictionary even when they split into shorter entries.
+  EXPECT_EQ(segmented("แล้วหนังสือจะมีประโยชน์อะไร"), "แล้ว|หนังสือ|จะ|มีประโยชน์|อะไร");
 }
 
 // Greedy longest-match (CrosspointTH) takes "หาม" and is then stuck with
@@ -99,7 +101,7 @@ TEST(ThaiBrk, MaiyamokAndPaiyannoiStayAttached) {
 
 TEST(ThaiBrk, BreaksAtScriptTransitionsButNotAroundPunctuation) {
   EXPECT_EQ(segmented("ภาษาPythonง่าย"), "ภาษา|Python|ง่าย");
-  EXPECT_EQ(segmented("(ฉันชอบอ่านหนังสือ)"), "(ฉัน|ชอบ|อ่าน|หนังสือ)");
+  EXPECT_EQ(segmented("(ฉันชอบอ่านหนังสือ)"), "(ฉัน|ชอบ|อ่านหนังสือ)");
   EXPECT_EQ(segmented("“สวัสดี”"), "“สวัสดี”");
   EXPECT_EQ(segmented("ราคา100บาท"), "ราคา|100|บาท");
   EXPECT_EQ(segmented("ไทย-อังกฤษ"), "ไทย-อังกฤษ");

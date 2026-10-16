@@ -286,6 +286,12 @@ class BaseTheme {
   // Thumb generation height for home covers; 0 means use metrics.homeCoverHeight.
   // Themes with slots wider than 0.6 aspect override this so covers still fill.
   virtual int homeCoverThumbHeight(const GfxRenderer&) const { return 0; }
+  // PERSONAL: themes that show the home cover in grey. Home then generates
+  // 2-bit EPUB thumbs, and after the B/W refresh runs one grey pass that
+  // redraws only the cover (homeCoverGreyPass) when homeCoverIsGrey().
+  virtual bool homeGreyCovers() const { return false; }
+  virtual bool homeCoverIsGrey() const { return false; }
+  virtual void homeCoverGreyPass(const GfxRenderer&) const {}
 
   // Shared constants and helpers for battery drawing (used by all themes)
   static constexpr int batteryPercentSpacing = 4;

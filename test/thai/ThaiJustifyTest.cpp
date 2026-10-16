@@ -1,6 +1,8 @@
 #include <ThaiJustify.h>
 #include <gtest/gtest.h>
 
+#include <algorithm>
+
 using ThaiJustify::distribute;
 
 TEST(ThaiJustify, NoThaiGapsIsTheUpstreamEvenSplit) {
@@ -17,7 +19,7 @@ TEST(ThaiJustify, SpacesTakeTheStretchFirst) {
 TEST(ThaiJustify, SpacesAreCappedAndThaiGapsShareTheRest) {
   const auto e = distribute(60, 10, 1);
   EXPECT_EQ(e.otherGap, ThaiJustify::kMaxSpaceStretchPx);
-  EXPECT_EQ(e.thaiGap, (60 - ThaiJustify::kMaxSpaceStretchPx) / 10);
+  EXPECT_EQ(e.thaiGap, std::min((60 - ThaiJustify::kMaxSpaceStretchPx) / 10, ThaiJustify::kMaxThaiShareGapPx));
   EXPECT_LE(e.otherGap + 10 * e.thaiGap, 60);
 }
 
@@ -25,6 +27,15 @@ TEST(ThaiJustify, LineWithoutSpacesStretchesThaiGaps) {
   EXPECT_EQ(distribute(24, 8, 0).thaiGap, 3);
   EXPECT_EQ(distribute(0, 8, 0).thaiGap, 0);
   EXPECT_EQ(distribute(-5, 8, 3).thaiGap, 0);
+}
+
+TEST(ThaiJustify, ThaiGapsNeverOpenIntoHoles) {
+  // A short line with no spaces: the gaps stop at the cap, the rest stays at the end.
+  EXPECT_EQ(distribute(80, 10, 0).thaiGap, ThaiJustify::kMaxThaiShareGapPx);
+  // Spaces already capped: the Thai gaps are capped too.
+  const auto e = distribute(200, 10, 2);
+  EXPECT_EQ(e.otherGap, ThaiJustify::kMaxSpaceStretchPx);
+  EXPECT_EQ(e.thaiGap, ThaiJustify::kMaxThaiShareGapPx);
 }
 
 TEST(ThaiJustify, ThaiWordGapNeedsThaiOnBothSides) {

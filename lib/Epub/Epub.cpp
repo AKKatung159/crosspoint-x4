@@ -767,11 +767,13 @@ bool Epub::generateCoverBmp(bool cropped, bool originalThresholds) const {
 }
 
 std::string Epub::getThumbBmpPath() const { return cachePath + "/thumb_[HEIGHT].bmp"; }
-std::string Epub::getThumbBmpPath(int height) const { return cachePath + "/thumb_" + std::to_string(height) + ".bmp"; }
+std::string Epub::getThumbBmpPath(int height, const bool grey) const {
+  return cachePath + (grey ? "/thumbg_" : "/thumb_") + std::to_string(height) + ".bmp";
+}
 
-bool Epub::generateThumbBmp(int height) const {
+bool Epub::generateThumbBmp(int height, const bool grey) const {
   // Already generated, return true
-  if (Storage.exists(getThumbBmpPath(height).c_str())) {
+  if (Storage.exists(getThumbBmpPath(height, grey).c_str())) {
     return true;
   }
 
@@ -780,11 +782,11 @@ bool Epub::generateThumbBmp(int height) const {
     return false;
   }
 
-  return generateThumbBmpForCover(height, bookMetadataCache->coreMetadata.coverItemHref);
+  return generateThumbBmpForCover(height, bookMetadataCache->coreMetadata.coverItemHref, grey);
 }
 
-bool Epub::generateThumbBmpFromSource(int height) {
-  if (Storage.exists(getThumbBmpPath(height).c_str())) return true;
+bool Epub::generateThumbBmpFromSource(int height, const bool grey) {
+  if (Storage.exists(getThumbBmpPath(height, grey).c_str())) return true;
   // Parser input and metadata outlive parsing but exceed the small task stack budget.
   auto metadata = makeUniqueNoThrow<BookMetadataCache::BookMetadata>();
   auto zip = makeUniqueNoThrow<ZipFile>(filepath);
@@ -799,10 +801,10 @@ bool Epub::generateThumbBmpFromSource(int height) {
   if (!parseContentOpf(*metadata, /*writeSpineEntries=*/false, /*metadataOnly=*/false, zip.get())) return false;
   zip.reset();
   setupCacheDir();
-  return generateThumbBmpForCover(height, metadata->coverItemHref);
+  return generateThumbBmpForCover(height, metadata->coverItemHref, grey);
 }
 
-bool Epub::generateThumbBmpForCover(int height, const std::string& coverImageHref) const {
+bool Epub::generateThumbBmpForCover(int height, const std::string& coverImageHref, const bool grey) const {
   if (coverImageHref.empty()) {
     LOG_DBG("EBP", "No known cover image for thumbnail");
   } else if (FsHelpers::hasJpgExtension(coverImageHref)) {
@@ -822,15 +824,18 @@ bool Epub::generateThumbBmpForCover(int height, const std::string& coverImageHre
     }
 
     HalFile thumbBmp;
-    if (!Storage.openFileForWrite("EBP", getThumbBmpPath(height), thumbBmp)) {
+    if (!Storage.openFileForWrite("EBP", getThumbBmpPath(height, grey), thumbBmp)) {
       return false;
     }
     // Use smaller target size for Continue Reading card (half of screen: 240x400)
     // Generate 1-bit BMP for fast home screen rendering (no gray passes needed)
     int THUMB_TARGET_WIDTH = height * 0.6;
     int THUMB_TARGET_HEIGHT = height;
-    const bool success = JpegToBmpConverter::jpegFileTo1BitBmpStreamWithSize(coverJpg, thumbBmp, THUMB_TARGET_WIDTH,
-                                                                             THUMB_TARGET_HEIGHT);
+    const bool success =
+        grey ? JpegToBmpConverter::jpegFileToBmpStreamWithSize(coverJpg, thumbBmp, THUMB_TARGET_WIDTH,
+                                                               THUMB_TARGET_HEIGHT)  // PERSONAL: grey thumb
+             : JpegToBmpConverter::jpegFileTo1BitBmpStreamWithSize(coverJpg, thumbBmp, THUMB_TARGET_WIDTH,
+                                                                   THUMB_TARGET_HEIGHT);
     // Explicitly close() files before calling Storage.remove()
     coverJpg.close();
     thumbBmp.close();
@@ -838,7 +843,7 @@ bool Epub::generateThumbBmpForCover(int height, const std::string& coverImageHre
 
     if (!success) {
       LOG_ERR("EBP", "Failed to generate thumb BMP from JPG cover image");
-      Storage.remove(getThumbBmpPath(height).c_str());
+      Storage.remove(getThumbBmpPath(height, grey).c_str());
     }
     LOG_DBG("EBP", "Generated thumb BMP from JPG cover image, success: %s", success ? "yes" : "no");
     return success;
@@ -859,13 +864,16 @@ bool Epub::generateThumbBmpForCover(int height, const std::string& coverImageHre
     }
 
     HalFile thumbBmp;
-    if (!Storage.openFileForWrite("EBP", getThumbBmpPath(height), thumbBmp)) {
+    if (!Storage.openFileForWrite("EBP", getThumbBmpPath(height, grey), thumbBmp)) {
       return false;
     }
     int THUMB_TARGET_WIDTH = height * 0.6;
     int THUMB_TARGET_HEIGHT = height;
     const bool success =
-        PngToBmpConverter::pngFileTo1BitBmpStreamWithSize(coverPng, thumbBmp, THUMB_TARGET_WIDTH, THUMB_TARGET_HEIGHT);
+        grey ? PngToBmpConverter::pngFileToBmpStreamWithSize(coverPng, thumbBmp, THUMB_TARGET_WIDTH,
+                                                             THUMB_TARGET_HEIGHT)  // PERSONAL: grey thumb
+             : PngToBmpConverter::pngFileTo1BitBmpStreamWithSize(coverPng, thumbBmp, THUMB_TARGET_WIDTH,
+                                                                 THUMB_TARGET_HEIGHT);
     // Explicitly close() files before calling Storage.remove()
     coverPng.close();
     thumbBmp.close();
@@ -873,7 +881,7 @@ bool Epub::generateThumbBmpForCover(int height, const std::string& coverImageHre
 
     if (!success) {
       LOG_ERR("EBP", "Failed to generate thumb BMP from PNG cover image");
-      Storage.remove(getThumbBmpPath(height).c_str());
+      Storage.remove(getThumbBmpPath(height, grey).c_str());
     }
     LOG_DBG("EBP", "Generated thumb BMP from PNG cover image, success: %s", success ? "yes" : "no");
     return success;
@@ -883,7 +891,7 @@ bool Epub::generateThumbBmpForCover(int height, const std::string& coverImageHre
 
   // Write an empty bmp file to avoid generation attempts in the future
   HalFile thumbBmp;
-  Storage.openFileForWrite("EBP", getThumbBmpPath(height), thumbBmp);
+  Storage.openFileForWrite("EBP", getThumbBmpPath(height, grey), thumbBmp);
   return false;
 }
 

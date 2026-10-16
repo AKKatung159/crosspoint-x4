@@ -26,10 +26,11 @@ previous segment. Work is done in windows of at most 384 codepoints, about
 6 KB of temporary heap.
 
 **Dictionary.** PyThaiNLP `words_th.txt` (CC0) plus `data/thai_words_extra.txt`.
-One-letter entries are dropped, and so are entries of 8+ codepoints that are made
-up entirely of other entries (mostly phrases such as `ธนาคารแห่งประเทศไทย`).
-The result is 37,883 words in a 244 KB DAWG with shared suffixes. It lives in
-flash and uses no RAM.
+One-letter entries are dropped, and so are entries of 12+ codepoints that are
+made up entirely of other entries (mostly phrases such as `ธนาคารแห่งประเทศไทย`).
+The result is 53,994 words in a 374 KB DAWG with shared suffixes. It lives in
+flash and uses no RAM. (Up to th.3 the limit was 8 codepoints, which also
+dropped everyday words such as `ประโยชน์`.)
 
 **Shaping.** `ThaiShaping` swaps in the C90 Private Use Area variant glyphs:
 the high tone tier above an upper vowel, left-shifted marks over `ป ฝ ฟ ฬ`, the
@@ -67,6 +68,10 @@ Every change outside `lib/Thai` is tagged `THAI-HOOK(<name>)` or
 | `progress` (PERSONAL) | `ReaderActivity.*`, EPUB/TXT/XTC readers | Reading position saved every 5 renders and on exit/sleep |
 | `xtc` (PERSONAL) | `XtcReaderActivity.cpp` | 1-bit XTC pages streamed into the frame buffer |
 | `test-input` (PERSONAL) | `lib/hal/HalGPIO.*`, `main.cpp` | Test builds only: `CMD:PRESS`, `CMD:MEM` over USB |
+| `themes` (PERSONAL) | `CrossPointSettings.h`, `SettingsList.h`, `UITheme.cpp`, i18n | Two more `UI_THEME` values (Cover 5, Minimal 6) built by `src/components/themes/personal/CoverTheme.*` |
+| `home-summary` (PERSONAL) | `ReaderActivity.*`, EPUB/TXT/XTC readers, `src/HomeSummary.*` | On exit a book writes percent and chapter to `<cache>/home-summary.txt` for the home screen |
+| `grey-covers` (PERSONAL) | `lib/Epub/Epub.*`, `BaseTheme.h`, `HomeActivity.cpp` | `generateThumbBmp(height, grey)` writes a 2-bit `thumbg_<h>.bmp`; themes that ask for it get one grey pass over the home cover after the B/W refresh |
+| `sans-only` (PERSONAL) | `main.cpp`, `CrossPointSettings.cpp`, `TextSettingsActivity.cpp` | `PERSONAL_SANS_ONLY`: Noto Serif ids map to Noto Sans, the Serif choice is hidden |
 | `PERSONAL` | `platformio.ini` | `extra_configs` also loads `platformio.personal.ini` (this fork's `x4_th` env) |
 | `PERSONAL` | `src/network/OtaUpdater.cpp` | Release URL is overridable (`CROSSPOINT_RELEASES_API`), so OTA never swaps this build for stock upstream |
 
@@ -91,6 +96,8 @@ automatically by `scripts/gen_i18n.py`), `test/thai/` plus one
 - Rotated text (`drawTextRotated90CW`) and scaled sup/sub glyphs are not shaped.
 - Dictionary breaking can still split unknown names unusually; add them to a
   `thai-words.txt` (see the top-level README).
+- Justified lines with no real space may end a few pixels short: Thai word gaps
+  stretch at most `kMaxThaiShareGapPx` (3 px) rather than open holes.
 
 ## Credits and licences
 

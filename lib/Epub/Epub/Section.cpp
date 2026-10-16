@@ -55,7 +55,7 @@ namespace {
 // v48: Hangul words wrap at spaces; with hyphenation on they may also split at a line end.
 //      Justification no longer stretches between syllables.
 // v49 (personal fork, THAI-HOOK): Thai dictionary word breaks + Thai-aware justification.
-constexpr uint8_t SECTION_FILE_VERSION = 49;
+constexpr uint8_t SECTION_FILE_VERSION = 50;  // THAI: 50 = capped Thai gaps + larger dictionary (th.4)
 // Written into the version field while a build is in progress; patched to
 // SECTION_FILE_VERSION only when the build is finalized. An abandoned /
 // crash-interrupted .bin therefore carries version 0, which loadSectionFile rejects

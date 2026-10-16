@@ -61,7 +61,9 @@ def words_th_source(arg: str | None) -> list[str]:
         return [l.strip() for l in r.read().decode("utf-8-sig").splitlines() if l.strip()]
 
 
-LONG_WORD = 8
+# 12, not 8: at 8 everyday words such as ประโยชน์ (ประ+โยชน์) were dropped and cut at
+# line ends (deepcut precision 93.5% -> 95.2%, recall 88% -> 82%; +130 KB flash).
+LONG_WORD = 12
 
 
 def decomposable(word: str, vocab: set[str]) -> bool:

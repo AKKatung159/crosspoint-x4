@@ -33,7 +33,7 @@ class Epub {
   bool findContentOpfFile(std::string* contentOpfFile, ZipFile* sharedZip = nullptr) const;
   bool parseContentOpf(BookMetadataCache::BookMetadata& bookMetadata, bool writeSpineEntries = true,
                        bool metadataOnly = false, ZipFile* sharedZip = nullptr);
-  bool generateThumbBmpForCover(int height, const std::string& coverImageHref) const;
+  bool generateThumbBmpForCover(int height, const std::string& coverImageHref, bool grey = false) const;
   bool parseTocNcxFile() const;
   bool parseTocNavFile() const;
   void discoverCssFilesFromZip();
@@ -58,10 +58,12 @@ class Epub {
   std::string getCoverBmpPath(bool cropped = false, bool originalThresholds = false) const;
   bool generateCoverBmp(bool cropped = false, bool originalThresholds = false) const;
   std::string getThumbBmpPath() const;
-  std::string getThumbBmpPath(int height) const;
-  bool generateThumbBmp(int height) const;
+  // PERSONAL: grey = a 2-bit thumbnail (thumbg_<height>.bmp) for themes that
+  // draw the home cover with a grey pass; the default stays the 1-bit thumb.
+  std::string getThumbBmpPath(int height, bool grey = false) const;
+  bool generateThumbBmp(int height, bool grey = false) const;
   // Locate the cover without building spine, TOC, or reading caches.
-  bool generateThumbBmpFromSource(int height);
+  bool generateThumbBmpFromSource(int height, bool grey = false);
   uint8_t* readItemContentsToBytes(const std::string& itemHref, size_t* size = nullptr,
                                    bool trailingNullByte = false) const;
   bool readItemContentsToStream(const std::string& itemHref, Print& out, size_t chunkSize,

@@ -25,7 +25,7 @@ namespace {
 constexpr size_t CHUNK_SIZE = 8 * 1024;  // 8KB chunk for reading
 // Cache file magic and version
 constexpr uint32_t CACHE_MAGIC = 0x54585449;  // "TXTI"
-constexpr uint8_t CACHE_VERSION = 4;          // Increment when cache format changes (4: THAI-HOOK(txt) breaks)
+constexpr uint8_t CACHE_VERSION = 5;  // Increment when cache format changes (4: THAI-HOOK(txt) breaks, 5: dictionary)
 }  // namespace
 
 bool TxtReaderActivity::loadBook() {

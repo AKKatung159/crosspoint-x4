@@ -1,5 +1,6 @@
 #include "CoverTheme.h"
 
+#include <Bitmap.h>
 #include <GfxRenderer.h>
 #include <HalPowerManager.h>
 #include <HalStorage.h>
@@ -81,22 +82,38 @@ const uint8_t* hintIcon(const char* label) {
   return nullptr;
 }
 
-void drawCover(const GfxRenderer& renderer, const RecentBook& book, const Rect slot, const int thumbHeight) {
-  bool drawn = false;
+// "<cache>/thumb_[HEIGHT].bmp" -> "<cache>/thumbg_<height>.bmp" (the 2-bit thumb, EPUB only).
+std::string greyThumbPath(std::string templatePath, const int thumbHeight) {
+  const size_t pos = templatePath.find("thumb_[HEIGHT]");
+  if (pos == std::string::npos) return {};
+  return templatePath.replace(pos, 14, "thumbg_" + std::to_string(thumbHeight));
+}
+
+bool drawThumb(const GfxRenderer& renderer, const std::string& path, const Rect slot) {
+  HalFile file;
+  if (path.empty() || !Storage.exists(path.c_str()) || !Storage.openFileForRead("HOME", path, file)) return false;
+  Bitmap bitmap(file);
+  const bool drawn =
+      bitmap.parseHeaders() == BmpReaderError::Ok && BaseTheme::drawCoverThumbFill(renderer, bitmap, slot);
+  file.close();
+  return drawn;
+}
+
+// Draws the cover centred in `art` at its own shape (thumbs keep the cover's
+// aspect, often wider than 0.6), or the placeholder in `slot`. Returns the grey
+// thumb's path when that is what was drawn (the grey pass redraws it), else "".
+std::string drawCover(const GfxRenderer& renderer, const RecentBook& book, const Rect slot, const Rect art,
+                      const int thumbHeight) {
   if (!book.coverBmpPath.empty()) {
-    HalFile file;
-    if (Storage.openFileForRead("HOME", UITheme::getCoverThumbPath(book.coverBmpPath, thumbHeight), file)) {
-      Bitmap bitmap(file);
-      if (bitmap.parseHeaders() == BmpReaderError::Ok) drawn = BaseTheme::drawCoverThumbFill(renderer, bitmap, slot);
-      file.close();
-    }
+    std::string grey = greyThumbPath(book.coverBmpPath, thumbHeight);
+    if (drawThumb(renderer, grey, art)) return grey;
+    if (drawThumb(renderer, UITheme::getCoverThumbPath(book.coverBmpPath, thumbHeight), art)) return {};
   }
-  if (!drawn) {
-    // No thumbnail yet: a grey field with the book shape, never an empty hole.
-    renderer.fillRectDither(slot.x, slot.y, slot.width, slot.height, Color::LightGray);
-    drawIconIn(renderer, HomeResume44, slot.x + (slot.width - kMenuIcon) / 2, slot.y + (slot.height - kMenuIcon) / 2,
-               kMenuIcon, true);
-  }
+  // No thumbnail yet: a grey field with the book shape, never an empty hole.
+  renderer.fillRectDither(slot.x, slot.y, slot.width, slot.height, Color::LightGray);
+  drawIconIn(renderer, HomeResume44, slot.x + (slot.width - kMenuIcon) / 2, slot.y + (slot.height - kMenuIcon) / 2,
+             kMenuIcon, true);
+  return {};
 }
 
 // Filled track (dithered grey) with a solid fill: no hairlines.
@@ -119,6 +136,10 @@ void drawBookDots(const GfxRenderer& renderer, const int centerX, const int y, c
 }
 
 }  // namespace
+
+void CoverTheme::homeCoverGreyPass(const GfxRenderer& renderer) const {
+  drawThumb(renderer, greyCoverPath, greyCoverSlot);
+}
 
 int CoverTheme::homeCoverThumbHeight(const GfxRenderer&) const {
   return minimal ? CoverThemeMetrics::minimal.homeCoverHeight : CoverThemeMetrics::cover.homeCoverHeight;
@@ -144,6 +165,7 @@ void CoverTheme::drawRecentBookCover(GfxRenderer& renderer, const Rect rect, con
                                      const int selectorIndex, bool& coverRendered, bool& coverBufferStored,
                                      bool& bufferRestored, std::function<bool()>) const {
   onHome = true;
+  greyCoverPath.clear();
   coverRendered = false;  // the cover follows the selection; redraw it each pass
   coverBufferStored = false;
   bufferRestored = false;
@@ -162,7 +184,9 @@ void CoverTheme::drawRecentBookCover(GfxRenderer& renderer, const Rect rect, con
   const int coverW = thumbH * 3 / 5;  // thumbnails are generated 0.6 : 1
   const int cx = rect.x + rect.width / 2;
   const Rect slot{cx - coverW / 2, rect.y, coverW, coverH};
-  drawCover(renderer, book, slot, thumbH);
+  const Rect art{rect.x + 16, rect.y, rect.width - 32, coverH};
+  greyCoverPath = drawCover(renderer, book, slot, art, thumbH);
+  greyCoverSlot = art;
 
   int percent = 0;
   std::string chapter;

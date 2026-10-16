@@ -48,6 +48,9 @@ class CoverTheme : public LyraTheme {
   void drawButtonHints(GfxRenderer& renderer, const char* btn1, const char* btn2, const char* btn3,
                        const char* btn4) const override;
   int homeCoverThumbHeight(const GfxRenderer& renderer) const override;
+  bool homeGreyCovers() const override { return true; }
+  bool homeCoverIsGrey() const override { return !greyCoverPath.empty(); }
+  void homeCoverGreyPass(const GfxRenderer& renderer) const override;
 
  private:
   bool minimal;
@@ -55,4 +58,7 @@ class CoverTheme : public LyraTheme {
   // marks the pass so the hint bar (shared with every screen) knows it is on home.
   mutable bool onHome = false;
   mutable int shownBook = 0;
+  // The grey thumb drawn on the last home pass and where, for the grey pass.
+  mutable std::string greyCoverPath;
+  mutable Rect greyCoverSlot{};
 };
