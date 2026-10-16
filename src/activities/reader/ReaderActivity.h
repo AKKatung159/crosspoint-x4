@@ -32,6 +32,8 @@ class ReaderActivity : public Activity {
   void progressWritten() { progressPending = 0; }
   /// Writes the current position now (override in readers; default no-op).
   virtual void flushProgress() {}
+  /// PERSONAL-HOOK(home-summary): percent + chapter for the home screen, on exit.
+  virtual void writeHomeSummary() {}
 
   explicit ReaderActivity(const char* name, GfxRenderer& renderer, MappedInputManager& mappedInput,
                           std::string bookPath, bool allowFastInitialRefresh);

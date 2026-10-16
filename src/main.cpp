@@ -69,6 +69,27 @@ constexpr unsigned long X4PRO_POWER_CLICK_MAX_HOLD_MS = 300;
 static bool wakePowerReleasePending = false;
 
 // Fonts
+#ifdef PERSONAL_SANS_ONLY
+// PERSONAL-HOOK(sans-only): one reader family. The Noto Serif font objects
+// point at the Noto Sans data, so the ~1 MB of Serif bitmaps is never linked;
+// settings that still say "Noto Serif" render Sans.
+#define notoserif_12_regular notosans_12_regular
+#define notoserif_12_bold notosans_12_bold
+#define notoserif_12_italic notosans_12_italic
+#define notoserif_12_bolditalic notosans_12_bolditalic
+#define notoserif_14_regular notosans_14_regular
+#define notoserif_14_bold notosans_14_bold
+#define notoserif_14_italic notosans_14_italic
+#define notoserif_14_bolditalic notosans_14_bolditalic
+#define notoserif_16_regular notosans_16_regular
+#define notoserif_16_bold notosans_16_bold
+#define notoserif_16_italic notosans_16_italic
+#define notoserif_16_bolditalic notosans_16_bolditalic
+#define notoserif_18_regular notosans_18_regular
+#define notoserif_18_bold notosans_18_bold
+#define notoserif_18_italic notosans_18_italic
+#define notoserif_18_bolditalic notosans_18_bolditalic
+#endif
 EpdFont notoserif14RegularFont(&notoserif_14_regular);
 EpdFont notoserif14BoldFont(&notoserif_14_bold);
 EpdFont notoserif14ItalicFont(&notoserif_14_italic);

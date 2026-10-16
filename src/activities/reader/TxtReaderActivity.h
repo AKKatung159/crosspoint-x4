@@ -40,6 +40,7 @@ class TxtReaderActivity final : public ReaderActivity {
   void savePageIndexCache() const;
   void saveProgress() const;
   void flushProgress() override { saveProgress(); }  // PERSONAL-HOOK(progress)
+  void writeHomeSummary() override;                  // PERSONAL-HOOK(home-summary)
   void loadProgress();
   void renderStatusBar() const;
 

@@ -13,6 +13,7 @@
 #include <algorithm>
 
 #include "CrossPointSettings.h"
+#include "HomeSummary.h"
 #include "ProgressFile.h"
 #include "ReaderActivity.h"
 #include "ReaderUtils.h"
@@ -414,6 +415,12 @@ bool TxtReaderActivity::skipPages(int amount) {
 bool TxtReaderActivity::isAtEndOfBook() const { return initialized && currentPage >= totalPages; }
 
 void TxtReaderActivity::onReturnFromEndOfBook() { currentPage = totalPages > 0 ? totalPages - 1 : 0; }
+
+void TxtReaderActivity::writeHomeSummary() {
+  // PERSONAL-HOOK(home-summary): TXT has no chapters, only how far in you are.
+  if (!txt) return;
+  HomeSummary::write(txt->getCachePath(), totalPages > 0 ? (currentPage + 1) * 100 / totalPages : 0, "");
+}
 
 void TxtReaderActivity::saveProgress() const {
   uint8_t data[4];

@@ -16,6 +16,7 @@
 #include "components/themes/BaseTheme.h"
 #include "components/themes/lyra/Lyra3CoversTheme.h"
 #include "components/themes/lyra/LyraTheme.h"
+#include "components/themes/personal/CoverTheme.h"
 #include "components/themes/roundedraff/RoundedRaffTheme.h"
 
 UITheme UITheme::instance;
@@ -68,6 +69,19 @@ void UITheme::setTheme(CrossPointSettings::UI_THEME type) {
       currentTheme = std::make_unique<Lyra3CoversTheme>();
       currentMetrics = &Lyra3CoversMetrics::values;
       break;
+    // PERSONAL-HOOK(themes): this fork's cover-first home themes.
+    case CrossPointSettings::UI_THEME::COVER_HOME:
+    case CrossPointSettings::UI_THEME::MINIMAL_ICONS: {
+      const bool minimalIcons = type == CrossPointSettings::UI_THEME::MINIMAL_ICONS;
+      auto theme = makeUniqueNoThrow<CoverTheme>(minimalIcons);
+      if (!theme) {
+        LOG_ERR("UI", "OOM: Cover theme");
+        return;
+      }
+      currentTheme = std::move(theme);
+      currentMetrics = minimalIcons ? &CoverThemeMetrics::minimal : &CoverThemeMetrics::cover;
+      break;
+    }
   }
   metricsValid = false;
 }

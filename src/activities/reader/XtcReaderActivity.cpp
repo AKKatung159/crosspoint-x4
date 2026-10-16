@@ -9,6 +9,7 @@
 #include <algorithm>
 
 #include "CrossPointSettings.h"
+#include "HomeSummary.h"
 #include "ProgressFile.h"
 #include "ReaderActivity.h"
 #include "ReaderUtils.h"
@@ -321,6 +322,18 @@ void XtcReaderActivity::renderPage() {
   // PERSONAL-HOOK(xtc): 1-bit pages never get here; they stream above.
   free(pageBuffer);
   finishPage();
+}
+
+void XtcReaderActivity::writeHomeSummary() {
+  // PERSONAL-HOOK(home-summary): what the personal home themes show under the cover.
+  if (!xtc) return;
+  std::string chapter;
+  if (xtc->hasChapters()) {
+    for (const auto& c : xtc->getChapters()) {
+      if (currentPage >= c.startPage && currentPage <= c.endPage) chapter = c.name;
+    }
+  }
+  HomeSummary::write(xtc->getCachePath(), xtc->calculateProgress(currentPage), chapter);
 }
 
 bool XtcReaderActivity::pageTurn(bool isForward) {

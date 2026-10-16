@@ -234,6 +234,9 @@ bool CrossPointSettings::fromJson(JsonVariantConst doc) {
     }
   }
 
+#ifdef PERSONAL_SANS_ONLY
+  if (fontFamily == NOTOSERIF) fontFamily = NOTOSANS;  // PERSONAL-HOOK(sans-only)
+#endif
   // SD card font family name — not in SettingsList, load manually
   const char* sfn = doc["sdFontFamilyName"] | "";
   strncpy(sdFontFamilyName, sfn, sizeof(sdFontFamilyName) - 1);

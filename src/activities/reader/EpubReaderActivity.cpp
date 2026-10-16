@@ -29,6 +29,7 @@
 #include "EpubReaderFootnoteSelectActivity.h"
 #include "EpubReaderPercentSelectionActivity.h"
 #include "EpubReaderUtils.h"
+#include "HomeSummary.h"
 #include "KOReaderCredentialStore.h"
 #include "KOReaderSyncActivity.h"
 #include "MappedInputManager.h"
@@ -1534,6 +1535,16 @@ bool EpubReaderActivity::applyDeferredReposition() {
 void EpubReaderActivity::clearDeferredReposition() {
   cachedChapterTotalPageCount = 0;
   cachedVisibleTextOffset.reset();
+}
+
+void EpubReaderActivity::writeHomeSummary() {
+  // PERSONAL-HOOK(home-summary): what the personal home themes show under the cover.
+  if (!epub || !section) return;
+  const int pageCount = section->estimatedTotalPages();
+  const float chapterProgress =
+      pageCount > 0 ? static_cast<float>(section->currentPage + 1) / static_cast<float>(pageCount) : 0.0f;
+  const float bookProgress = epub->calculateProgress(currentSpineIndex, chapterProgress);
+  HomeSummary::write(epub->getCachePath(), static_cast<int>(bookProgress * 100.0f + 0.5f), currentChapterTitle());
 }
 
 void EpubReaderActivity::flushProgress() {

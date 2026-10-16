@@ -98,6 +98,7 @@ void ReaderActivity::onExit() {
     flushProgress();
     progressPending = 0;
   }
+  writeHomeSummary();            // PERSONAL-HOOK(home-summary)
   ThaiUserDictionary::unload();  // PERSONAL-HOOK(thai-words)
 
   // Keep rebuildable font buffers from pinning the heap between reading sessions.
