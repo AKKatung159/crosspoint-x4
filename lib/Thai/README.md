@@ -62,6 +62,11 @@ Every change outside `lib/Thai` is tagged `THAI-HOOK(<name>)` or
 | — | `lib/Epub/Epub/Section.cpp` | `SECTION_FILE_VERSION` 48 → 49, so books laid out by older firmware are laid out again |
 | `txt` | `src/activities/reader/TxtReaderActivity.cpp` | TXT wrapping prefers the nearest Thai word break and never cuts a cluster; `CACHE_VERSION` 3 → 4 |
 | `fonts` | `lib/EpdFont/scripts/convert-builtin-fonts.sh` | Adds SarabunTH and the Thai/PUA intervals to every built-in font; headers in `builtinFonts/` are regenerated |
+| `thai-words` | `src/ThaiUserDictionary.*`, `ReaderActivity.cpp`, `EpubReaderActivity.cpp`, `TxtReaderActivity.cpp` | Loads personal word lists when a book opens (`ThaiBrk::setUserWords`) and drops a book's cached layout when the list's hash changes |
+| `thai-fallback` | `lib/EpdFont/EpdFontFamily.*`, `SdCardFontManager.cpp`, `main.cpp`, `GfxRenderer.cpp` | SD fonts borrow Thai/C90 glyphs from the built-in Noto Sans family of the nearest size (`resolveGlyph`, coverage checked in RAM) |
+| `progress` (PERSONAL) | `ReaderActivity.*`, EPUB/TXT/XTC readers | Reading position saved every 5 renders and on exit/sleep |
+| `xtc` (PERSONAL) | `XtcReaderActivity.cpp` | 1-bit XTC pages streamed into the frame buffer |
+| `test-input` (PERSONAL) | `lib/hal/HalGPIO.*`, `main.cpp` | Test builds only: `CMD:PRESS`, `CMD:MEM` over USB |
 | `PERSONAL` | `platformio.ini` | `extra_configs` also loads `platformio.personal.ini` (this fork's `x4_th` env) |
 | `PERSONAL` | `src/network/OtaUpdater.cpp` | Release URL is overridable (`CROSSPOINT_RELEASES_API`), so OTA never swaps this build for stock upstream |
 
@@ -81,13 +86,11 @@ automatically by `scripts/gen_i18n.py`), `test/thai/` plus one
 
 ## Known limits
 
-- **SD-card fonts without Thai** show boxes for Thai. CrosspointTH falls back to
-  the built-in Thai glyphs for these; porting that touches `EpdFontFamily` and
-  every glyph lookup in GfxRenderer, so it is left for a later phase. SD fonts
-  that do have Thai work, and are shaped if they also have the C90 glyphs.
+- SD fonts without Thai borrow it from the built-in fonts, but keep their own
+  line height, which can be tight for stacked Thai marks.
 - Rotated text (`drawTextRotated90CW`) and scaled sup/sub glyphs are not shaped.
-- Dictionary breaking can still split unknown names unusually. Personal word
-  lists (for example the series glossary from epub.lan) are on the roadmap.
+- Dictionary breaking can still split unknown names unusually; add them to a
+  `thai-words.txt` (see the top-level README).
 
 ## Credits and licences
 

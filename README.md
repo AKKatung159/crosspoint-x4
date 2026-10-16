@@ -27,6 +27,30 @@ Screenshots come from the [eink-qemu](https://github.com/serialx/eink-qemu) X4 e
 - **OTA safety.** "Check for update" looks at this repo's releases, so it can
   never replace this build with stock CrossPoint (which has no Thai).
 
+### Phase 2 (1.6.5-th.2)
+
+- **Personal word lists.** Put names and series terms one per line in a
+  `thai-words.txt` (UTF-8, `#` for comments) at the card root (all books), in a
+  book's folder (one series; epub.lan uses one folder per series), or as
+  `<book name>.words.txt` next to the book. They count as dictionary words, so
+  `ซาร์ทาเนียลโวลเดอร์ไมเออร์` stays whole instead of breaking at odd places.
+  When a list changes, the affected book is laid out again automatically.
+- **Thai in any SD font.** SD fonts without Thai (Latin-only `.cpfont`s)
+  borrow Thai, including the stacked-mark variants, from the built-in font of
+  the nearest size. Lines can look tight with fonts that have a small line
+  height; raise line spacing if so.
+- **Fewer SD writes.** The reading position is saved every 5 pages and when
+  you leave the book or the device sleeps, not on every page turn. A crash or
+  dead battery can lose up to 4 pages of position.
+- **XTC without big allocations.** Black-and-white XTC pages are drawn
+  straight from the card (no 48 KB buffer per page). Grayscale pages fall back
+  to black and white if the 96 KB buffer is unavailable, instead of showing an
+  error.
+- **Fix:** tone marks above `ิ ี ึ ื` (e.g. `ที่`, `เปลี่ยน`) collided with the
+  vowel in 1.6.5-th.1.
+
+All of this was tested end to end on a real X4 (see "Testing on a real X4").
+
 The design and every change to upstream files are described in
 [lib/Thai/README.md](lib/Thai/README.md).
 
@@ -180,8 +204,6 @@ planes in screen dumps, so turn anti-aliasing off for clean captures.
 
 ## Known limits (phase 1)
 
-- SD-card fonts without Thai glyphs show boxes for Thai. CrosspointTH's fallback
-  to the built-in glyphs is not ported yet.
 - Lines with no space at all spread their slack across the Thai word gaps, which
   can look loose. The cap is tunable in `lib/Thai/ThaiJustify.h`.
 - The Thai Back/Home button label `« หน้าหลัก` wraps onto two lines in the button bar.
@@ -192,7 +214,7 @@ planes in screen dumps, so turn anti-aliasing off for clean captures.
 | Phase | Goal | Notes |
 | --- | --- | --- |
 | **1 (done)** | Thai on 1.6.5 | This release |
-| **2** | Speed and battery | Read XTC page tables on demand, as upstream does (Halo 2 loads the whole table and mallocs a page per turn). From YACP: 10 MHz CPU when idle, debounced progress writes, SD fonts loaded lazily. Port the SD-font Thai fallback. A personal word list on SD: names exported from epub.lan's series glossary. |
+| **2 (done)** | Speed and battery | Done in 1.6.5-th.2: XTC pages streamed from SD, progress writes every 5 pages + on exit/sleep, SD-font Thai fallback, personal word lists. Already in upstream 1.6.5: on-demand XTC page tables, lower CPU clock when idle. Still open: have epub.lan write `thai-words.txt` from its series glossary. |
 | **3** | Looks and covers | CrossInk themes, upstream cover grid. Covers come from thumbnails epub.lan makes at the device's size, delivered over OPDS or pushed to the X4 web server, so the device never decodes a full cover. |
 | **4** | Status bar and dashboard | A widget status bar (clock, battery, chapter progress). A dashboard image rendered by the homelab (480×800, 1/2-bit) and fetched over Wi-Fi on wake or used as the sleep screen. |
 | **5** | Reading stats and sync | CPR-vCodex style stats (time, pages, sessions, finished books), batched SD writes, optional upload to the homelab. OTA from this repo's releases, plus CI for the `x4_th` build. |
