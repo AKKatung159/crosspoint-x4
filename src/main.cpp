@@ -636,6 +636,31 @@ void loop() {
         logSerial.write(buf, bufferSize);
         logSerial.printf("SCREENSHOT_END\n");
       }
+#ifdef PERSONAL_SERIAL_INPUT
+      // PERSONAL-HOOK(test-input): "CMD:PRESS <back|confirm|left|right|up|down|power> [holdMs]"
+      if (cmd.startsWith("PRESS ")) {
+        static constexpr const char* NAMES[] = {"back", "confirm", "left", "right", "up", "down", "power"};
+        String arg = cmd.substring(6);
+        arg.trim();
+        const int space = arg.indexOf(' ');
+        const String name = space < 0 ? arg : arg.substring(0, space);
+        const unsigned long holdMs = space < 0 ? 120 : static_cast<unsigned long>(arg.substring(space + 1).toInt());
+        bool known = false;
+        for (uint8_t i = 0; i < sizeof(NAMES) / sizeof(NAMES[0]); i++) {
+          if (name.equalsIgnoreCase(NAMES[i])) {
+            gpio.injectPress(i, holdMs);
+            known = true;
+            logSerial.printf("PRESS_OK:%s:%lu\n", NAMES[i], holdMs);
+          }
+        }
+        if (!known) logSerial.printf("PRESS_ERR:%s\n", name.c_str());
+      }
+      if (cmd == "MEM") {
+        const auto heap = HalMemory::getInternalHeap();
+        logSerial.printf("MEM_FREE:%u MIN_FREE:%u MAX_ALLOC:%u\n", static_cast<unsigned>(heap.freeBytes),
+                         static_cast<unsigned>(heap.minFreeBytes), static_cast<unsigned>(heap.largestBlockBytes));
+      }
+#endif
     }
   }
 

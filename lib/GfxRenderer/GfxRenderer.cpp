@@ -539,9 +539,15 @@ static void renderCharImpl(const GfxRenderer& renderer, GfxRenderer::RenderMode 
 
   const EpdFontData* fontData = fontFamily.getData(style);
   if constexpr (rotation == TextRotation::None) {
-    // THAI-HOOK(tone): C90 high-tier tone marks keep an OpenType bearing that
-    // floats them a tier too high without GPOS; pull them down proportionally.
-    cursorY += ThaiShaping::highToneLoweringPx(cp, fontData->ascender);
+    // THAI-HOOK(tone): seat C90 high-tier tone marks 1 px above this font's
+    // SARA II (they otherwise touch the vowel or float, depending on size).
+    if (ThaiShaping::isHighTone(cp)) {
+      int vowelTop = 0;
+      for (const uint32_t vowel : {0x0E35u, 0x0E36u, 0x0E37u}) {  // SARA II, UE, UEE: tallest wins
+        if (const EpdGlyph* v = fontFamily.getGlyph(vowel, style)) vowelTop = std::max<int>(vowelTop, v->top);
+      }
+      if (vowelTop > 0) cursorY += ThaiShaping::highToneAdjustPx(cp, glyph->top, glyph->height, vowelTop);
+    }
   }
   const bool is2Bit = fontData->is2Bit;
   const uint8_t width = glyph->width;

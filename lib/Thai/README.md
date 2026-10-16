@@ -58,7 +58,7 @@ Every change outside `lib/Thai` is tagged `THAI-HOOK(<name>)` or
 | `glue` | `ParsedText.cpp` `addWord()` | Thai fragments split by inline markup (`<b>`, `<span>`) keep a break opportunity |
 | `justify` | `ParsedText.cpp` `extractLine()` | Counts Thai word gaps; `ThaiJustify::distribute` splits the spare width; the LTR and RTL gap loops use the per-gap value |
 | `shape` | `lib/GfxRenderer/GfxRenderer.cpp` | `resolveVisualText()` shapes Thai after bidi for C90-capable fonts; called from `drawText`, `getTextWidth`, `getTextAdvanceX` |
-| `tone` | `GfxRenderer.cpp` `renderCharImpl()` | Lowers C90 high-tier tone glyphs by ascender/8 (from CrosspointTH) |
+| `tone` | `GfxRenderer.cpp` `renderCharImpl()` | Seats C90 high-tier tone glyphs exactly 1 px above the font's tallest of `ี ึ ื` (`ThaiShaping::highToneAdjustPx`). CrosspointTH's fixed ascender/8 lowering pushed them 2–5 px *into* the vowel in every built-in font; found on a real X4. |
 | — | `lib/Epub/Epub/Section.cpp` | `SECTION_FILE_VERSION` 48 → 49, so books laid out by older firmware are laid out again |
 | `txt` | `src/activities/reader/TxtReaderActivity.cpp` | TXT wrapping prefers the nearest Thai word break and never cuts a cluster; `CACHE_VERSION` 3 → 4 |
 | `fonts` | `lib/EpdFont/scripts/convert-builtin-fonts.sh` | Adds SarabunTH and the Thai/PUA intervals to every built-in font; headers in `builtinFonts/` are regenerated |

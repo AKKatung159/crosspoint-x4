@@ -139,6 +139,30 @@ path matching), and `ChapterHtmlSlimParserTest` does not compile
 (`path.c_str()` is `wchar_t*`). Both fail the same way on stock 1.6.5. With a
 local `.string()` fix, the latter's 16 tests pass with this fork's layout code.
 
+### Testing on a real X4 over USB
+
+`pio run -e x4_th_test` is the same firmware plus two USB-serial commands:
+`CMD:PRESS <back|confirm|left|right|up|down|power> [ms]`, which injects a
+button press, and `CMD:MEM`. It also logs at debug level. `CMD:SCREENSHOT`
+works on every build. `scripts/device/x4test.py` scripts a test run from the PC:
+
+```bash
+python scripts/device/x4test.py COM9 log.txt reset press:down press:confirm wait:5 shot:files.png mem
+```
+
+Before flashing, back up the whole flash
+(`esptool --chip esp32c3 --port COM9 read-flash 0 0x1000000 backup.bin`).
+Then write the app with `write-flash 0x10000 firmware.bin`. If the device was
+running from the second OTA slot (Halo 2 does), also run
+`erase-region 0xe000 0x2000` so the bootloader picks slot 0. To restore
+everything exactly: `write-flash 0 backup.bin`.
+
+Windows pitfalls the driver handles: pyserial raises DTR/RTS when it opens the
+port, and the C3's USB-Serial/JTAG takes that as a reset, so the driver opens
+the port with both lines low. The port also re-enumerates on every reset.
+Separately, Git Bash rewrites `-F path=/` into `C:/Program Files/Git/`, so set
+`MSYS_NO_PATHCONV=1` when you curl the device's web API.
+
 ### Emulator
 
 `scripts/emu/` runs the [eink-qemu](https://github.com/serialx/eink-qemu) 0.5.0
@@ -161,7 +185,7 @@ planes in screen dumps, so turn anti-aliasing off for clean captures.
 - Lines with no space at all spread their slack across the Thai word gaps, which
   can look loose. The cap is tunable in `lib/Thai/ThaiJustify.h`.
 - The Thai Back/Home button label `« หน้าหลัก` wraps onto two lines in the button bar.
-- Not yet checked on real hardware. Only the emulator and host tests have run.
+- Peak heap during layout of long Thai chapters is about 6 KB lower than stock, because Thai text is split into finer tokens (same-pages emulator run: 30.9 KB vs 36.6 KB minimum free).
 
 ## Roadmap
 

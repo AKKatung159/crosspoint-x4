@@ -40,11 +40,15 @@ TEST(ThaiShaping, DropsDescendersUnderBelowVowels) {
   EXPECT_EQ(codepoints(ThaiShaping::shapeUtf8("ฎุ")), (std::vector<uint32_t>{0x0E0E, 0xF718}));
 }
 
-TEST(ThaiShaping, LowersOnlyHighToneVariantsByFontScale) {
-  EXPECT_EQ(ThaiShaping::highToneLoweringPx(0xF705, 34), 5);
-  EXPECT_EQ(ThaiShaping::highToneLoweringPx(0xF70E, 48), 6);
-  EXPECT_EQ(ThaiShaping::highToneLoweringPx(0xF713, 34), 0);
-  EXPECT_EQ(ThaiShaping::highToneLoweringPx(0x0E48, 34), 0);
+// Measured on the generated Noto Serif 14 font: SARA II top 28, high MAI EK
+// (U+F70A) top 36 height 6, i.e. a 2 px gap that the old ascender/8 lowering
+// turned into a 2 px collision. The correction keeps exactly 1 px.
+TEST(ThaiShaping, SeatsHighToneOnePixelAboveTheVowel) {
+  EXPECT_EQ(ThaiShaping::highToneAdjustPx(0xF70A, 36, 6, 28), 1);   // gap 2 -> lower 1
+  EXPECT_EQ(ThaiShaping::highToneAdjustPx(0xF70B, 37, 7, 30), -1);  // touching -> raise 1
+  EXPECT_EQ(ThaiShaping::highToneAdjustPx(0xF705, 30, 6, 23), 0);   // already 1 px
+  EXPECT_EQ(ThaiShaping::highToneAdjustPx(0xF713, 26, 6, 28), 0);   // not a high-tier tone
+  EXPECT_EQ(ThaiShaping::highToneAdjustPx(0x0E48, 26, 6, 28), 0);
 }
 
 TEST(ThaiShaping, LeavesNonThaiAndPlainThaiAlone) {

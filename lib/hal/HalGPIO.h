@@ -110,6 +110,25 @@ class HalGPIO {
   bool wasTouchActivity() const;
   void setSharedConfirmPowerShortPressEmitsPower(bool enabled);
 
+#ifdef PERSONAL_SERIAL_INPUT
+  // PERSONAL-HOOK(test-input): test builds only (env x4_th_test). Queues one
+  // synthetic press of `buttonIndex` held for `holdMs`, reported through the
+  // same isPressed/wasPressed/wasReleased/getHeldTime edges as a real button.
+  void injectPress(uint8_t buttonIndex, unsigned long holdMs);
+
+ private:
+  enum class InjectPhase : uint8_t { None, Pending, PressEdge, Holding, ReleaseEdge };
+  InjectPhase injectPhase = InjectPhase::None;
+  uint8_t injectButton = 0;
+  unsigned long injectStart = 0;
+  unsigned long injectHoldMs = 0;
+  bool injectDown(uint8_t b) const {
+    return injectButton == b && (injectPhase == InjectPhase::PressEdge || injectPhase == InjectPhase::Holding);
+  }
+
+ public:
+#endif
+
   // Verify that the physical power button remains held through input debounce.
   // Returns true if verification succeeded, false if device should return to sleep.
   // Should only be called when wakeup reason is PowerButton.
