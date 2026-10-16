@@ -24,6 +24,7 @@
 
 #include "CrossPointSettings.h"
 #include "CrossPointState.h"
+#include "DashboardSync.h"
 #include "activities/reader/ReaderUtils.h"
 #include "components/UITheme.h"
 #include "fontIds.h"
@@ -552,6 +553,8 @@ void SleepActivity::onEnter() {
   switch (SETTINGS.sleepScreen) {
     case (CrossPointSettings::SLEEP_SCREEN_MODE::BLANK):
       return renderBlankSleepScreen();
+    case (CrossPointSettings::SLEEP_SCREEN_MODE::DASHBOARD):  // PERSONAL
+      return renderDashboardSleepScreen();
     case (CrossPointSettings::SLEEP_SCREEN_MODE::CUSTOM):
       return renderCustomSleepScreen();
     case (CrossPointSettings::SLEEP_SCREEN_MODE::COVER):
@@ -616,6 +619,24 @@ void SleepActivity::renderCustomSleepScreen() const {
 // firmware's only clean refresh in normal operation is the single-pass 0xD7
 // sequence, used once for the sleep image. It never runs the multi-flash GC
 // waveform (0xF7) that FULL_REFRESH selects (#2471's blinking complaint).
+// PERSONAL: the dashboard (fetched now, or the last one), else the cover.
+void SleepActivity::renderDashboardSleepScreen() const {
+  DashboardSync::run();
+  HalFile file;
+  if (Storage.openFileForRead("SLP", DashboardSync::kDashboardPath, file)) {
+    Bitmap bitmap(file, true,
+                  renderer.grayscaleCapabilities(sleepGrayscaleMode(renderer)).supported() &&
+                      display.getController() == HalDisplay::Controller::SSD1677);
+    if (bitmap.parseHeaders() == BmpReaderError::Ok) {
+      renderBitmapSleepScreen(bitmap);
+      file.close();
+      return;
+    }
+    file.close();
+  }
+  renderCoverSleepScreen();
+}
+
 void SleepActivity::renderDefaultSleepScreen() const {
   const auto pageWidth = renderer.getScreenWidth();
   const auto pageHeight = renderer.getScreenHeight();

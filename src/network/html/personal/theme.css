@@ -1,0 +1,358 @@
+/* PERSONAL: this fork's look for the X4's web pages, after the device's home
+   themes: black and white, solid grey surfaces, black for "selected", solid
+   icons (personal/theme.js swaps upstream's emoji), no shadows at rest, no
+   lines: surfaces are told apart by a step in tone.
+   build_html.py puts this file (and theme.js) where a page has
+   <!-- PERSONAL:THEME -->, after the page's own <style>, so these rules win.
+
+   Corners, decided once:
+     --r-surface  20px  cards, the hero, tiles, dialogs
+     --r-inner    12px  surfaces inside a card (rows, the drop zone, previews)
+     --r-pill    999px  every control: buttons, tabs, inputs, badges            */
+
+:root {
+  --font-color: #111;
+  --bg: #fff;
+  --title-color: #111;
+  --card-bg: #efefef;
+  --label-color: #666;
+  --border-color: transparent;
+  --accent-color: #111;
+  --accent-color-10: rgba(0, 0, 0, 0.06);
+  --accent-hover-color: #333;
+  --x4-ink: #111;
+  --x4-paper: #fff;
+  --x4-surface: #efefef;
+  --x4-surface-2: #e0e0e0;
+  --x4-mid: #5f5f5f;
+  --x4-on-ink: #fff;
+  --x4-danger: #b00020;
+  --r-surface: 20px;
+  --r-inner: 12px;
+  --r-pill: 999px;
+  --tap: 44px;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --font-color: #f2f2f2;
+    --bg: #111;
+    --title-color: #f2f2f2;
+    --card-bg: #222;
+    --label-color: #a6a6a6;
+    --accent-color: #f2f2f2;
+    --accent-color-10: rgba(255, 255, 255, 0.08);
+    --accent-hover-color: #d6d6d6;
+    --x4-ink: #f2f2f2;
+    --x4-paper: #111;
+    --x4-surface: #222;
+    --x4-surface-2: #303030;
+    --x4-mid: #a6a6a6;
+    --x4-on-ink: #111;
+    --x4-danger: #ff7b7b;
+    color-scheme: dark;
+  }
+}
+
+/* ---- Base --------------------------------------------------------------- */
+html { -webkit-text-size-adjust: 100%; }
+body {
+  font-family: "Sarabun", "Noto Sans Thai", "Noto Sans", "Leelawadee UI", Thonburi, system-ui, -apple-system,
+    "Segoe UI", Roboto, sans-serif;
+  font-size: 16px;
+  line-height: 1.6;
+  max-width: 880px;
+  margin: 0 auto;
+  padding: 0 16px 48px;
+  background: var(--x4-paper);
+  color: var(--x4-ink);
+}
+a { color: inherit; }
+h1, h2, h3 { color: var(--x4-ink); line-height: 1.25; letter-spacing: -0.01em; }
+h2 { font-size: 1.35em; }
+.x4i { width: 1.2em; height: 1.2em; fill: currentColor; vertical-align: -0.22em; flex: none; }
+button .x4i, .btn .x4i { margin-right: 0.35em; }
+
+/* ---- Top bar: wordmark, then the pages as one row of pills ---------------- */
+h1 {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0;
+  padding: 20px 0 12px;
+  border: 0;
+  font-size: 1.4em;
+}
+.brand-mark {
+  display: inline-grid;
+  place-items: center;
+  width: var(--tap);
+  height: var(--tap);
+  border-radius: var(--r-inner);
+  background: var(--x4-ink);
+  color: var(--x4-on-ink);
+  font-size: 0.75em;
+  font-weight: 800;
+}
+.nav-links {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  gap: 6px;
+  margin: 0 -16px 20px;
+  padding: 10px 16px;
+  background: var(--x4-paper);
+}
+.nav-links a,
+.nav-links a:not(.active):hover {
+  flex: 0 0 auto;
+  min-height: var(--tap);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  padding: 0 18px;
+  border-radius: var(--r-pill);
+  background: var(--x4-surface);
+  color: var(--x4-ink);
+  font-weight: 600;
+  text-decoration: none;
+}
+.nav-links a:not(.active):hover { background: var(--x4-surface-2); }
+.nav-links a.active { background: var(--x4-ink); color: var(--x4-on-ink); }
+
+/* ---- Surfaces --------------------------------------------------------------- */
+.card {
+  background: var(--x4-surface);
+  border: 0;
+  border-radius: var(--r-surface);
+  box-shadow: none; /* taste-skill-ignore: removes upstream's card shadow */
+  padding: 20px;
+  margin: 0 0 16px;
+}
+.info-row, .setting-row, .family {
+  border: 0 !important;
+  border-radius: var(--r-inner);
+  background: var(--x4-paper);
+  padding: 12px 14px;
+  margin: 0 0 6px;
+}
+.label, .setting-desc, .family-meta, .summary-inline { color: var(--x4-mid); }
+.label { font-weight: 600; }
+.value { color: var(--x4-ink); font-weight: 600; text-align: right; overflow-wrap: anywhere; }
+.setting-name { color: var(--x4-ink); }
+.status { background: var(--x4-ink); color: var(--x4-on-ink); border-radius: var(--r-pill); font-weight: 600; }
+.opds-server { background: transparent; border: 0; padding: 0; margin-bottom: 10px; }
+.empty, .no-files { color: var(--x4-mid); }
+
+/* ---- Controls: all pills, one fill each ------------------------------------- */
+button, input[type="submit"], .btn, .action-btn, .upload-btn, .save-btn, .btn-small, .retry-all-btn,
+.delete-btn-cancel, .delete-btn-confirm, .quality-preset, .rotation-btn, .overlap-btn, .modal-close,
+.delete-btn, .rename-btn, .move-btn, .dismiss-btn {
+  font: inherit;
+  min-height: var(--tap);
+  border: 0 !important;
+  border-radius: var(--r-pill) !important;
+  box-shadow: none !important; /* taste-skill-ignore: removes upstream's button shadows */
+  cursor: pointer;
+  transition: transform 0.08s ease, background-color 0.15s ease;
+}
+button:active, .btn:active, .action-btn:active, .upload-btn:active, .save-btn:active { transform: scale(0.97); }
+button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
+  outline: 3px solid var(--x4-ink);
+  outline-offset: 2px;
+}
+
+/* Secondary: the step above its surface. */
+.btn, .action-btn, .folder-action-btn, .delete-action-btn, .btn-small, .btn-add, .delete-btn-cancel,
+.quality-preset, .rotation-btn, .overlap-btn, .modal-close, .dismiss-btn {
+  padding: 0 18px;
+  background: var(--x4-paper);
+  color: var(--x4-ink);
+  font-weight: 600;
+}
+.action-btn:hover, .btn:hover, .btn-small:hover, .delete-btn-cancel:hover, .quality-preset:hover,
+.rotation-btn:hover, .overlap-btn:hover, .modal-close:hover { background: var(--x4-surface-2); color: var(--x4-ink); }
+.page-header .action-btn { background: var(--x4-surface); }
+.page-header .action-btn:hover { background: var(--x4-surface-2); }
+
+/* Primary and selected: ink. */
+.upload-action-btn, .page-header .upload-action-btn, .upload-btn, .upload-btn.optimize, .save-btn, .btn-primary,
+.btn-save-server, .retry-all-btn, .quality-preset.active, .rotation-btn.active, .overlap-btn.active {
+  background: var(--x4-ink) !important;
+  color: var(--x4-on-ink) !important;
+  font-weight: 700;
+}
+.upload-btn, .save-btn, .delete-btn-cancel, .delete-btn-confirm, .btn-add { width: 100%; min-height: 48px; }
+
+/* Destructive: words in the danger colour; the confirm itself is solid. */
+.delete-action-btn, .btn-danger, .btn-delete { color: var(--x4-danger) !important; }
+.delete-btn-confirm, .delete-btn-confirm:hover { background: var(--x4-danger); color: #fff; font-weight: 700; }
+
+/* Icon-only buttons in file rows: round. */
+.delete-btn, .rename-btn, .move-btn {
+  width: 40px;
+  min-width: 40px;
+  min-height: 40px;
+  padding: 0;
+  display: inline-grid;
+  place-items: center;
+  background: var(--x4-surface);
+  color: var(--x4-ink);
+}
+.delete-btn:hover, .rename-btn:hover, .move-btn:hover { background: var(--x4-surface-2); }
+.delete-btn .x4i, .rename-btn .x4i, .move-btn .x4i { margin: 0; }
+
+button:disabled, .btn:disabled, .upload-btn:disabled, .save-btn:disabled {
+  background: var(--x4-surface-2) !important;
+  color: var(--x4-mid) !important;
+  opacity: 1 !important;
+  cursor: default;
+}
+
+/* Fields: pills too. */
+input[type="text"], input[type="number"], input[type="password"], input[type="url"], select {
+  font: inherit;
+  min-height: var(--tap);
+  padding: 0 16px;
+  border: 0 !important;
+  border-radius: var(--r-pill) !important;
+  background: var(--x4-surface);
+  color: var(--x4-ink);
+}
+textarea {
+  font: inherit;
+  padding: 12px 16px;
+  border: 0;
+  border-radius: var(--r-inner);
+  background: var(--x4-surface);
+  color: var(--x4-ink);
+}
+input:focus, select:focus, textarea:focus { outline: 3px solid var(--x4-ink); outline-offset: 0; }
+input[type="checkbox"], input[type="radio"] { width: 20px; height: 20px; accent-color: var(--x4-ink); }
+input[type="file"]::file-selector-button,
+.upload-form input[type="file"]::file-selector-button,
+.upload-form input[type="file"].has-files::file-selector-button {
+  min-height: 40px;
+  margin-right: 12px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: var(--r-pill);
+  background: var(--x4-ink);
+  color: var(--x4-on-ink);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+.toggle-slider { background: var(--x4-surface-2) !important; border-radius: var(--r-pill) !important; }
+.toggle-slider:before { background: var(--x4-paper) !important; border-radius: 50% !important; box-shadow: none !important; } /* taste-skill-ignore: removes upstream's knob shadow */
+.toggle-switch input:checked + .toggle-slider { background: var(--x4-ink) !important; }
+
+/* ---- Files page ----------------------------------------------------------- */
+.page-header { margin-bottom: 16px; }
+.page-header h2 { display: flex; align-items: center; gap: 10px; font-size: 1.6em; }
+.action-buttons { gap: 8px; }
+.contents-header { gap: 8px; margin-bottom: 10px; }
+.breadcrumb-inline { font-weight: 600; }
+.breadcrumb-inline a { color: var(--x4-mid); text-decoration: none; }
+.breadcrumb-inline .current { color: var(--x4-ink); }
+.file-table { border-collapse: separate; border-spacing: 0 6px; }
+.file-table th { background: transparent; color: var(--x4-mid); font-size: 0.85em; font-weight: 600; border: 0; }
+.file-table td { background: var(--x4-paper); border: 0; padding: 10px 12px; vertical-align: middle; }
+.file-table td:first-child { border-radius: var(--r-inner) 0 0 var(--r-inner); }
+.file-table td:last-child { border-radius: 0 var(--r-inner) var(--r-inner) 0; }
+.file-table tr:hover td { background: var(--x4-surface-2); }
+.file-icon { display: inline-flex; margin-right: 8px; color: var(--x4-ink); }
+.file-link, .folder-link { color: var(--x4-ink); font-weight: 600; text-decoration: none; overflow-wrap: anywhere; }
+.epub-badge, .folder-badge {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: var(--r-pill);
+  background: var(--x4-ink);
+  color: var(--x4-on-ink);
+  font-size: 0.75em;
+  font-weight: 700;
+}
+.folder-badge { background: var(--x4-surface-2); color: var(--x4-ink); }
+.action-icon-group { gap: 6px; }
+.drop-zone {
+  border: 0 !important;
+  border-radius: var(--r-inner);
+  background: var(--x4-surface);
+  padding: 20px;
+}
+.drop-zone.dragover { background: var(--x4-surface-2); }
+.drop-zone-hint { color: var(--x4-mid); }
+.convert-settings span, .image-item, .image-preview-stage, .convert-info, .convert-warning,
+.advanced-settings-content, .failed-uploads-banner, .message {
+  border: 0 !important;
+  border-radius: var(--r-inner) !important;
+}
+.failed-uploads-banner { background: var(--x4-surface); color: var(--x4-ink); }
+.message.success { background: var(--x4-surface); color: var(--x4-ink); }
+.message.error, .status-err { background: var(--x4-surface) !important; color: var(--x4-danger) !important; }
+.status-ok { background: var(--x4-surface) !important; color: var(--x4-ink) !important; }
+.loader { border-color: var(--x4-surface-2); border-bottom-color: var(--x4-ink); }
+
+/* ---- Dialogs: a sheet from the bottom on phones, a surface on wider screens -- */
+.modal-overlay { background: rgba(0, 0, 0, 0.5); }
+.modal {
+  background: var(--x4-paper);
+  color: var(--x4-ink);
+  border: 0;
+  border-radius: var(--r-surface);
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.25); /* taste-skill-ignore: a dialog floats */
+}
+.modal h3 { display: flex; align-items: center; gap: 10px; }
+/* On the dialog's paper, secondary controls take the surface step. */
+.modal .delete-btn-cancel, .modal .btn, .modal .quality-preset, .modal .rotation-btn, .modal .overlap-btn { background: var(--x4-surface); }
+.modal .delete-btn-cancel:hover, .modal .btn:hover { background: var(--x4-surface-2); }
+.modal-close { width: var(--tap); padding: 0; display: inline-grid; place-items: center; background: var(--x4-surface); }
+
+/* ---- Phones ------------------------------------------------------------------ */
+@media (max-width: 640px) {
+  body { padding: 0 16px 40px; }
+  h1 { font-size: 1.2em; padding-top: 14px; }
+  .nav-links { display: grid; grid-template-columns: repeat(4, 1fr); }
+  .nav-links a, .nav-links a:not(.active):hover { padding: 0 6px; font-size: 0.95em; }
+  .card { padding: 14px; line-break: auto; }
+  .page-header { flex-direction: column; align-items: stretch; }
+  .action-buttons { display: grid; grid-template-columns: 1fr 1fr; }
+  .action-buttons .upload-action-btn { grid-column: 1 / -1; }
+
+  /* File rows become two-line surfaces: name on top, size and actions below. */
+  .file-table, .file-table tbody { display: block; width: 100%; }
+  .file-table tr:first-child { display: none; }
+  .file-table tr {
+    display: grid;
+    grid-template-columns: 32px 1fr auto;
+    grid-template-areas: "check name name" "check size actions";
+    align-items: center;
+    gap: 4px 10px;
+    margin-bottom: 6px;
+    padding: 10px 12px;
+    background: var(--x4-paper);
+    border-radius: var(--r-inner);
+  }
+  .file-table td { background: transparent !important; padding: 0 !important; border-radius: 0 !important; }
+  .file-table td:nth-child(1) { grid-area: check; }
+  .file-table td:nth-child(2) { grid-area: name; }
+  .file-table td:nth-child(3) { display: none; }
+  .file-table td:nth-child(4) { grid-area: size; color: var(--x4-mid); font-size: 0.9em; }
+  .file-table td:nth-child(5) { grid-area: actions; width: auto; }
+
+  .modal-overlay.open { align-items: flex-end; }
+  .modal {
+    width: 100% !important;
+    max-width: none !important;
+    max-height: 88vh;
+    overflow-y: auto;
+    margin: 0;
+    border-radius: var(--r-surface) var(--r-surface) 0 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; }
+}

@@ -7,6 +7,19 @@
 
 HalClock halClock;  // Singleton instance
 
+namespace {
+// PERSONAL: system time below this is the boot default, not a real clock.
+constexpr time_t kValidEpoch = 1735689600;  // 2025-01-01
+// UTC epoch of the last NTP sync; RTC memory survives deep sleep (not power loss).
+RTC_DATA_ATTR time_t gLastSyncUtc = 0;
+}  // namespace
+
+long HalClock::secondsSinceSync() const {
+  const time_t now = time(nullptr);
+  if (gLastSyncUtc == 0 || now < kValidEpoch) return -1;
+  return static_cast<long>(now - gLastSyncUtc);
+}
+
 void HalClock::begin() {
   _available = _sdkRtc.begin();
   LOG_INF("CLK", _available ? "SDK RTC found" : "RTC not found");
@@ -35,6 +48,12 @@ void HalClock::setTimezone(const char* posixTz) {
 }
 
 bool HalClock::localTime(struct tm& out) const {
+  if (isSoftware()) {  // PERSONAL: system time, once NTP has set it
+    const time_t now = time(nullptr);
+    if (now < kValidEpoch) return false;
+    localtime_r(&now, &out);
+    return true;
+  }
   if (!_available) return false;
 
   const unsigned long now = millis();
@@ -77,7 +96,7 @@ bool HalClock::formatTime(char* buf, size_t bufSize, bool use12Hour) const {
 }
 
 bool HalClock::syncFromNTP() {
-  if (!_available) return false;
+  if (!_available && !isSoftware()) return false;
 
   if (WiFi.status() != WL_CONNECTED) {
     LOG_ERR("CLK", "WiFi not connected, cannot sync NTP");
@@ -97,6 +116,12 @@ bool HalClock::syncFromNTP() {
   for (int i = 0; i < maxAttempts; i++) {
     if (sntp_get_sync_status() == SNTP_SYNC_STATUS_COMPLETED) {
       time_t now = time(nullptr);
+      gLastSyncUtc = now;
+      if (isSoftware()) {  // PERSONAL: SNTP already set the system time
+        LOG_INF("CLK", "System time set from NTP (%ld)", static_cast<long>(now));
+        setTimezone(savedTz);
+        return true;
+      }
       struct tm timeinfo;
       gmtime_r(&now, &timeinfo);
 

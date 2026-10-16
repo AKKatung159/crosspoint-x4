@@ -1,162 +1,130 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>CrossPoint Reader</title>
+    <meta name="theme-color" content="#111111" />
+    <title>X4 · CrossPoint</title>
+    <!-- PERSONAL: this page is the fork's own design; the shared look is in personal/theme.css. -->
+    <!-- PERSONAL:THEME -->
     <style>
-      :root {
-        --font-color: #333;
-        --bg: #f5f5f5;
-        --title-color: #2c3e50;
-        --card-bg: #FFF;
-        --label-color: #7f8c8d;
-        --border-color: #eee;
-        --accent-color: rgb(110, 154, 130);
-        --accent-hover-color: #5a8c73;
+      .hero {
+        display: grid;
+        gap: 4px;
+        padding: 24px 20px;
+        border-radius: var(--r-surface);
+        background: var(--x4-ink);
+        color: var(--x4-on-ink);
+        margin-bottom: 16px;
       }
-      @media (prefers-color-scheme: dark) {
-        :root {
-          --font-color: #f5f5f5;
-          --bg: #333;
-          --title-color: #ecf0f1;
-          --card-bg: #444;
-          --label-color: #bdc3c7;
-          --border-color: #555;
-          color-scheme: dark;
-        }
+      .hero .ip {
+        margin: 0;
+        color: inherit;
+        font-size: clamp(44px, 11vw, 104px);
+        font-weight: 800;
+        letter-spacing: -0.04em;
+        line-height: 0.95;
+        overflow-wrap: anywhere;
       }
-      body {
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-          Oxygen, Ubuntu, sans-serif;
-        max-width: 800px;
-        margin: 0 auto;
-        padding: 20px;
-        background-color: var(--bg);
-        color: var(--font-color);
-      }
-      h1 {
-        color: var(--title-color);
-        border-bottom: 2px solid var(--accent-color);
-        padding-bottom: 10px;
-      }
-      h2 {
-        color: var(--title-color);
-        margin-top: 0;
-      }
-      .card {
-        background: var(--card-bg);
-        border-radius: 8px;
-        padding: 20px;
-        margin: 15px 0;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-      }
-      .info-row {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 8px 0;
-        border-bottom: 1px solid var(--border-color);
-      }
-      .info-row:last-child {
-        border-bottom: none;
-      }
-      .label {
-        font-weight: 600;
-        color: var(--label-color);
-      }
-      .value {
-        color: var(--title-color);
-      }
-      .status {
-        display: inline-block;
-        padding: 4px 12px;
-        border-radius: 12px;
-        background-color: #27ae60;
-        color: white;
-        font-size: 0.9em;
-      }
-      .nav-links {
-        margin: 20px 0;
-        display: flex;
-        gap: 10px;
-      }
-      .nav-links a {
-        padding: 10px 20px;
-        color: var(--font-color);
+      .hero p { max-width: 60ch; margin: 12px 0 0; opacity: 0.8; }
+      .tiles { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 16px; }
+      .tile {
+        display: grid;
+        align-content: space-between;
+        gap: 18px;
+        min-height: 132px;
+        padding: 18px;
+        border-radius: var(--r-surface);
+        background: var(--x4-surface);
+        color: var(--x4-ink);
         text-decoration: none;
-        border-radius: 4px;
+        transition: transform 0.08s ease, background-color 0.15s ease;
       }
-      .nav-links a.active {
-        background-color: var(--accent-color);
-        color: white;
-      }
-      .nav-links a:not(.active):hover {
-        background-color: var(--accent-hover-color);
-        color: white;
+      .tile:hover { background: var(--x4-surface-2); }
+      .tile:active { transform: scale(0.98); }
+      .tile svg { width: 40px; height: 40px; fill: currentColor; }
+      .tile b { display: block; font-size: 1.15em; }
+      .tile small { color: var(--x4-mid); font-size: 0.9em; }
+      .tile.primary { background: var(--x4-ink); color: var(--x4-on-ink); }
+      .tile.primary small { color: inherit; opacity: 0.75; }
+      .facts { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; padding: 6px; }
+      .facts div { padding: 12px 14px; border-radius: var(--r-inner); background: var(--x4-paper); }
+      .facts span { display: block; color: var(--x4-mid); font-size: 0.85em; font-weight: 600; }
+      .facts b { overflow-wrap: anywhere; }
+      /* One entrance: the hero, then the tiles, rising into place. */
+      @keyframes x4-rise { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
+      h1, .nav-links, .hero, .tile, .facts { animation: x4-rise 0.42s cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+      .nav-links { animation-delay: 0.03s; }
+      .tile:nth-child(1) { animation-delay: 0.07s; }
+      .tile:nth-child(2) { animation-delay: 0.14s; }
+      .tile:nth-child(3) { animation-delay: 0.21s; }
+      .tile:nth-child(4) { animation-delay: 0.28s; }
+      .facts { animation-delay: 0.35s; }
+      @media (prefers-reduced-motion: reduce) { h1, .nav-links, .hero, .tile, .facts { animation: none; } }
+      @media (min-width: 720px) {
+        .tiles { grid-template-columns: repeat(4, 1fr); }
+        .facts { grid-template-columns: repeat(4, 1fr); }
       }
     </style>
   </head>
   <body>
-    <h1>📚 CrossPoint Reader</h1>
+    <h1><span class="brand-mark">X4</span> CrossPoint</h1>
 
     <div class="nav-links">
       <a href="/" class="active">Home</a>
-      <a href="/files">File Manager</a>
+      <a href="/files">Files</a>
       <a href="/settings">Settings</a>
       <a href="/fonts">Fonts</a>
     </div>
 
-    <div class="card">
-      <h2>Device Status</h2>
-      <div class="info-row">
-        <span class="label">Serial #</span>
-        <span class="value" id="serial"></span>
-      </div>
-      <div class="info-row">
-        <span class="label">Version</span>
-        <span class="value" id="version"></span>
-      </div>
-      <div class="info-row">
-        <span class="label">WiFi Status</span>
-        <span class="status">Connected</span>
-      </div>
-      <div class="info-row">
-        <span class="label">IP Address</span>
-        <span class="value" id="ip-address"></span>
-      </div>
-      <div class="info-row">
-        <span class="label">Free Memory</span>
-        <span class="value" id="free-heap"></span>
-      </div>
-    </div>
+    <section class="hero" aria-live="polite">
+      <h2 class="ip" id="ip-address">…</h2>
+      <p>The X4 is on Wi-Fi at this address. It stays awake while File Transfer is open.</p>
+    </section>
 
-    <div class="card">
-      <p style="text-align: center; color: #95a5a6; margin: 0">
-        CrossPoint E-Reader • Open Source
-      </p>
-    </div>
-  <script>
-    async function fetchStatus() {
-      try {
-        const response = await fetch('/api/status');
-        if (!response.ok) {
-          throw new Error('Failed to fetch status: ' + response.status + ' ' + response.statusText);
+    <nav class="tiles" aria-label="Pages">
+      <a class="tile primary" href="/files">
+        <svg viewBox="0 0 48 48" aria-hidden="true"><rect x="4" y="8" width="18" height="10" rx="3"/><rect x="4" y="13" width="40" height="28" rx="4"/></svg>
+        <span><b>Files</b><small>Send and manage books</small></span>
+      </a>
+      <a class="tile" href="/settings">
+        <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M27 4l1.6 5.2a15 15 0 013.9 1.6l4.8-2.6 3.5 3.5-2.6 4.8a15 15 0 011.6 3.9L44 21v6l-5.2 1.6a15 15 0 01-1.6 3.9l2.6 4.8-3.5 3.5-4.8-2.6a15 15 0 01-3.9 1.6L27 44h-6l-1.6-5.2a15 15 0 01-3.9-1.6l-4.8 2.6-3.5-3.5 2.6-4.8a15 15 0 01-1.6-3.9L4 27v-6l5.2-1.6a15 15 0 011.6-3.9L8.2 10.7l3.5-3.5 4.8 2.6a15 15 0 013.9-1.6L21 4zM24 17a7 7 0 100 14 7 7 0 000-14z"/></svg>
+        <span><b>Settings</b><small>Reading, display, Wi‑Fi</small></span>
+      </a>
+      <a class="tile" href="/fonts">
+        <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M15 8h6l12 32h-7l-3-8H11l-3 8H1zm-2 18h8l-4-11zM36 22a7 7 0 017 7v11h-6v-2a6 6 0 01-5 2 6 6 0 010-12h5a2 2 0 00-2-2h-6v-4z"/></svg>
+        <span><b>Fonts</b><small>SD-card fonts</small></span>
+      </a>
+      <a class="tile" href="http://x4.lan/" rel="noopener">
+        <svg viewBox="0 0 48 48" aria-hidden="true"><rect x="5" y="26" width="10" height="16" rx="2"/><rect x="19" y="16" width="10" height="26" rx="2"/><rect x="33" y="6" width="10" height="36" rx="2"/></svg>
+        <span><b>Reading stats</b><small>On x4.lan</small></span>
+      </a>
+    </nav>
+
+    <section class="card facts" aria-label="Device">
+      <div><span>Firmware</span><b id="version">…</b></div>
+      <div><span>Serial</span><b id="serial">…</b></div>
+      <div><span>Free memory</span><b id="free-heap">…</b></div>
+      <div><span>Wi-Fi</span><b>Connected</b></div>
+    </section>
+
+    <script>
+      async function fetchStatus() {
+        try {
+          const response = await fetch('/api/status');
+          if (!response.ok) throw new Error(response.status + ' ' + response.statusText);
+          const data = await response.json();
+          document.getElementById('version').textContent = data.version || 'N/A';
+          document.getElementById('serial').textContent = data.serial || 'N/A';
+          document.getElementById('ip-address').textContent = data.ip || 'N/A';
+          document.getElementById('free-heap').textContent = data.freeHeap
+            ? Math.round(data.freeHeap / 1024).toLocaleString() + ' KB'
+            : 'N/A';
+        } catch (error) {
+          console.error('Error fetching status:', error);
         }
-        const data = await response.json();
-        document.getElementById('version').textContent = data.version || 'N/A';
-        document.getElementById('serial').textContent = data.serial;
-        document.getElementById('ip-address').textContent = data.ip || 'N/A';
-        document.getElementById('free-heap').textContent = data.freeHeap
-          ? data.freeHeap.toLocaleString() + ' bytes'
-          : 'N/A';
-      } catch (error) {
-        console.error('Error fetching status:', error);
       }
-    }
-
-    // Fetch status on page load
-    window.onload = fetchStatus;
-  </script>
+      window.onload = fetchStatus;
+    </script>
   </body>
 </html>

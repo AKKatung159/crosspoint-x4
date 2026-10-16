@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<!-- A quiet layout: the time, the date and today's reading. Panel greys: #000 #555 #aaa #fff. -->
+<style>
+  * { box-sizing: border-box; margin: 0; }
+  body { width: 480px; height: 800px; padding: 40px 32px; background: #000; color: #fff;
+         font-family: Sarabun, sans-serif; overflow: hidden; display: flex; flex-direction: column; }
+  .time { font-size: 168px; font-weight: 700; line-height: 0.9; letter-spacing: -6px; margin-top: 120px; }
+  .date { font-size: 30px; margin-top: 24px; color: #aaa; }
+  .grow { flex: 1; }
+  .reading { font-size: 30px; }
+  .reading b { font-size: 64px; display: block; line-height: 1; }
+  .book { font-size: 24px; color: #aaa; margin-top: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+</style>
+</head>
+<body>
+  <div class="time">{{ time }}</div>
+  <div class="date">{{ date_th }}</div>
+  <div class="grow"></div>
+  <div class="reading"><b>{{ reading.today_min }} นาที</b>อ่านวันนี้ · ต่อเนื่อง {{ reading.streak }} วัน</div>
+  {% if reading.last_title %}<div class="book">{{ reading.last_title }}{% if reading.last_percent >= 0 %} · {{ reading.last_percent }}%{% endif %}</div>{% endif %}
+</body>
+</html>

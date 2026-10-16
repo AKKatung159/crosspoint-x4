@@ -22,8 +22,23 @@ class HalClock {
   // Call after BoardConfig has selected the active device.
   void begin();
 
-  // True if an RTC is present on this device
-  bool isAvailable() const { return _available; }
+  // True if an RTC is present on this device, or (PERSONAL_SOFT_CLOCK) the
+  // build keeps time in software: the ESP32's system time, set by NTP whenever
+  // Wi-Fi is up and kept running through deep sleep. Until the first sync
+  // localTime() still returns false, so nothing shows a made-up time.
+  bool isAvailable() const { return _available || isSoftware(); }
+  // PERSONAL: no RTC chip; time comes from NTP and drifts during sleep, so
+  // callers re-sync on every Wi-Fi connection instead of only once.
+  bool isSoftware() const {
+#ifdef PERSONAL_SOFT_CLOCK
+    return !_available;
+#else
+    return false;
+#endif
+  }
+  // PERSONAL: seconds since the last successful NTP sync in this boot chain
+  // (kept in RTC memory through deep sleep); -1 if never synced.
+  long secondsSinceSync() const;
 
   // Set the POSIX TZ rule (e.g. "CET-1CEST,M3.5.0,M10.5.0/3") applied to every
   // read. nullptr/empty falls back to UTC. Drops the read cache so the change

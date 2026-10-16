@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<!-- Dashboard layout for the X4 (480x800). Use only the panel's four greys:
+     #000 #555 #aaa #fff. Data: see "Variables" in the editor. -->
+<style>
+  * { box-sizing: border-box; margin: 0; }
+  body { width: 480px; height: 800px; padding: 18px 28px; background: #fff; color: #000;
+         font-family: Sarabun, sans-serif; overflow: hidden; }
+  .top { display: flex; justify-content: space-between; align-items: flex-start; }
+  .time { font-size: 104px; font-weight: 700; line-height: 1; letter-spacing: -3px; }
+  .wx { text-align: right; padding-top: 14px; }
+  .wx b { display: block; font-size: 64px; line-height: 1; }
+  .wx span { font-size: 22px; }
+  .date { font-size: 28px; margin-top: 10px; }
+  .sub { font-size: 21px; color: #555; margin-top: 6px; }
+  .card { background: #aaa; border-radius: 18px; padding: 16px 22px; margin-top: 18px; }
+  .row { display: flex; justify-content: space-between; align-items: flex-start; }
+  .label { font-size: 21px; color: #555; }
+  .big { font-size: 52px; font-weight: 700; line-height: 1.1; }
+  .right { text-align: right; font-size: 21px; line-height: 1.5; }
+  .one { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .bars { display: flex; gap: 12px; margin-top: 12px; }
+  .bar { flex: 1; text-align: center; font-size: 17px; }
+  .bar i { display: flex; align-items: flex-end; height: 70px; background: #fff; border-radius: 6px; overflow: hidden; }
+  .bar i u { display: block; width: 100%; background: #555; border-radius: 6px; }
+  .bar.today i u { background: #000; }
+  .bar.today { font-weight: 700; }
+  .book { font-size: 24px; font-weight: 700; margin-top: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .progress { display: flex; align-items: center; gap: 14px; margin-top: 8px; font-size: 21px; }
+  .track { flex: 1; height: 12px; background: #fff; border-radius: 6px; overflow: hidden; }
+  .track u { display: block; height: 100%; background: #000; }
+  .foot { position: absolute; left: 0; right: 0; bottom: 22px; text-align: center; font-size: 18px; color: #555; }
+</style>
+</head>
+<body>
+  <div class="top">
+    <div class="time">{{ time }}</div>
+    {% if weather %}<div class="wx"><b>{{ weather.temp }}°</b><span>{{ weather.text }}</span></div>{% endif %}
+  </div>
+  <div class="date">{{ date_th }}</div>
+  {% if weather %}<div class="sub">{{ weather.place }} สูง {{ weather.max }}° ต่ำ {{ weather.min }}° โอกาสฝน {{ weather.rain }}%</div>{% endif %}
+
+  <div class="card">
+    <div class="row">
+      <div><div class="label">การอ่านวันนี้</div><div class="big">{{ reading.today_min }} นาที</div></div>
+      <div class="right">ต่อเนื่อง {{ reading.streak }} วัน<br>อ่านจบ {{ reading.finished }} เล่ม</div>
+    </div>
+    <div class="bars">
+      {% for d in reading.week %}
+      <div class="bar{% if loop.last %} today{% endif %}"><i><u style="height: {{ d.percent_of_peak }}%"></u></i>{{ d.day_th }}</div>
+      {% endfor %}
+    </div>
+    {% if reading.last_title %}
+    <div class="book">{{ reading.last_title }}</div>
+    {% if reading.last_percent >= 0 %}
+    <div class="progress"><div class="track"><u style="width: {{ reading.last_percent }}%"></u></div>{{ reading.last_percent }}%</div>
+    {% endif %}{% endif %}
+  </div>
+
+  <div class="card">
+    <div class="label">บริการ</div>
+    {% if services %}
+    <div class="row" style="align-items: baseline; gap: 16px">
+      <div class="big one" style="font-size: 30px; flex: none">ออนไลน์ {{ services.up }}/{{ services.total }}</div>
+      <div class="right one" style="flex: 1; min-width: 0">{% if services.down %}ล่ม: {{ services.down | join(", ") }}{% else %}ทุกอย่างปกติ{% endif %}</div></div>
+    {% else %}<div style="font-size: 24px">ติดต่อ Gatus ไม่ได้</div>{% endif %}
+    {% if translating %}
+    <div class="one" style="font-size: 20px; margin-top: 8px">กำลังแปล: {{ translating.name }}</div>
+    {% if translating.percent >= 0 %}<div class="progress"><div class="track"><u style="width: {{ translating.percent }}%"></u></div></div>{% endif %}
+    {% endif %}
+  </div>
+
+  <div class="foot">อัปเดต {{ time }}</div>
+</body>
+</html>

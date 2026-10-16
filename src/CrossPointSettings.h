@@ -25,6 +25,7 @@ class CrossPointSettings : public PersistableStore<CrossPointSettings> {
     BLANK = 5,
     QUICK_RESUME = 6,
     TRANSPARENT_CUSTOM = 7,
+    DASHBOARD = 8,  // PERSONAL: dashboard image from a server (DashboardSync)
     SLEEP_SCREEN_MODE_COUNT
   };
   enum SLEEP_SCREEN_COVER_MODE { FIT = 0, CROP = 1, SLEEP_SCREEN_COVER_MODE_COUNT };
@@ -316,6 +317,8 @@ class CrossPointSettings : public PersistableStore<CrossPointSettings> {
   // OPDS server list. Persisted via a category-less SettingInfo::String in
   // SettingsList.h, so it stays out of the on-device Settings screen.
   char opdsDownloadFolder[64] = "";
+  // PERSONAL: base URL of the dashboard server (DashboardSync, "Dashboard" sleep screen).
+  char dashboardUrl[128] = "http://x4.lan";
   // On-disk filename format for OPDS downloads (0=Author-Title default, 1=Title-Author,
   // 2=Title). See OpdsFilenameFormat. Persisted via a category-less SettingInfo::Enum,
   // edited from the OPDS server list; hidden from the on-device Settings screen.

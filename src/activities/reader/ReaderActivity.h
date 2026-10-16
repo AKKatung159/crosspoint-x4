@@ -6,6 +6,7 @@
 #include <utility>
 
 #include "EndOfBookOptions.h"
+#include "ReadingStats.h"
 #include "activities/Activity.h"
 
 class ReaderActivity : public Activity {
@@ -28,7 +29,10 @@ class ReaderActivity : public Activity {
   static constexpr uint8_t kProgressWriteEvery = 5;
   uint8_t progressPending = 0;
   /// Call where a page render would save progress; true = skip it for now.
-  bool deferProgressWrite() { return ++progressPending < kProgressWriteEvery; }
+  bool deferProgressWrite() {
+    ReadingStats::onPage();  // PERSONAL-HOOK(stats): one call per page shown
+    return ++progressPending < kProgressWriteEvery;
+  }
   void progressWritten() { progressPending = 0; }
   /// Writes the current position now (override in readers; default no-op).
   virtual void flushProgress() {}

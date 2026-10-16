@@ -12,6 +12,7 @@
 // clang-format on
 
 #include <algorithm>
+#include <cstdlib>
 #include <cstring>
 #include <string>
 
@@ -124,6 +125,18 @@ bool OtaUpdater::isUpdateNewer() const {
   if (latestPatch != currentPatch) return latestPatch > currentPatch;
 
   // If we reach here, it means all segments are equal.
+  // PERSONAL: this fork's builds are 1.6.5-th.N on the same upstream base, so
+  // the -th.N suffix decides (a build without one is older than any -th build).
+  {
+    const char* latestTh = strstr(latestVersion.c_str(), "-th.");
+    const char* currentTh = strstr(currentVersion, "-th.");
+    if (latestTh) {
+      const int latestN = atoi(latestTh + 4);
+      const int currentN = currentTh ? atoi(currentTh + 4) : -1;
+      return latestN > currentN;
+    }
+  }
+
   // One final check, if we're on an RC build (contains "-rc"), we should consider the latest version as newer even if
   // the segments are equal, since RC builds are pre-release versions.
   if (strstr(currentVersion, "-rc") != nullptr) {

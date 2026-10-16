@@ -29,6 +29,8 @@ proper Thai reading and a home screen built around the book cover.
 - **Sharp grey covers.** Covers are shown in 4 grey levels. Books sent from
   epub.lan (Send to X4, or OPDS at `http://epub.lan/opds`) come with pictures
   the X4 decodes cleanly.
+- **Clock, reading stats and a dashboard.** The time in the status bar, a "Stats" tile on the home screen,
+  and a dashboard sleep screen (HTML layouts you can edit, from `server/`).
 - **Gentler on the SD card and battery.** The reading position is saved every
   5 pages, and XTC pages stream straight from the card.
 
@@ -42,18 +44,15 @@ Other ways to install, and how to go back: [install.en.md](docs/personal/install
 
 ## What's next
 
-| Phase | Plan |
-| --- | --- |
-| 4 | A status bar with widgets (clock, battery, chapter progress), and a homelab dashboard image as the sleep screen. |
-| 5 | Reading stats (time, pages, finished books) synced to the homelab, and updates straight from this repo. |
-
-Phases 1–3 are done; see [what each phase changed](docs/personal/changelog.en.md).
+Phases 1–5 are done; see [what each phase changed](docs/personal/changelog.en.md). Possible next steps: waking
+up on a timer so the dashboard stays fresh, and having epub.lan write `thai-words.txt` from each series' glossary.
 
 ## More
 
 - [What each phase changed](docs/personal/changelog.en.md), word-breaker comparison and known limits
 - [Installing and rolling back](docs/personal/install.en.md)
-- [Building, tests, testing on a real X4, emulator](docs/personal/development.md)
+- [Building, tests, testing on a real X4, emulator, releasing](docs/personal/development.md)
+- [The dashboard server](server/README.md)
 - [How the Thai code works](lib/Thai/README.md)
 - [Licences](docs/personal/licences.md) (all MIT, CC0 or OFL)
 - [Upstream CrossPoint README](docs/upstream-README.md)

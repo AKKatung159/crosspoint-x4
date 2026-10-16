@@ -77,6 +77,7 @@ void ReaderActivity::onEnter() {
     finish();
     return;
   }
+  ReadingStats::begin(bookPath, getBookTitle());  // PERSONAL-HOOK(stats)
 
   requestUpdate();
 }
@@ -99,6 +100,7 @@ void ReaderActivity::onExit() {
     progressPending = 0;
   }
   writeHomeSummary();            // PERSONAL-HOOK(home-summary)
+  ReadingStats::end();           // PERSONAL-HOOK(stats): after the summary set the percent
   ThaiUserDictionary::unload();  // PERSONAL-HOOK(thai-words)
 
   // Keep rebuildable font buffers from pinning the heap between reading sessions.

@@ -135,13 +135,14 @@ jobs:
         run: |
           sudo apt-get update && sudo apt-get install -y --no-install-recommends libraqm0
           pip install -r requirements.txt pytest
+          python -m playwright install --with-deps chromium
           python -c "from PIL import features; assert features.check('raqm'), 'no raqm'"
           pytest -q tests
 
       - uses: actions/upload-artifact@v4
         with:
-          name: x4-hub-dashboard-sample
-          path: server/tests/_out/dashboard.png
+          name: x4-hub-dashboard-samples
+          path: server/tests/_out/*.png
 
       - if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         uses: docker/setup-buildx-action@v3

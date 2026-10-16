@@ -143,7 +143,8 @@ enum UIIcon {
   Hotspot,
   Bookmark,
   Usb,
-  Blocks
+  Blocks,
+  Stats  // PERSONAL: reading statistics
 };
 
 // Default theme implementation (Classic Theme)

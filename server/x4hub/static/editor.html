@@ -1,0 +1,253 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#111111">
+<title>แดชบอร์ด · X4</title>
+<style>
+  :root {
+    --ink: #111; --paper: #fff; --surface: #efefef; --surface-2: #e0e0e0; --mid: #5f5f5f; --on-ink: #fff;
+    --danger: #b00020; --r-surface: 20px; --r-inner: 12px; --r-pill: 999px; --tap: 44px;
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --ink: #f2f2f2; --paper: #111; --surface: #222; --surface-2: #303030; --mid: #a6a6a6;
+            --on-ink: #111; --danger: #ff7b7b; color-scheme: dark; }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--paper); color: var(--ink);
+         font: 16px/1.6 Sarabun, "Noto Sans Thai", "Leelawadee UI", Thonburi, system-ui, sans-serif; }
+  main { max-width: 1180px; margin: 0 auto; padding: 0 16px 48px; }
+  header { display: flex; align-items: center; gap: 12px; padding: 20px 0 12px; }
+  .mark { display: grid; place-items: center; width: var(--tap); height: var(--tap); border-radius: var(--r-inner);
+          background: var(--ink); color: var(--on-ink); font-weight: 800; font-size: 0.9em; }
+  header h1 { margin: 0; font-size: 1.4em; letter-spacing: -0.01em; }
+  nav { display: flex; gap: 6px; margin: 0 0 20px; }
+  nav a { min-height: var(--tap); display: inline-flex; align-items: center; padding: 0 18px; border-radius: var(--r-pill);
+          background: var(--surface); color: var(--ink); text-decoration: none; font-weight: 600; }
+  nav a.on { background: var(--ink); color: var(--on-ink); }
+  .x4i { width: 1.2em; height: 1.2em; fill: currentColor; vertical-align: -0.22em; flex: none; }
+
+  .layout { display: grid; gap: 16px; }
+  @media (min-width: 900px) { .layout { grid-template-columns: minmax(0, 1fr) 400px; align-items: start; } }
+  .card { background: var(--surface); border-radius: var(--r-surface); padding: 16px; }
+  .card h2 { margin: 0 0 12px; font-size: 1.15em; }
+
+  .names { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+  .names button { background: var(--paper); }
+  .names button.sel { background: var(--ink); color: var(--on-ink); }
+  .names button small { margin-left: 6px; opacity: 0.7; font-weight: 600; }
+
+  button, .btn { font: inherit; font-weight: 600; min-height: var(--tap); padding: 0 18px; border: 0; border-radius: var(--r-pill);
+                 background: var(--paper); color: var(--ink); cursor: pointer; display: inline-flex; align-items: center; gap: 6px;
+                 transition: transform 0.08s ease, background-color 0.15s ease; }
+  button:hover { background: var(--surface-2); }
+  button:active { transform: scale(0.97); }
+  button.primary { background: var(--ink); color: var(--on-ink); }
+  button.danger { color: var(--danger); }
+  button:disabled { background: var(--surface-2); color: var(--mid); cursor: default; }
+  button:focus-visible, textarea:focus-visible, input:focus-visible, a:focus-visible { outline: 3px solid var(--ink); outline-offset: 2px; }
+  .actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+
+  textarea { width: 100%; min-height: 56vh; resize: vertical; padding: 14px 16px; border: 0; border-radius: var(--r-inner);
+             background: var(--paper); color: var(--ink); font: 14px/1.55 ui-monospace, "Cascadia Code", Consolas, monospace; tab-size: 2; }
+  .preview { position: sticky; top: 16px; }
+  .screen { display: block; width: 100%; max-width: 368px; aspect-ratio: 3 / 5; margin: 0 auto; border-radius: var(--r-inner);
+            background: var(--paper); object-fit: contain; }
+  .src { display: flex; gap: 6px; justify-content: center; margin: 12px 0 0; }
+  .src button { min-height: 36px; padding: 0 14px; font-size: 0.9em; background: var(--paper); }
+  .src button.sel { background: var(--ink); color: var(--on-ink); }
+  .status { min-height: 1.6em; margin-top: 10px; color: var(--mid); font-size: 0.95em; }
+  .status.err { color: var(--danger); white-space: pre-wrap; }
+  details { margin-top: 16px; }
+  summary { cursor: pointer; font-weight: 600; min-height: var(--tap); display: flex; align-items: center; }
+  pre { margin: 8px 0 0; padding: 14px; border-radius: var(--r-inner); background: var(--paper); overflow: auto; max-height: 50vh;
+        font: 13px/1.5 ui-monospace, Consolas, monospace; }
+  .hint { color: var(--mid); margin: 0 0 12px; max-width: 70ch; }
+  dialog { border: 0; border-radius: var(--r-surface); padding: 20px; background: var(--paper); color: var(--ink); max-width: 420px; width: calc(100% - 32px); }
+  dialog::backdrop { background: rgba(0, 0, 0, 0.5); }
+  dialog input { width: 100%; min-height: var(--tap); padding: 0 16px; border: 0; border-radius: var(--r-pill); background: var(--surface); color: var(--ink); font: inherit; }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M10 3h4v7h7v4h-7v7h-4v-7H3v-4h7z"/></symbol>
+  <symbol id="i-copy" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M8 2h11a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2h-2v-4h1V5h-9v1H8zM3 9a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></symbol>
+  <symbol id="i-trash" viewBox="0 0 24 24"><path d="M9 2.5h6l1 2h4V7H4V4.5h4zM5.5 8.5h13l-1 11A2.5 2.5 0 0 1 15 22H9a2.5 2.5 0 0 1-2.5-2.5z"/></symbol>
+  <symbol id="i-save" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M4.5 2H17l5 5v12.5a2.5 2.5 0 0 1-2.5 2.5h-15A2.5 2.5 0 0 1 2 19.5v-15A2.5 2.5 0 0 1 4.5 2zM6 3.5V9h10V3.5zM12 13a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7z"/></symbol>
+  <symbol id="i-device" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M7 1.5h10A2.5 2.5 0 0 1 19.5 4v16a2.5 2.5 0 0 1-2.5 2.5H7A2.5 2.5 0 0 1 4.5 20V4A2.5 2.5 0 0 1 7 1.5zM7.5 4.5v12h9v-12zM10 18.6v1.6h4v-1.6z"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M9 16.2 4.8 12l-2.8 2.8L9 21.8 22 8.8 19.2 6z"/></symbol>
+</svg>
+<main>
+  <header><span class="mark">X4</span><h1>แดชบอร์ด</h1></header>
+  <nav><a href="/">สถิติการอ่าน</a><a class="on" href="/dashboard">แดชบอร์ด</a></nav>
+
+  <p class="hint">หน้าจอพักของ X4 วาดจากเลย์เอาต์ HTML ด้านล่าง (Jinja2, 480×800) ใช้ได้แค่สี <b>#000 #555 #aaa #fff</b>
+    ที่เครื่องแสดงจริง ใส่ข้อมูลด้วย <code>{{ time }}</code>, <code>{{ reading.today_min }}</code> ฯลฯ (ดู “ตัวแปร”)
+    ถ้ามีรูปถ่าย เพิ่ม <code>&lt;meta name="x4-dither" content="on"&gt;</code> ให้เกลี่ยจุด</p>
+
+  <div class="layout">
+    <section class="card">
+      <div class="names" id="names" role="tablist" aria-label="เลย์เอาต์"></div>
+      <textarea id="code" spellcheck="false" aria-label="HTML ของเลย์เอาต์"></textarea>
+      <div class="actions">
+        <button class="primary" id="save"><svg class="x4i"><use href="#i-save"/></svg>บันทึก</button>
+        <button id="use"><svg class="x4i"><use href="#i-device"/></svg>ใช้บน X4</button>
+        <button id="new"><svg class="x4i"><use href="#i-plus"/></svg>ใหม่</button>
+        <button id="dup"><svg class="x4i"><use href="#i-copy"/></svg>ทำสำเนา</button>
+        <button class="danger" id="del"><svg class="x4i"><use href="#i-trash"/></svg>ลบ</button>
+      </div>
+      <div class="status" id="status" role="status" aria-live="polite"></div>
+      <details>
+        <summary>ตัวแปร</summary>
+        <pre id="vars">…</pre>
+      </details>
+    </section>
+
+    <aside class="card preview">
+      <h2>ตัวอย่างบนเครื่อง</h2>
+      <img class="screen" id="screen" alt="ตัวอย่างหน้าจอพักของ X4" width="480" height="800">
+      <div class="src" role="group" aria-label="ข้อมูลตัวอย่าง">
+        <button class="sel" id="srcSample">ข้อมูลตัวอย่าง</button><button id="srcLive">ข้อมูลจริง</button>
+      </div>
+    </aside>
+  </div>
+</main>
+
+<dialog id="ask">
+  <form method="dialog">
+    <h2 style="margin:0 0 12px;font-size:1.15em" id="askTitle">ชื่อเลย์เอาต์</h2>
+    <input id="askName" pattern="[a-z0-9][a-z0-9-]{0,39}" placeholder="เช่น my-layout" required>
+    <p class="hint" style="margin:8px 0 0">a–z, 0–9 และ - เท่านั้น</p>
+    <div class="actions"><button class="primary" value="ok">ตกลง</button><button value="cancel" formnovalidate>ยกเลิก</button></div>
+  </form>
+</dialog>
+
+<script>
+  const $ = (id) => document.getElementById(id);
+  let state = { layouts: [], active: 'default', current: 'default', sample: true, dirty: false };
+  let timer = 0, lastUrl = '';
+
+  function status(text, err) { $('status').textContent = text || ''; $('status').className = 'status' + (err ? ' err' : ''); }
+
+  async function api(path, opts) {
+    const r = await fetch(path, opts);
+    if (!r.ok) throw new Error((await r.text()) || r.statusText);
+    return r;
+  }
+
+  function drawNames() {
+    const box = $('names');
+    box.textContent = '';
+    for (const l of state.layouts) {
+      const b = document.createElement('button');
+      b.textContent = l.name;
+      b.setAttribute('role', 'tab');
+      b.setAttribute('aria-selected', l.name === state.current);
+      if (l.name === state.current) b.className = 'sel';
+      if (l.active) { const s = document.createElement('small'); s.textContent = 'ใช้อยู่'; b.append(s); }
+      b.onclick = () => open(l.name);
+      box.append(b);
+    }
+    const cur = state.layouts.find((l) => l.name === state.current) || {};
+    $('use').disabled = !!cur.active;
+    $('use').lastChild.textContent = cur.active ? 'ใช้อยู่บน X4' : 'ใช้บน X4';
+    $('del').disabled = !(cur.builtin ? cur.edited : true);
+    $('del').lastChild.textContent = cur.builtin ? 'คืนค่าเดิม' : 'ลบ';
+  }
+
+  async function refresh() {
+    const j = await (await api('/api/layouts')).json();
+    state.layouts = j.layouts; state.active = j.active;
+    drawNames();
+  }
+
+  async function open(name) {
+    if (state.dirty && !confirm('ทิ้งการแก้ไขที่ยังไม่บันทึก?')) return;
+    const j = await (await api('/api/layouts/' + encodeURIComponent(name))).json();
+    state.current = name; state.dirty = false;
+    $('code').value = j.html;
+    drawNames(); status(''); preview();
+  }
+
+  async function preview() {
+    clearTimeout(timer);
+    try {
+      const r = await fetch('/api/preview', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ html: $('code').value, sample: state.sample }) });
+      if (!r.ok) { const e = await r.json().catch(() => ({})); status(e.error || 'แสดงตัวอย่างไม่ได้', true); return; }
+      const url = URL.createObjectURL(await r.blob());
+      $('screen').src = url;
+      if (lastUrl) URL.revokeObjectURL(lastUrl);
+      lastUrl = url;
+      if ($('status').classList.contains('err')) status('');
+    } catch (e) { status(String(e), true); }
+  }
+
+  async function ask(title) {
+    $('askTitle').textContent = title; $('askName').value = '';
+    $('ask').showModal();
+    return new Promise((ok) => { $('ask').onclose = () => ok($('ask').returnValue === 'ok' ? $('askName').value.trim() : ''); });
+  }
+
+  async function saveAs(name, html) {
+    await api('/api/layouts/' + encodeURIComponent(name), { method: 'PUT', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ html }) });
+  }
+
+  $('code').addEventListener('input', () => { state.dirty = true; clearTimeout(timer); timer = setTimeout(preview, 700); });
+  $('code').addEventListener('keydown', (e) => {
+    if (e.key === 'Tab') { e.preventDefault(); document.execCommand('insertText', false, '  '); }
+    if ((e.ctrlKey || e.metaKey) && e.key === 's') { e.preventDefault(); $('save').click(); }
+  });
+  $('save').onclick = async () => {
+    try { await saveAs(state.current, $('code').value); state.dirty = false; await refresh(); status('บันทึกแล้ว'); }
+    catch (e) { status(String(e.message || e), true); }
+  };
+  $('use').onclick = async () => {
+    try {
+      if (state.dirty) await saveAs(state.current, $('code').value);
+      state.dirty = false;
+      await api('/api/layouts/' + encodeURIComponent(state.current) + '/activate', { method: 'POST' });
+      await refresh(); status('X4 จะใช้เลย์เอาต์นี้ตอนพักเครื่องครั้งถัดไป');
+    } catch (e) { status(String(e.message || e), true); }
+  };
+  $('new').onclick = async () => {
+    const name = await ask('เลย์เอาต์ใหม่'); if (!name) return;
+    const blank = '<!doctype html>\n<html lang="th">\n<head>\n<meta charset="utf-8">\n<style>\n  body { margin: 0; width: 480px; height: 800px; background: #fff; color: #000;\n         font-family: Sarabun, sans-serif; display: grid; place-items: center; }\n  .time { font-size: 120px; font-weight: 700; }\n</style>\n</head>\n<body>\n  <div class="time">{{ time }}</div>\n</body>\n</html>\n';
+    try { await saveAs(name, blank); state.dirty = false; await refresh(); await open(name); }
+    catch (e) { status(String(e.message || e), true); }
+  };
+  $('dup').onclick = async () => {
+    const name = await ask('ทำสำเนาเป็นชื่อ'); if (!name) return;
+    try { await saveAs(name, $('code').value); state.dirty = false; await refresh(); await open(name); }
+    catch (e) { status(String(e.message || e), true); }
+  };
+  $('del').onclick = async () => {
+    const cur = state.layouts.find((l) => l.name === state.current) || {};
+    if (!confirm(cur.builtin ? 'คืนเลย์เอาต์นี้เป็นแบบเดิม?' : 'ลบเลย์เอาต์ ' + state.current + '?')) return;
+    try {
+      await api('/api/layouts/' + encodeURIComponent(state.current), { method: 'DELETE' });
+      state.dirty = false; await refresh();
+      await open(state.layouts.some((l) => l.name === state.current) ? state.current : state.active);
+    } catch (e) { status(String(e.message || e), true); }
+  };
+  for (const [id, sample] of [['srcSample', true], ['srcLive', false]]) {
+    $(id).onclick = () => {
+      state.sample = sample;
+      $('srcSample').className = sample ? 'sel' : ''; $('srcLive').className = sample ? '' : 'sel';
+      loadVars(); preview();
+    };
+  }
+  async function loadVars() {
+    try { $('vars').textContent = await (await api('/api/context?sample=' + (state.sample ? '1' : '0'))).text(); }
+    catch (e) { $('vars').textContent = String(e); }
+  }
+  window.addEventListener('beforeunload', (e) => { if (state.dirty) { e.preventDefault(); e.returnValue = ''; } });
+
+  (async () => { await refresh(); await open(state.active); loadVars(); })();
+</script>
+</body>
+</html>

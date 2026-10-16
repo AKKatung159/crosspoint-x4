@@ -100,6 +100,25 @@ reading with Sans only.
   Books are laid out again once (`SECTION_FILE_VERSION` 50, TXT cache 5).
 
 
+## 1.6.5-th.5: phases 4 and 5 (clock, dashboard, reading stats)
+
+- **Software clock.** The X4 has no RTC chip (so upstream's `HalClock` never showed a time). It now uses the
+  ESP32's system time, set from NTP whenever Wi-Fi is up (again if older than an hour) and kept through deep
+  sleep. Before the first sync nothing shows a made-up time. Enabled by `PERSONAL_SOFT_CLOCK`.
+- **"Dashboard" sleep screen** (`DashboardSync`). On sleep: join the last network, set the clock, upload stats,
+  download `/x4/dashboard.bmp` (480×800, 2-bit grey) and show it; skipped if the last image is under 5 minutes
+  old; on failure the last image or the book cover. The server is "Dashboard URL" (default `http://x4.lan`).
+- **Dashboard server** (`server/`, image `ghcr.io/akkatung159/x4-hub`). Layouts are HTML + Jinja2, rendered by
+  Chromium and reduced to the panel's four greys. Its "Dashboard" page adds, edits, live-previews and picks
+  layouts; `/` is a reading-stats page for phones.
+- **Reading stats** (`ReadingStats`). Time counts only while pages turn (a gap counts at most 3 minutes); one SD
+  write per session. The "Stats" home tile opens the summary.
+- **On-device web pages.** One shared theme (`src/network/html/personal/theme.css` + `theme.js`, which swaps
+  emoji for solid icons). Three corner values: 20 px cards, 12 px nested surfaces, pills for every control.
+  Preview them on a PC with `scripts/personal/web_preview.py`.
+- **Fixes:** OTA compares `-th.N`; six home tiles keep their labels.
+- **CI:** `.github/workflows/personal.yml` tests and builds every push; a `*-th.*` tag publishes the release.
+
 ## Word breaker: why this one
 
 I compared three breakers on 3,000 paragraphs from two Thai books translated by

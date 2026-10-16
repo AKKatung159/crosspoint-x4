@@ -5,6 +5,8 @@
 #include <algorithm>
 #include <cstdlib>
 
+#include "ReadingStats.h"
+
 namespace HomeSummary {
 namespace {
 constexpr size_t kMaxChapterBytes = 160;
@@ -12,6 +14,7 @@ std::string pathIn(const std::string& cacheDir) { return cacheDir + "/home-summa
 }  // namespace
 
 void write(const std::string& cacheDir, const int percent, const std::string& chapter) {
+  ReadingStats::setPercent(std::clamp(percent, 0, 100));  // PERSONAL-HOOK(stats)
   if (cacheDir.empty()) return;
   std::string body = std::to_string(std::clamp(percent, 0, 100)) + "\n";
   // Keep one line; cut on a UTF-8 boundary.

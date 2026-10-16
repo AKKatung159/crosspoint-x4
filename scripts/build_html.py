@@ -62,6 +62,14 @@ for root, _, files in os.walk(SRC_DIR):
             # Only minify HTML files; JS files are typically pre-minified (e.g., jszip.min.js)
             is_html = file.endswith(HTML_EXT)
             if is_html:
+                # PERSONAL: shared look for this fork's pages (src/network/html/personal/theme.css).
+                theme_dir = os.path.join(SRC_DIR, "network", "html", "personal")
+                if "<!-- PERSONAL:THEME -->" in content and os.path.exists(os.path.join(theme_dir, "theme.css")):
+                    with open(os.path.join(theme_dir, "theme.css"), "r", encoding="utf-8") as t:
+                        css = t.read()
+                    with open(os.path.join(theme_dir, "theme.js"), "r", encoding="utf-8") as t:
+                        js = t.read()
+                    content = content.replace("<!-- PERSONAL:THEME -->", f"<style>{css}</style><script>{js}</script>")
                 processed = minify_html(content)
             else:
                 processed = content

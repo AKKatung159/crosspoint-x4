@@ -47,6 +47,8 @@ const uint8_t* menuIcon(const UIIcon icon, const bool small) {
       return small ? HomeSettings28 : HomeSettings44;
     case Blocks:  // OPDS catalogue
       return small ? HomeCatalog28 : HomeCatalog44;
+    case Stats:
+      return small ? HomeStats28 : HomeStats44;
     case Book:
       return small ? HomeResume28 : HomeResume44;
     default:
@@ -67,6 +69,8 @@ const char* tileLabel(const UIIcon icon) {
       return tr(STR_TILE_SETTINGS);
     case Blocks:
       return "OPDS";
+    case Stats:
+      return tr(STR_TILE_STATS);
     default:
       return nullptr;
   }
@@ -228,8 +232,9 @@ void CoverTheme::drawButtonMenu(GfxRenderer& renderer, const Rect rect, const in
     LyraTheme::drawButtonMenu(renderer, rect, buttonCount, selectedIndex, buttonLabel, rowIcon);
     return;
   }
-  constexpr int side = 24;
-  constexpr int gap = 12;
+  // Six tiles (with OPDS and Stats) need the tighter spacing for Thai labels.
+  const int side = buttonCount > 5 ? 10 : 24;
+  const int gap = buttonCount > 5 ? 4 : 12;
   const int tileW = (rect.width - 2 * side - (buttonCount - 1) * gap) / buttonCount;
 
   for (int i = 0; i < buttonCount; i++) {
