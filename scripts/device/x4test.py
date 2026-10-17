@@ -12,6 +12,7 @@ STEP:
   expect:TEXT[:SECONDS]     wait until a log line contains TEXT (default 30 s); fails the run if not
   shot:FILE.png             grab the frame buffer (portrait 480x800)
   mem                       print free heap
+  sleep                     go to sleep now (CMD:SLEEP, test build)
   reset                     hardware reset; waits for the boot log (the X4 boots to Home)
 Exit status 1 if any step failed.
 """
@@ -196,6 +197,10 @@ def main() -> int:
                 dev.expect("MEM_FREE", 3, mark)
                 with dev.lock:
                     print(next((l for l in dev.lines[mark:] if "MEM_FREE" in l), "mem: no reply"))
+            elif kind == "sleep":
+                # Sleep as the power button would; the log until USB drops shows the sleep screen's work.
+                dev.send("SLEEP")
+                print("sleep: " + ("ok" if dev.expect("SLEEP_OK", 5, mark) else "no reply"))
             elif kind == "reset":
                 dev.reset()
                 # Any log line from the new boot counts; which ones arrive before the

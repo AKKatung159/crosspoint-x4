@@ -686,6 +686,13 @@ void loop() {
         logSerial.printf("MEM_FREE:%u MIN_FREE:%u MAX_ALLOC:%u\n", static_cast<unsigned>(heap.freeBytes),
                          static_cast<unsigned>(heap.minFreeBytes), static_cast<unsigned>(heap.largestBlockBytes));
       }
+      // "CMD:SLEEP": go to sleep as the power button would (the sleep screen runs first).
+      if (cmd == "SLEEP") {
+        logSerial.printf("SLEEP_OK\n");
+        logSerial.flush();
+        enterDeepSleep();
+        return;
+      }
 #endif
     }
   }
