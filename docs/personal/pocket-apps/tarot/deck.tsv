@@ -1,0 +1,80 @@
+# Tarot deck: file<TAB>name EN<TAB>name TH<TAB>upright EN<TAB>upright TH<TAB>reversed EN<TAB>reversed TH
+# Images: cards/<file>.bmp, 1-bit. Rider-Waite-Smith 1909 scans (public domain, Wikimedia Commons).
+00_Fool	The Fool	คนโง่ (The Fool)	New beginnings, trust, a leap into the unknown.	การเริ่มต้นใหม่ ความไว้ใจ กล้าก้าวสู่สิ่งที่ไม่รู้	Recklessness, hesitation, a risk not thought through.	ความประมาท ลังเล เสี่ยงโดยไม่คิดให้รอบคอบ
+01_Magician	The Magician	นักมายากล (The Magician)	Skill, willpower, the tools to make it happen.	ทักษะ พลังใจ มีเครื่องมือพร้อมจะลงมือ	Manipulation, untapped talent, scattered focus.	การหลอกล่อ ศักยภาพที่ยังไม่ได้ใช้ สมาธิกระจัดกระจาย
+02_High_Priestess	The High Priestess	นักบวชหญิง (The High Priestess)	Intuition, inner knowing, quiet wisdom.	สัญชาตญาณ ความรู้ภายใน ปัญญาที่สงบนิ่ง	Secrets, ignoring your inner voice.	ความลับ เมินเสียงภายในของตัวเอง
+03_Empress	The Empress	จักรพรรดินี (The Empress)	Abundance, care, creativity, growth.	ความอุดมสมบูรณ์ การดูแล ความคิดสร้างสรรค์ การเติบโต	Dependence, creative block, neglecting yourself.	การพึ่งพาผู้อื่น ความคิดตีบตัน ละเลยตัวเอง
+04_Emperor	The Emperor	จักรพรรดิ (The Emperor)	Structure, authority, stability, leadership.	โครงสร้าง อำนาจ ความมั่นคง ภาวะผู้นำ	Control, rigidity, misuse of power.	การควบคุม ความแข็งทื่อ ใช้อำนาจผิดทาง
+05_Hierophant	The Hierophant	พระสังฆราช (The Hierophant)	Tradition, learning from a teacher, shared values.	ขนบธรรมเนียม เรียนรู้จากครู คุณค่าที่ยึดถือร่วมกัน	Rebellion, breaking convention, questioning rules.	การต่อต้าน แหกกฎเดิม ตั้งคำถามกับกติกา
+06_Lovers	The Lovers	คนรัก (The Lovers)	Love, harmony, an important choice.	ความรัก ความกลมเกลียว การตัดสินใจที่สำคัญ	Imbalance, misaligned values, a hard choice.	ความไม่สมดุล คุณค่าไม่ตรงกัน ทางเลือกที่ยาก
+07_Chariot	The Chariot	รถศึก (The Chariot)	Determination, control, moving forward to win.	ความมุ่งมั่น การควบคุม ก้าวไปข้างหน้าสู่ชัยชนะ	Lack of direction, losing control.	ไร้ทิศทาง ควบคุมสถานการณ์ไม่ได้
+08_Strength	Strength	พลัง (Strength)	Courage, patience, gentle inner strength.	ความกล้า ความอดทน พลังภายในที่อ่อนโยน	Self-doubt, low energy, raw emotion.	ไม่มั่นใจในตัวเอง หมดแรง อารมณ์ครอบงำ
+09_Hermit	The Hermit	ฤๅษี (The Hermit)	Reflection, solitude, searching within.	การทบทวนตัวเอง ความสันโดษ การค้นหาภายใน	Isolation, loneliness, withdrawing too far.	การแยกตัว ความเหงา ถอยห่างมากเกินไป
+10_Wheel_of_Fortune	Wheel of Fortune	กงล้อแห่งโชคชะตา (Wheel of Fortune)	Change, cycles, a turn of luck.	การเปลี่ยนแปลง วัฏจักร โชคชะตาพลิกผัน	Resisting change, a run of bad luck.	ต่อต้านการเปลี่ยนแปลง ช่วงโชคไม่ดี
+11_Justice	Justice	ความยุติธรรม (Justice)	Fairness, truth, cause and effect.	ความเป็นธรรม ความจริง เหตุและผล	Unfairness, dishonesty, avoiding accountability.	ความไม่เป็นธรรม ความไม่ซื่อตรง หนีความรับผิดชอบ
+12_Hanged_Man	The Hanged Man	คนแขวน (The Hanged Man)	Pause, surrender, a new perspective.	การหยุดพัก การปล่อยวาง มุมมองใหม่	Stalling, needless sacrifice, indecision.	การยื้อเวลา เสียสละโดยไม่จำเป็น ตัดสินใจไม่ได้
+13_Death	Death	ความตาย (Death)	Endings, transformation, making room for the new.	การสิ้นสุด การเปลี่ยนผ่าน เปิดทางให้สิ่งใหม่	Resisting endings, fear of change.	ยื้อสิ่งที่ควรจบ กลัวการเปลี่ยนแปลง
+14_Temperance	Temperance	ความพอดี (Temperance)	Balance, moderation, patience.	ความสมดุล ความพอประมาณ ความอดทน	Excess, imbalance, impatience.	ความสุดโต่ง ขาดสมดุล ใจร้อน
+15_Devil	The Devil	ปีศาจ (The Devil)	Attachment, temptation, habits that bind.	ความยึดติด สิ่งยั่วยุ นิสัยที่พันธนาการ	Breaking free, releasing what holds you.	การหลุดพ้น ปล่อยสิ่งที่ผูกมัดตัวเอง
+16_Tower	The Tower	หอคอย (The Tower)	Sudden upheaval, revelation, a shake-up.	ความพลิกผันกะทันหัน ความจริงเปิดเผย การสั่นคลอน	Avoiding disaster, fear of change, delayed collapse.	หลีกเลี่ยงหายนะ กลัวการเปลี่ยนแปลง ปัญหาที่ถูกเลื่อนออกไป
+17_Star	The Star	ดวงดาว (The Star)	Hope, renewal, calm after the storm.	ความหวัง การฟื้นฟู ความสงบหลังพายุ	Discouragement, lost faith.	ความท้อแท้ หมดศรัทธา
+18_Moon	The Moon	ดวงจันทร์ (The Moon)	Uncertainty, dreams, illusion, intuition.	ความไม่แน่นอน ความฝัน ภาพลวงตา สัญชาตญาณ	Clarity returning, fears released.	ความชัดเจนกลับมา ปล่อยวางความกลัว
+19_Sun	The Sun	ดวงอาทิตย์ (The Sun)	Joy, success, warmth, vitality.	ความสุข ความสำเร็จ ความอบอุ่น พลังชีวิต	Temporary gloom, overconfidence.	ความหม่นหมองชั่วคราว ความมั่นใจเกินตัว
+20_Judgement	Judgement	การพิพากษา (Judgement)	Reckoning, awakening, a calling.	การทบทวนครั้งใหญ่ การตื่นรู้ เสียงเรียกภายใน	Self-doubt, harsh self-judgement.	ไม่เชื่อมั่นในตัวเอง ตัดสินตัวเองรุนแรงเกินไป
+21_World	The World	โลก (The World)	Completion, fulfilment, a journey's end.	ความสำเร็จสมบูรณ์ ความอิ่มเต็ม การเดินทางที่สิ้นสุด	Loose ends, seeking closure.	งานที่ยังค้าง ยังหาจุดจบไม่ได้
+Wands_01	Ace of Wands	เอซไม้เท้า	Inspiration, a spark, new energy.	แรงบันดาลใจ ประกายความคิด พลังใหม่	Delays, lack of motivation.	ความล่าช้า ขาดแรงจูงใจ
+Wands_02	Two of Wands	สองไม้เท้า	Planning, looking ahead, decisions.	การวางแผน มองไปข้างหน้า การตัดสินใจ	Fear of the unknown, poor planning.	กลัวสิ่งที่ไม่รู้ วางแผนไม่รอบคอบ
+Wands_03	Three of Wands	สามไม้เท้า	Expansion, progress, opportunities abroad.	การขยายตัว ความก้าวหน้า โอกาสที่ไกลออกไป	Obstacles, setbacks in plans.	อุปสรรค แผนสะดุด
+Wands_04	Four of Wands	สี่ไม้เท้า	Celebration, home, stability.	การเฉลิมฉลอง บ้าน ความมั่นคง	Tension at home, transition.	ความตึงเครียดในบ้าน ช่วงเปลี่ยนผ่าน
+Wands_05	Five of Wands	ห้าไม้เท้า	Competition, conflict, rivalry.	การแข่งขัน ความขัดแย้ง คู่แข่ง	Avoiding conflict, finding agreement.	เลี่ยงความขัดแย้ง หาข้อตกลงร่วมกัน
+Wands_06	Six of Wands	หกไม้เท้า	Victory, recognition, confidence.	ชัยชนะ การได้รับการยอมรับ ความมั่นใจ	Ego, fall from grace, self-doubt.	ความหลงตัว เสื่อมความนิยม ไม่มั่นใจ
+Wands_07	Seven of Wands	เจ็ดไม้เท้า	Standing your ground, perseverance.	ยืนหยัดในจุดยืน ความเพียร	Overwhelm, giving up.	ท่วมท้นจนรับไม่ไหว ยอมแพ้
+Wands_08	Eight of Wands	แปดไม้เท้า	Speed, movement, swift news.	ความรวดเร็ว การเคลื่อนไหว ข่าวที่มาเร็ว	Delays, frustration, waiting.	ความล่าช้า ความหงุดหงิด การรอคอย
+Wands_09	Nine of Wands	เก้าไม้เท้า	Resilience, persistence, last stretch.	ความทรหด ความไม่ย่อท้อ ช่วงโค้งสุดท้าย	Exhaustion, paranoia.	ความเหนื่อยล้า ระแวงเกินเหตุ
+Wands_10	Ten of Wands	สิบไม้เท้า	Burden, responsibility, hard work.	ภาระ ความรับผิดชอบ การทำงานหนัก	Releasing burdens, delegating.	ปลดภาระ กระจายงานให้ผู้อื่น
+Wands_11	Page of Wands	เด็กรับใช้ไม้เท้า	Enthusiasm, exploration, a fresh idea.	ความกระตือรือร้น การสำรวจ ความคิดใหม่	Impatience, lack of direction.	ใจร้อน ไร้ทิศทาง
+Wands_12	Knight of Wands	อัศวินไม้เท้า	Energy, adventure, bold action.	พลังงาน การผจญภัย ลงมืออย่างกล้าหาญ	Haste, recklessness.	ความรีบร้อน ความบุ่มบ่าม
+Wands_13	Queen of Wands	ราชินีไม้เท้า	Confidence, warmth, determination.	ความมั่นใจ ความอบอุ่น ความมุ่งมั่น	Jealousy, insecurity.	ความอิจฉา ความไม่มั่นคงในใจ
+Wands_14	King of Wands	ราชาไม้เท้า	Vision, leadership, boldness.	วิสัยทัศน์ ภาวะผู้นำ ความกล้าได้กล้าเสีย	Impulsiveness, overbearing.	ทำตามอารมณ์ วางอำนาจเกินไป
+Cups_01	Ace of Cups	เอซถ้วย	New love, compassion, emotional renewal.	ความรักใหม่ ความเมตตา หัวใจที่ฟื้นคืน	Blocked feelings, emptiness.	ปิดกั้นความรู้สึก ความว่างเปล่า
+Cups_02	Two of Cups	สองถ้วย	Partnership, connection, mutual respect.	ความเป็นคู่ ความผูกพัน การให้เกียรติกัน	Imbalance in a relationship, disconnection.	ความสัมพันธ์ไม่สมดุล ห่างเหิน
+Cups_03	Three of Cups	สามถ้วย	Friendship, celebration, community.	มิตรภาพ การเฉลิมฉลอง ชุมชน	Overindulgence, gossip.	ความสำราญเกินพอดี การนินทา
+Cups_04	Four of Cups	สี่ถ้วย	Apathy, contemplation, missed offers.	ความเฉยชา การครุ่นคิด มองข้ามโอกาส	Renewed interest, accepting what is offered.	กลับมาสนใจ ยอมรับสิ่งที่ได้รับ
+Cups_05	Five of Cups	ห้าถ้วย	Loss, regret, focusing on what went wrong.	การสูญเสีย ความเสียใจ จมอยู่กับสิ่งที่ผิดพลาด	Acceptance, moving on.	การยอมรับ ก้าวต่อไป
+Cups_06	Six of Cups	หกถ้วย	Nostalgia, childhood, kindness.	ความคิดถึงอดีต วัยเด็ก ความมีน้ำใจ	Stuck in the past.	ติดอยู่กับอดีต
+Cups_07	Seven of Cups	เจ็ดถ้วย	Choices, daydreams, illusion.	ทางเลือกมากมาย ความเพ้อฝัน ภาพลวง	Clarity, making a decision.	ความชัดเจน ตัดสินใจได้
+Cups_08	Eight of Cups	แปดถ้วย	Walking away, seeking deeper meaning.	การเดินจากไป แสวงหาความหมายที่ลึกกว่า	Fear of leaving, aimless drifting.	กลัวที่จะจากไป ล่องลอยไร้จุดหมาย
+Cups_09	Nine of Cups	เก้าถ้วย	Contentment, wishes fulfilled.	ความพึงพอใจ ความปรารถนาเป็นจริง	Dissatisfaction, smugness.	ความไม่พอใจ ความหลงตัว
+Cups_10	Ten of Cups	สิบถ้วย	Harmony, family, lasting happiness.	ความกลมเกลียว ครอบครัว ความสุขที่ยั่งยืน	Broken harmony, misaligned values.	ความกลมเกลียวแตกร้าว คุณค่าไม่ตรงกัน
+Cups_11	Page of Cups	เด็กรับใช้ถ้วย	Curiosity, a creative message, sensitivity.	ความอยากรู้ ข่าวดีด้านความคิดสร้างสรรค์ ความอ่อนไหว	Emotional immaturity, blocked creativity.	อารมณ์ไม่มั่นคง ความคิดสร้างสรรค์ติดขัด
+Cups_12	Knight of Cups	อัศวินถ้วย	Romance, charm, following the heart.	ความโรแมนติก เสน่ห์ ทำตามหัวใจ	Moodiness, unrealistic ideals.	อารมณ์แปรปรวน อุดมคติที่เพ้อฝัน
+Cups_13	Queen of Cups	ราชินีถ้วย	Compassion, calm, emotional depth.	ความเห็นอกเห็นใจ ความสงบ อารมณ์ที่ลึกซึ้ง	Insecurity, codependence.	ความไม่มั่นคง พึ่งพิงผู้อื่นมากเกินไป
+Cups_14	King of Cups	ราชาถ้วย	Emotional balance, diplomacy, kindness.	อารมณ์สมดุล การประนีประนอม ความเมตตา	Emotional manipulation, moodiness.	ใช้อารมณ์บงการ อารมณ์แปรปรวน
+Swords_01	Ace of Swords	เอซดาบ	Clarity, truth, a breakthrough.	ความชัดเจน ความจริง การค้นพบครั้งสำคัญ	Confusion, misinformation.	ความสับสน ข้อมูลผิดพลาด
+Swords_02	Two of Swords	สองดาบ	Stalemate, a difficult choice, avoidance.	ทางตัน ทางเลือกที่ยาก การหลีกเลี่ยง	Information overload, indecision lifting.	ข้อมูลล้น เริ่มตัดสินใจได้
+Swords_03	Three of Swords	สามดาบ	Heartbreak, grief, painful truth.	ความเจ็บปวดใจ ความโศกเศร้า ความจริงที่เจ็บปวด	Healing, forgiveness.	การเยียวยา การให้อภัย
+Swords_04	Four of Swords	สี่ดาบ	Rest, recovery, contemplation.	การพักผ่อน การฟื้นตัว การใคร่ครวญ	Restlessness, burnout.	กระสับกระส่าย หมดไฟ
+Swords_05	Five of Swords	ห้าดาบ	Conflict, winning at a cost.	ความขัดแย้ง ชนะแต่ต้องแลกด้วยราคาแพง	Reconciliation, making amends.	การคืนดี การแก้ไขสิ่งที่ผิด
+Swords_06	Six of Swords	หกดาบ	Transition, moving on, calmer waters.	การเปลี่ยนผ่าน การก้าวต่อไป สู่ช่วงที่สงบกว่า	Unfinished business, resistance to change.	เรื่องที่ยังค้างคา ต่อต้านการเปลี่ยนแปลง
+Swords_07	Seven of Swords	เจ็ดดาบ	Strategy, secrecy, getting away with something.	กลยุทธ์ ความลับ การทำอะไรแอบแฝง	Confession, coming clean.	การสารภาพ การเปิดเผยความจริง
+Swords_08	Eight of Swords	แปดดาบ	Feeling trapped, self-imposed limits.	รู้สึกติดกับ ข้อจำกัดที่สร้างขึ้นเอง	Release, new perspective.	การปลดปล่อย มุมมองใหม่
+Swords_09	Nine of Swords	เก้าดาบ	Anxiety, worry, sleepless nights.	ความวิตกกังวล ความกังวล คืนที่นอนไม่หลับ	Hope, reaching out for help.	ความหวัง การขอความช่วยเหลือ
+Swords_10	Ten of Swords	สิบดาบ	A painful ending, hitting bottom.	จุดจบที่เจ็บปวด ถึงจุดต่ำสุด	Recovery, the worst is over.	การฟื้นตัว ช่วงที่แย่ที่สุดผ่านไปแล้ว
+Swords_11	Page of Swords	เด็กรับใช้ดาบ	Curiosity, new ideas, alertness.	ความอยากรู้ ความคิดใหม่ ความตื่นตัว	Gossip, hasty words.	การนินทา พูดโดยไม่ไตร่ตรอง
+Swords_12	Knight of Swords	อัศวินดาบ	Ambition, fast action, directness.	ความทะเยอทะยาน ลงมือเร็ว ตรงไปตรงมา	Impulsiveness, rushing in.	หุนหันพลันแล่น พุ่งเข้าใส่โดยไม่คิด
+Swords_13	Queen of Swords	ราชินีดาบ	Clear thinking, independence, honesty.	ความคิดที่ชัดเจน ความเป็นตัวของตัวเอง ความซื่อตรง	Coldness, bitterness.	ความเย็นชา ความขมขื่น
+Swords_14	King of Swords	ราชาดาบ	Intellect, authority, truth.	สติปัญญา อำนาจ ความจริง	Abuse of power, manipulation.	ใช้อำนาจในทางที่ผิด การบงการ
+Pentacles_01	Ace of Pentacles	เอซเหรียญ	A new opportunity, prosperity, a solid start.	โอกาสใหม่ ความมั่งคั่ง การเริ่มต้นที่มั่นคง	Missed chance, poor planning.	พลาดโอกาส วางแผนไม่ดี
+Pentacles_02	Two of Pentacles	สองเหรียญ	Balancing priorities, adaptability.	การจัดสมดุลหลายเรื่อง การปรับตัว	Overcommitted, disorganised.	รับงานเกินตัว ไม่เป็นระเบียบ
+Pentacles_03	Three of Pentacles	สามเหรียญ	Teamwork, craftsmanship, learning.	การทำงานเป็นทีม ฝีมือ การเรียนรู้	Poor teamwork, lack of effort.	ทีมไม่ประสานกัน ขาดความทุ่มเท
+Pentacles_04	Four of Pentacles	สี่เหรียญ	Security, saving, holding on tight.	ความมั่นคง การเก็บออม การยึดไว้แน่น	Greed, letting go of control.	ความโลภ ยอมปล่อยการควบคุม
+Pentacles_05	Five of Pentacles	ห้าเหรียญ	Hardship, feeling left out in the cold.	ความยากลำบาก รู้สึกถูกทอดทิ้ง	Recovery, help arriving.	การฟื้นตัว ความช่วยเหลือมาถึง
+Pentacles_06	Six of Pentacles	หกเหรียญ	Generosity, giving and receiving.	ความเอื้อเฟื้อ การให้และการรับ	Strings attached, inequality.	ให้แบบมีเงื่อนไข ความไม่เท่าเทียม
+Pentacles_07	Seven of Pentacles	เจ็ดเหรียญ	Patience, long-term investment.	ความอดทน การลงทุนระยะยาว	Impatience, poor returns.	ใจร้อน ผลตอบแทนไม่คุ้ม
+Pentacles_08	Eight of Pentacles	แปดเหรียญ	Diligence, skill-building, mastery.	ความขยัน การฝึกฝนทักษะ ความเชี่ยวชาญ	Perfectionism, lack of focus.	ความสมบูรณ์แบบเกินไป ขาดสมาธิ
+Pentacles_09	Nine of Pentacles	เก้าเหรียญ	Independence, comfort, self-reliance.	การพึ่งพาตนเอง ความสบาย ความเป็นอิสระ	Overwork, financial setbacks.	ทำงานหนักเกินไป ปัญหาการเงิน
+Pentacles_10	Ten of Pentacles	สิบเหรียญ	Legacy, family wealth, long-term success.	มรดก ความมั่งคั่งของครอบครัว ความสำเร็จระยะยาว	Family disputes, fleeting success.	ความขัดแย้งในครอบครัว ความสำเร็จที่ไม่ยั่งยืน
+Pentacles_11	Page of Pentacles	เด็กรับใช้เหรียญ	Study, ambition, a practical start.	การศึกษา ความตั้งใจ การเริ่มต้นอย่างเป็นรูปธรรม	Procrastination, lack of progress.	การผัดวันประกันพรุ่ง ไม่คืบหน้า
+Pentacles_12	Knight of Pentacles	อัศวินเหรียญ	Hard work, routine, reliability.	ความขยันหมั่นเพียร กิจวัตร ความน่าเชื่อถือ	Boredom, stubbornness.	ความเบื่อหน่าย ความดื้อรั้น
+Pentacles_13	Queen of Pentacles	ราชินีเหรียญ	Nurturing, practical, grounded.	การเลี้ยงดู ความเป็นจริง ความติดดิน	Self-neglect, work-life imbalance.	ละเลยตัวเอง งานกับชีวิตไม่สมดุล
+Pentacles_14	King of Pentacles	ราชาเหรียญ	Abundance, security, leadership in business.	ความมั่งคั่ง ความมั่นคง ผู้นำทางธุรกิจ	Materialism, stubbornness.	ยึดติดวัตถุ ความดื้อรั้น

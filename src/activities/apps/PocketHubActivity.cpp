@@ -2,6 +2,11 @@
 
 #include <Memory.h>
 
+#include "FlashcardsActivity.h"
+#include "Game2048Activity.h"
+#include "MinesweeperActivity.h"
+#include "NonogramActivity.h"
+#include "TarotActivity.h"
 #include "activities/home/ReadingStatsActivity.h"
 #include "components/UITheme.h"
 #ifdef PERSONAL_SERIAL_INPUT
@@ -23,6 +28,11 @@ struct HubApp {
 };
 
 constexpr HubApp APPS[] = {
+    {StrId::STR_FLASHCARDS, &make<FlashcardsActivity>},
+    {StrId::STR_TAROT, &make<TarotActivity>},
+    {StrId::STR_GAME_2048, &make<Game2048Activity>},
+    {StrId::STR_GAME_MINES, &make<MinesweeperActivity>},
+    {StrId::STR_GAME_NONOGRAM, &make<NonogramActivity>},
     {StrId::STR_READING_STATS, &make<ReadingStatsActivity>},
 #ifdef PERSONAL_SERIAL_INPUT
     // Test builds only: exercises app saves across Back, sleep and wake.
