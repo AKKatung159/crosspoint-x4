@@ -69,8 +69,8 @@ const char* tileLabel(const UIIcon icon) {
       return tr(STR_TILE_SETTINGS);
     case Blocks:
       return "OPDS";
-    case Stats:
-      return tr(STR_TILE_STATS);
+    case Stats:  // the Apps tile (Pocket Hub)
+      return tr(STR_TILE_APPS);
     default:
       return nullptr;
   }

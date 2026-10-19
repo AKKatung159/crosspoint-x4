@@ -62,7 +62,7 @@ void ReadingStatsActivity::onEnter() {
 void ReadingStatsActivity::loop() {
   if (mappedInput.wasReleased(MappedInputManager::Button::Back) ||
       mappedInput.wasReleased(MappedInputManager::Button::Confirm)) {
-    activityManager.goHome();
+    finish();  // back to the Pocket Hub
   }
 }
 

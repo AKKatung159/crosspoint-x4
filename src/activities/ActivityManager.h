@@ -17,8 +17,8 @@
 class Activity;    // forward declaration
 class RenderLock;  // forward declaration
 
-// PERSONAL: READING_STATS (this fork's reading statistics screen).
-enum class HomeMenuItem { NONE, FILE_BROWSER, LIBRARY, OPDS_BROWSER, FILE_TRANSFER, SETTINGS_MENU, READING_STATS };
+// PERSONAL: POCKET_HUB (this fork's mini-app launcher; reading stats live there).
+enum class HomeMenuItem { NONE, FILE_BROWSER, LIBRARY, OPDS_BROWSER, FILE_TRANSFER, SETTINGS_MENU, POCKET_HUB };
 
 /**
  * ActivityManager
@@ -87,7 +87,7 @@ class ActivityManager {
   void goToSettings();
   void goToFileBrowser(std::string path = {});
   void goToLibrary();
-  void goToReadingStats();  // PERSONAL
+  void goToPocketHub();  // PERSONAL
   void goToBrowser();
   void goToReader(std::string path, bool allowFastInitialRefresh = false);
   void goToSleep(bool fromTimeout = false);

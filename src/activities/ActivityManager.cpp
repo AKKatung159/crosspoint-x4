@@ -12,6 +12,7 @@
 
 #include "CrossPointSettings.h"
 #include "OpdsServerStore.h"
+#include "apps/PocketHubActivity.h"
 #include "boot_sleep/BootActivity.h"
 #include "boot_sleep/SleepActivity.h"
 #include "browser/OpdsBookBrowserActivity.h"
@@ -19,7 +20,6 @@
 #include "home/CrashActivity.h"
 #include "home/FileBrowserActivity.h"
 #include "home/HomeActivity.h"
-#include "home/ReadingStatsActivity.h"
 #include "library/LibraryListActivity.h"
 #include "network/CrossPointWebServerActivity.h"
 #include "network/UsbDriveActivity.h"
@@ -269,10 +269,10 @@ void ActivityManager::goToFileBrowser(std::string path) {
   replaceActivity(std::make_unique<FileBrowserActivity>(renderer, mappedInput, std::move(path)));
 }
 
-void ActivityManager::goToReadingStats() {  // PERSONAL
-  auto activity = makeUniqueNoThrow<ReadingStatsActivity>(renderer, mappedInput);
+void ActivityManager::goToPocketHub() {  // PERSONAL
+  auto activity = makeUniqueNoThrow<PocketHubActivity>(renderer, mappedInput);
   if (!activity) {
-    LOG_ERR("ACT", "OOM: reading stats activity");
+    LOG_ERR("ACT", "OOM: pocket hub activity");
     return;
   }
   replaceActivity(std::move(activity));
@@ -343,8 +343,8 @@ void ActivityManager::goHome(HomeMenuItem initialMenuItem, bool cleanInitialRefr
       initialMenuItem = HomeMenuItem::FILE_TRANSFER;
     } else if (activityName == "Settings") {
       initialMenuItem = HomeMenuItem::SETTINGS_MENU;
-    } else if (activityName == "ReadingStats") {  // PERSONAL
-      initialMenuItem = HomeMenuItem::READING_STATS;
+    } else if (activityName == "PocketHub") {  // PERSONAL
+      initialMenuItem = HomeMenuItem::POCKET_HUB;
     }
   }
   replaceActivity(std::make_unique<HomeActivity>(renderer, mappedInput, initialMenuItem, cleanInitialRefresh));
