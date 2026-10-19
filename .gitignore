@@ -32,3 +32,5 @@ lib/EpdFont/scripts/output/
 /sdkconfig.*
 sdkconfig.sticky
 flake.*
+sdk/examples/*/app.wasm
+scripts/emu/sdk-apps/*/app.wasm

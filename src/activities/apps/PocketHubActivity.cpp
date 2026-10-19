@@ -1,12 +1,17 @@
 #include "PocketHubActivity.h"
 
+#include <HalStorage.h>
 #include <Memory.h>
+
+#include <algorithm>
+#include <cstring>
 
 #include "FlashcardsActivity.h"
 #include "Game2048Activity.h"
 #include "MinesweeperActivity.h"
 #include "NonogramActivity.h"
 #include "TarotActivity.h"
+#include "WasmAppActivity.h"
 #include "activities/home/ReadingStatsActivity.h"
 #include "components/UITheme.h"
 #ifdef PERSONAL_SERIAL_INPUT
@@ -43,13 +48,36 @@ constexpr int APP_COUNT = sizeof(APPS) / sizeof(APPS[0]);
 
 }  // namespace
 
-int PocketHubActivity::listCount() const { return APP_COUNT < MAX_APPS ? APP_COUNT : MAX_APPS; }
+void PocketHubActivity::onEnter() {
+  sdkApps.clear();
+  sdkApps.reserve(MAX_SDK_APPS);
+  auto dir = Storage.open("/apps");
+  if (dir && dir.isDirectory()) {
+    char folder[40];
+    for (auto f = dir.openNextFile(); f && static_cast<int>(sdkApps.size()) < MAX_SDK_APPS; f = dir.openNextFile()) {
+      if (!f.isDirectory()) continue;
+      f.getName(folder, sizeof(folder));
+      AppManifest m;
+      if (folder[0] != '.' && m.load(folder)) sdkApps.push_back(m);
+    }
+  }
+  std::sort(sdkApps.begin(), sdkApps.end(),
+            [](const AppManifest& a, const AppManifest& b) { return strcmp(a.nameEn, b.nameEn) < 0; });
+  LOG_INF("HUB", "%u SDK apps", static_cast<unsigned>(sdkApps.size()));
+  UiListActivity::onEnter();
+}
+
+int PocketHubActivity::listCount() const {
+  return std::min(APP_COUNT + static_cast<int>(sdkApps.size()), MAX_APPS);
+}
 
 void PocketHubActivity::activateIndex(const int index) {
   if (index < 0 || index >= listCount()) return;
   app.clearTapFlash();
   nav.selected = index;
-  auto activity = APPS[index].create(renderer, mappedInput);
+  auto activity = index < APP_COUNT
+                      ? APPS[index].create(renderer, mappedInput)
+                      : makeUniqueNoThrow<WasmAppActivity>(renderer, mappedInput, sdkApps[index - APP_COUNT]);
   if (!activity) {
     LOG_ERR("HUB", "OOM: app %d", index);
     return;
@@ -66,7 +94,7 @@ void PocketHubActivity::buildScreen(UiScreen& screen) {
                                       static_cast<int16_t>(safe.x)});
   screen.spacer(static_cast<int16_t>(metrics.verticalSpacing));
   for (int i = 0; i < listCount(); ++i) {
-    rows[i].label = I18N.get(APPS[i].name);
+    rows[i].label = i < APP_COUNT ? I18N.get(APPS[i].name) : sdkApps[i - APP_COUNT].name();
     rows[i].actionValue = static_cast<int16_t>(i);
   }
   fui::ListProps props;

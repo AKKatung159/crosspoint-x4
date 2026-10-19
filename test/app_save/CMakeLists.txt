@@ -4,6 +4,7 @@ add_executable(PocketAppsTest
   Game2048Test.cpp
   MinesweeperTest.cpp
   NonogramTest.cpp
+  AppPathTest.cpp
 )
 
 target_include_directories(PocketAppsTest PRIVATE
