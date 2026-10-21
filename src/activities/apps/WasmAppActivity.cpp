@@ -32,7 +32,7 @@ constexpr uint32_t WASM_STACK_BYTES = 4096;
 constexpr uint64_t GAS_PER_CALL = 20 * 1000 * 1000;
 constexpr int FAST_REFRESHES_PER_HALF = 15;
 constexpr uint16_t SAVE_VERSION = 1;  // the payload is the app's own format
-constexpr int HINT_LEN = 24;
+constexpr int HINT_LEN = 48;          // 15 Thai characters (3 bytes each) and the NUL
 
 constexpr int FONTS[] = {SMALL_FONT_ID, UI_10_FONT_ID, UI_12_FONT_ID, NOTOSANS_16_FONT_ID, NOTOSANS_18_FONT_ID};
 int fontId(const int font) { return FONTS[font >= 0 && font < 5 ? font : 1]; }
@@ -77,6 +77,17 @@ const char* str(const void* mem, const char* s) {
   const auto* base = static_cast<const char*>(mem);
   if (s < base || s >= base + size || !memchr(s, '\0', base + size - s)) return "";
   return s;
+}
+
+// Copies src into dst, cut at a UTF-8 character boundary when it does not fit.
+void copyUtf8(char* dst, const size_t size, const char* src) {
+  size_t n = strlen(src);
+  if (n >= size) {
+    n = size - 1;
+    while (n > 0 && (static_cast<uint8_t>(src[n]) & 0xC0) == 0x80) --n;  // back off a continuation byte
+  }
+  memcpy(dst, src, n);
+  dst[n] = '\0';
 }
 
 void textAt(const GfxRenderer& r, const int x, const int y, const char* s, const int font, const int flags) {
@@ -165,7 +176,7 @@ m3ApiRawFunction(xRefresh) {
 }
 m3ApiRawFunction(xTitle) {
   m3ApiGetArgMem(const char*, s) Rt& h_ = host(runtime);
-  snprintf(h_.title, sizeof(h_.title), "%s", str(_mem, s));
+  copyUtf8(h_.title, sizeof(h_.title), str(_mem, s));
   m3ApiSuccess();
 }
 // Labels for the four front buttons (Back, Confirm, Left, Right); 0 leaves one empty.
@@ -174,7 +185,7 @@ m3ApiRawFunction(xHints) {
       m3ApiGetArgMem(const char*, d) Rt& h_ = host(runtime);
   const char* labels[4] = {a, b, c, d};
   const auto* base = static_cast<const char*>(_mem);
-  for (int i = 0; i < 4; ++i) snprintf(h_.hints[i], HINT_LEN, "%s", labels[i] == base ? "" : str(_mem, labels[i]));
+  for (int i = 0; i < 4; ++i) copyUtf8(h_.hints[i], HINT_LEN, labels[i] == base ? "" : str(_mem, labels[i]));
   m3ApiSuccess();
 }
 m3ApiRawFunction(xWidth) { m3ApiReturnType(int32_t) m3ApiReturn(host(runtime).renderer->getScreenWidth()); }
