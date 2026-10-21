@@ -101,6 +101,12 @@ void PocketHubActivity::buildScreen(UiScreen& screen) {
   screen.spacer(static_cast<int16_t>(metrics.verticalSpacing));
   for (int i = 0; i < listCount(); ++i) {
     rows[i].label = i < builtIns ? I18N.get(APPS[builtIn[i]].name) : sdkApps[i - builtIns].name();
+    rows[i].icon = {};
+    if (i >= builtIns && sdkApps[i - builtIns].hasIcon) {
+      const auto& m = sdkApps[i - builtIns];
+      rows[i].icon =
+          fui::BitmapRef{m.icon, AppManifest::ICON_SIZE, AppManifest::ICON_SIZE, fui::BitmapFormat::BW1, false};
+    }
     rows[i].actionValue = static_cast<int16_t>(i);
   }
   fui::ListProps props;
