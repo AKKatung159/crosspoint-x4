@@ -13,7 +13,10 @@
 #include <cstdio>
 #include <cstring>
 
+#include "DashboardSync.h"
 #include "MappedInputManager.h"
+#include "ReadingStats.h"
+#include "activities/reader/ReaderUtils.h"
 #include "apps/AppSave.h"
 #include "apps/AppText.h"
 #include "apps/sdk/AppPath.h"
@@ -44,8 +47,9 @@ Color color(const int c) {
 struct WasmAppActivity::Runtime {
   const AppManifest* manifest = nullptr;
   GfxRenderer* renderer = nullptr;
-  bool inRender = false;  // drawing calls are ignored outside render()
-  int refreshMode = 0;    // set by x4_refresh during render()
+  bool inRender = false;                           // drawing calls are ignored outside render()
+  int refreshMode = 0;                             // set by x4_refresh during render()
+  int dashX = 0, dashY = 0, dashW = 0, dashH = 0;  // x4_dashboard's box, drawn again in grey after the refresh
   int top = 0, bottom = 0;
   char title[64] = {};
   char hints[4][HINT_LEN] = {};
@@ -173,15 +177,9 @@ m3ApiRawFunction(xHints) {
   for (int i = 0; i < 4; ++i) snprintf(h_.hints[i], HINT_LEN, "%s", labels[i] == base ? "" : str(_mem, labels[i]));
   m3ApiSuccess();
 }
-m3ApiRawFunction(xWidth) {
-  m3ApiReturnType(int32_t) m3ApiReturn(host(runtime).renderer->getScreenWidth());
-}
-m3ApiRawFunction(xTop) {
-  m3ApiReturnType(int32_t) m3ApiReturn(host(runtime).top);
-}
-m3ApiRawFunction(xBottom) {
-  m3ApiReturnType(int32_t) m3ApiReturn(host(runtime).bottom);
-}
+m3ApiRawFunction(xWidth) { m3ApiReturnType(int32_t) m3ApiReturn(host(runtime).renderer->getScreenWidth()); }
+m3ApiRawFunction(xTop) { m3ApiReturnType(int32_t) m3ApiReturn(host(runtime).top); }
+m3ApiRawFunction(xBottom) { m3ApiReturnType(int32_t) m3ApiReturn(host(runtime).bottom); }
 
 // --- storage ---------------------------------------------------------------
 void saveId(const Rt& h, char* out, const size_t size) { snprintf(out, size, "sdk-%s", h.manifest->id); }
@@ -215,8 +213,8 @@ m3ApiRawFunction(xFsize) {
 }
 // Reads up to len bytes at offset of a file in the app's folder; returns the count, or -1.
 m3ApiRawFunction(xRead) {
-  m3ApiReturnType(int32_t) m3ApiGetArgMem(const char*, rel) m3ApiGetArg(int32_t, offset)
-      m3ApiGetArgMem(void*, out) m3ApiGetArg(int32_t, len) m3ApiCheckMem(out, len);
+  m3ApiReturnType(int32_t) m3ApiGetArgMem(const char*, rel) m3ApiGetArg(int32_t, offset) m3ApiGetArgMem(void*, out)
+      m3ApiGetArg(int32_t, len) m3ApiCheckMem(out, len);
   Rt& h_ = host(runtime);
   char path[112];
   HalFile f;
@@ -228,18 +226,157 @@ m3ApiRawFunction(xRead) {
 }
 
 // --- misc ------------------------------------------------------------------
-m3ApiRawFunction(xRnd) {
-  m3ApiReturnType(uint32_t) m3ApiReturn(esp_random());
-}
-m3ApiRawFunction(xMillis) {
-  m3ApiReturnType(uint32_t) m3ApiReturn(static_cast<uint32_t>(millis()));
-}
-m3ApiRawFunction(xLang) {
-  m3ApiReturnType(int32_t) m3ApiReturn(I18N.getLanguage() == Language::TH ? 1 : 0);
-}
+m3ApiRawFunction(xRnd) { m3ApiReturnType(uint32_t) m3ApiReturn(esp_random()); }
+m3ApiRawFunction(xMillis) { m3ApiReturnType(uint32_t) m3ApiReturn(static_cast<uint32_t>(millis())); }
+m3ApiRawFunction(xLang) { m3ApiReturnType(int32_t) m3ApiReturn(I18N.getLanguage() == Language::TH ? 1 : 0); }
 m3ApiRawFunction(xLog) {
   m3ApiGetArgMem(const char*, s) LOG_INF("APP", "%s: %s", host(runtime).manifest->id, str(_mem, s));
   m3ApiSuccess();
+}
+
+// --- v2 --------------------------------------------------------------------
+// The n-th listable file of the app's folder (see x4_list in x4.h).
+m3ApiRawFunction(xList) {
+  m3ApiReturnType(int32_t) m3ApiGetArg(int32_t, n) m3ApiGetArgMem(char*, out) m3ApiGetArg(int32_t, cap)
+      m3ApiCheckMem(out, cap);
+  Rt& h_ = host(runtime);
+  auto dir = Storage.open(h_.manifest->dir);
+  if (n < 0 || cap <= 0 || !dir || !dir.isDirectory()) m3ApiReturn(-1);
+  char name[64];
+  int i = 0;
+  for (auto f = dir.openNextFile(); f; f = dir.openNextFile()) {
+    if (f.isDirectory() || !f.getName(name, sizeof(name)) || name[0] == '.' || !app_path::valid(name)) continue;
+    if (i++ < n) continue;
+    const int len = static_cast<int>(strlen(name));
+    if (len >= cap) m3ApiReturn(-1);
+    memcpy(out, name, len + 1);
+    m3ApiReturn(len);
+  }
+  m3ApiReturn(-1);
+}
+// Row offsets of a TSV file in the app's folder (see x4_rows in x4.h). Scanning
+// here keeps a long file off the app's gas budget.
+m3ApiRawFunction(xRows) {
+  m3ApiReturnType(int32_t) m3ApiGetArgMem(const char*, rel) m3ApiGetArgMem(uint32_t*, out) m3ApiGetArg(int32_t, max)
+      m3ApiCheckMem(out, max > 0 ? static_cast<size_t>(max) * 4 : 0);
+  Rt& h_ = host(runtime);
+  char path[112];
+  HalFile f;
+  if (max < 0 || !app_path::resolve(h_.manifest->dir, str(_mem, rel), path, sizeof(path)) || !Storage.exists(path) ||
+      !Storage.openFileForRead("SDK", path, f)) {
+    m3ApiReturn(-1);
+  }
+  constexpr size_t CHUNK = 512;
+  auto chunk = makeUniqueNoThrow<uint8_t[]>(CHUNK);  // heap: keeps the loop task's stack small
+  if (!chunk) {
+    LOG_ERR("SDK", "OOM: %u bytes", static_cast<unsigned>(CHUNK));
+    m3ApiReturn(-1);
+  }
+  int32_t rows = 0;
+  uint32_t offset = 0, lineStart = 0;
+  char head[4];
+  size_t lineLen = 0;
+  bool sawTab = false;
+  for (;;) {
+    const int got = f.read(chunk.get(), CHUNK);
+    if (got < 0) m3ApiReturn(-1);
+    const bool eof = got == 0;  // a last line without '\n' still ends here
+    for (int i = 0; i < (eof ? 1 : got); ++i) {
+      const char c = eof ? '\n' : static_cast<char>(chunk[i]);
+      if (c != '\n') {
+        if (lineLen < sizeof(head)) head[lineLen] = c;
+        sawTab |= c == '\t';
+        ++lineLen;
+        continue;
+      }
+      const size_t skip = lineLen >= 3 && memcmp(head, "\xEF\xBB\xBF", 3) == 0 ? 3 : 0;
+      if (sawTab && lineLen > skip && head[skip] != '#') {
+        if (rows == max) m3ApiReturn(rows);
+        const uint32_t at = lineStart + static_cast<uint32_t>(skip);
+        memcpy(out + rows++, &at, 4);
+      }
+      lineStart = offset + static_cast<uint32_t>(i) + 1;
+      lineLen = 0;
+      sawTab = false;
+    }
+    if (eof) break;
+    offset += static_cast<uint32_t>(got);
+  }
+  m3ApiReturn(rows);
+}
+// x4_stats_t in x4.h: the same layout on wasm32 and on the ESP32 (all fields 4-byte aligned).
+struct SdkStats {
+  uint32_t totalSec, totalPages, sessions, finished, streak;
+  int32_t clockKnown;
+  struct {
+    char key[12];
+    uint32_t sec, pages;
+  } week[ReadingStats::kWeekDays];
+  uint32_t lastSec;
+  int32_t lastPercent;
+  char lastTitle[96];
+};
+static_assert(sizeof(SdkStats) == 268, "must match x4_stats_t");
+m3ApiRawFunction(xStats) {
+  m3ApiReturnType(int32_t) m3ApiGetArgMem(SdkStats*, out) m3ApiCheckMem(out, sizeof(SdkStats));
+  auto s = makeUniqueNoThrow<ReadingStats::Summary>();  // heap: the Summary holds a std::string and 7 days
+  if (!s || !ReadingStats::summary(*s)) m3ApiReturn(-1);
+  SdkStats v = {};
+  v.totalSec = s->totalSec;
+  v.totalPages = s->totalPages;
+  v.sessions = s->sessions;
+  v.finished = s->booksFinished;
+  v.streak = s->streakDays;
+  v.clockKnown = s->clockKnown ? 1 : 0;
+  for (int i = 0; i < ReadingStats::kWeekDays; ++i) {
+    snprintf(v.week[i].key, sizeof(v.week[i].key), "%s", s->week[i].key);
+    v.week[i].sec = s->week[i].sec;
+    v.week[i].pages = s->week[i].pages;
+  }
+  v.lastSec = s->lastBookSec;
+  v.lastPercent = s->lastBookPercent;
+  snprintf(v.lastTitle, sizeof(v.lastTitle), "%s", s->lastTitle.c_str());
+  memcpy(out, &v, sizeof(v));
+  m3ApiReturn(static_cast<int32_t>(sizeof(v)));
+}
+m3ApiRawFunction(xDashboard) {
+  m3ApiReturnType(int32_t) m3ApiGetArg(int32_t, x) m3ApiGetArg(int32_t, y) m3ApiGetArg(int32_t, maxW)
+      m3ApiGetArg(int32_t, maxH) Rt& h_ = host(runtime);
+  HalFile file;
+  if (!h_.inRender || !Storage.exists(DashboardSync::kDashboardPath) ||
+      !Storage.openFileForRead("SDK", DashboardSync::kDashboardPath, file)) {
+    m3ApiReturn(0);
+  }
+  Bitmap bitmap(file);
+  if (bitmap.parseHeaders() != BmpReaderError::Ok || !h_.renderer->drawBitmap(bitmap, x, y, maxW, maxH)) m3ApiReturn(0);
+  h_.dashX = x;
+  h_.dashY = y;
+  h_.dashW = maxW;
+  h_.dashH = maxH;
+  m3ApiReturn(1);
+}
+// The B/W pass draws every non-white pixel of a 2-bit image black; this redraws
+// the dashboard into the grey planes, like the home screen's grey covers.
+void dashboardGreyPass(GfxRenderer& renderer, const Rt& h) {
+  ReaderUtils::renderAntiAliased(renderer, [&renderer, &h] {
+    HalFile file;
+    if (!Storage.openFileForRead("SDK", DashboardSync::kDashboardPath, file)) return;
+    Bitmap bitmap(file);
+    if (bitmap.parseHeaders() == BmpReaderError::Ok) renderer.drawBitmap(bitmap, h.dashX, h.dashY, h.dashW, h.dashH);
+  });
+}
+// Runs on the loop task with the RenderLock held (from callEvent), so the popup
+// can go straight to the frame buffer.
+m3ApiRawFunction(xSync) {
+  m3ApiReturnType(int32_t) Rt& h_ = host(runtime);
+  if (h_.inRender) m3ApiReturn(0);
+  GUI.drawPopup(*h_.renderer, tr(STR_DASHBOARD_UPDATING));
+  h_.renderer->displayBuffer();
+  const auto r = DashboardSync::run(true);
+  DashboardSync::stopRadio();
+  LOG_INF("SDK", "sync: wifi=%d dashboard=%d, heap %u", r.wifi, r.dashboard,
+          static_cast<unsigned>(HalMemory::getInternalHeap().freeBytes));
+  m3ApiReturn(r.dashboard ? 1 : 0);
 }
 
 struct Import {
@@ -248,14 +385,20 @@ struct Import {
   M3RawCall fn;
 };
 constexpr Import IMPORTS[] = {
-    {"x4_fill", "v(iiiii)", &xFill},     {"x4_rfill", "v(iiiiii)", &xRfill},   {"x4_frame", "v(iiiiii)", &xFrame},
-    {"x4_line", "v(iiiiii)", &xLine},    {"x4_text", "v(ii*ii)", &xText},      {"x4_textw", "i(*ii)", &xTextW},
-    {"x4_lineh", "i(i)", &xLineH},       {"x4_textbox", "i(iiii*ii)", &xTextBox}, {"x4_image", "i(*iiii)", &xImage},
-    {"x4_refresh", "v(i)", &xRefresh},   {"x4_title", "v(*)", &xTitle},        {"x4_hints", "v(****)", &xHints},
-    {"x4_width", "i()", &xWidth},        {"x4_top", "i()", &xTop},             {"x4_bottom", "i()", &xBottom},
-    {"x4_save", "i(*i)", &xSave},        {"x4_load", "i(*i)", &xLoad},         {"x4_fsize", "i(*)", &xFsize},
-    {"x4_read", "i(*i*i)", &xRead},      {"x4_rnd", "i()", &xRnd},             {"x4_millis", "i()", &xMillis},
-    {"x4_lang", "i()", &xLang},          {"x4_log", "v(*)", &xLog},
+    {"x4_fill", "v(iiiii)", &xFill},    {"x4_rfill", "v(iiiiii)", &xRfill},
+    {"x4_frame", "v(iiiiii)", &xFrame}, {"x4_line", "v(iiiiii)", &xLine},
+    {"x4_text", "v(ii*ii)", &xText},    {"x4_textw", "i(*ii)", &xTextW},
+    {"x4_lineh", "i(i)", &xLineH},      {"x4_textbox", "i(iiii*ii)", &xTextBox},
+    {"x4_image", "i(*iiii)", &xImage},  {"x4_refresh", "v(i)", &xRefresh},
+    {"x4_title", "v(*)", &xTitle},      {"x4_hints", "v(****)", &xHints},
+    {"x4_width", "i()", &xWidth},       {"x4_top", "i()", &xTop},
+    {"x4_bottom", "i()", &xBottom},     {"x4_save", "i(*i)", &xSave},
+    {"x4_load", "i(*i)", &xLoad},       {"x4_fsize", "i(*)", &xFsize},
+    {"x4_read", "i(*i*i)", &xRead},     {"x4_rnd", "i()", &xRnd},
+    {"x4_millis", "i()", &xMillis},     {"x4_lang", "i()", &xLang},
+    {"x4_log", "v(*)", &xLog},          {"x4_list", "i(i*i)", &xList},
+    {"x4_stats", "i(*)", &xStats},      {"x4_dashboard", "i(iiii)", &xDashboard},
+    {"x4_sync", "i()", &xSync},         {"x4_rows", "i(**i)", &xRows},
 };
 
 }  // namespace
@@ -413,11 +556,10 @@ void WasmAppActivity::render(RenderLock&&) {
   renderer.clearScreen();
   const auto& metrics = UITheme::getInstance().getMetrics();
   const int pageW = renderer.getScreenWidth();
-  GUI.drawHeader(renderer, Rect{0, metrics.topPadding, pageW, metrics.headerHeight}, rt ? rt->title : manifest.name(),
-                 nullptr);
   int mode = 0;
   if (ok) {
     rt->refreshMode = 0;
+    rt->dashW = 0;
     rt->inRender = true;
     ok = callApp(*rt, rt->render, "render", nullptr, nullptr);
     rt->inRender = false;
@@ -434,6 +576,9 @@ void WasmAppActivity::render(RenderLock&&) {
       ly += renderer.getLineHeight(UI_10_FONT_ID);
     }
   }
+  // After the app's render(), so a title it set with x4_title shows in the same frame.
+  GUI.drawHeader(renderer, Rect{0, metrics.topPadding, pageW, metrics.headerHeight}, rt ? rt->title : manifest.name(),
+                 nullptr);
   const char* labels[4] = {tr(STR_BACK), "", "", ""};
   if (ok && rt) {
     for (int i = 1; i < 4; ++i) labels[i] = rt->hints[i];
@@ -447,4 +592,5 @@ void WasmAppActivity::render(RenderLock&&) {
   } else {
     renderer.displayBuffer();
   }
+  if (ok && rt && rt->dashW > 0) dashboardGreyPass(renderer, *rt);
 }

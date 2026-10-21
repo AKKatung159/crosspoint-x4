@@ -14,6 +14,14 @@
 
 ทุกแอปเซฟเองตอนออก (Back หรือเข้าเครื่องพัก) ไว้ที่ `/.crosspoint/apps/` อย่าลบโฟลเดอร์นี้ถ้าไม่อยากเริ่มใหม่
 
+## แอป SDK
+
+แอปทั้งหมดข้างบน (และแดชบอร์ด) มีเวอร์ชัน Pocket SDK ใน [x4-pocket-apps](https://github.com/AKKatung159/x4-pocket-apps)
+แตกไฟล์ `.xpa` ที่ `/apps/` บนการ์ด แอป SDK ที่ id ตรงกับแอปในเครื่อง (`flashcards`, `tarot`, `2048`,
+`minesweeper`, `nonogram`, `stats`) จะแสดงแทนตัวในเครื่อง ส่วนเซฟแยกกัน (`sdk-<id>.sav`)
+API อยู่ใน [sdk/include/x4.h](../../../sdk/include/x4.h) SDK v2 เพิ่ม `x4_list` (รายชื่อไฟล์ในโฟลเดอร์แอป),
+`x4_stats` (สถิติการอ่าน), `x4_dashboard` และ `x4_sync` (ภาพแดชบอร์ด และโหลดใหม่ผ่าน Wi-Fi)
+
 ## รูปแบบไฟล์
 
 ทุกไฟล์เป็นข้อความ UTF-8 คั่นคอลัมน์ด้วย TAB (export จาก Google Sheets / Excel เป็น `.tsv` ได้เลย)
@@ -50,6 +58,11 @@ are skipped, `\n` is a line break, rows are at most 1 KB.
 - Nonogram: `name<TAB>row/row/...` with `#` for filled cells, up to 15×15; clues are computed.
 - Tarot: `deck.tsv` (78 cards, Thai and English) plus 1-bit BMPs built by
   `scripts/pocket-apps/make_tarot_pack.py` from the public-domain Rider-Waite-Smith 1909 scans on Wikimedia Commons.
+
+Every app here (and a dashboard viewer) also exists as a Pocket SDK app in
+[x4-pocket-apps](https://github.com/AKKatung159/x4-pocket-apps); an installed SDK app with the same id
+(`flashcards`, `tarot`, `2048`, `minesweeper`, `nonogram`, `stats`) replaces the built-in one in the list, with
+its own save. SDK v2 adds `x4_list`, `x4_stats`, `x4_dashboard` and `x4_sync` (see `sdk/include/x4.h`).
 
 Controls are in the table above. Tests: `scripts/emu/hub_test.sh` (emulator, all apps) and the `PocketAppsTest`
 host target.

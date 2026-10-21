@@ -10,6 +10,7 @@ static struct {
   uint8_t cells[N * N];  // exponents: 0 empty, 1 = 2, 11 = 2048
   uint32_t score, best;
 } g;
+_Static_assert(sizeof(g) == 24, "manifest.json \"save\" must match");
 
 static int canMove(void) {
   for (int r = 0; r < N; ++r)
@@ -72,7 +73,8 @@ static int slide(int dir) {
 static void fmt(char* out, const char* label, uint32_t v) {
   char d[12];
   int n = 0;
-  do d[n++] = (char)('0' + v % 10); while ((v /= 10) > 0);
+  do d[n++] = (char)('0' + v % 10);
+  while ((v /= 10) > 0);
   while (*label) *out++ = *label++;
   while (n) *out++ = d[--n];
   *out = 0;

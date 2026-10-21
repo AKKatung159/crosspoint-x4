@@ -8,7 +8,7 @@
 #include "apps/sdk/AppManifest.h"
 
 // PERSONAL: the Pocket Hub (home tile "Apps"): built-in mini apps plus every
-// Pocket SDK app found on the card. Each app is an Activity pushed on top of
+// Pocket SDK app found on the card. An SDK app hides the built-in it replaces. Each app is an Activity pushed on top of
 // the hub, so Back (finish()) returns here and sleep runs every app's onExit().
 class PocketHubActivity final : public UiListActivity {
  public:
@@ -21,6 +21,8 @@ class PocketHubActivity final : public UiListActivity {
   static constexpr int MAX_SDK_APPS = 16;
   freeink::ui::ListItem rows[MAX_APPS]{};
   std::vector<AppManifest> sdkApps;  // /apps/<folder>/manifest.json, scanned on entry
+  uint8_t builtIn[MAX_APPS] = {};    // indexes into the built-in table that are shown
+  int builtIns = 0;
 
   int listCount() const override;
   const char* headerTitle() const override { return tr(STR_POCKET_HUB); }

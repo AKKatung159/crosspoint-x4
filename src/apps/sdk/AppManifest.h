@@ -9,7 +9,7 @@
 // memory: KB of wasm linear memory (default 16, at most 32); save: bytes the
 // app may persist with x4_save (default 0, at most 1024).
 struct AppManifest {
-  static constexpr int SDK_VERSION = 1;
+  static constexpr int SDK_VERSION = 2;
   static constexpr size_t MAX_MEMORY_KB = 32;
 
   char dir[48] = {};  // "/apps/<folder>"

@@ -90,10 +90,10 @@ bool downloadDashboard(const std::string& base) {
 
 }  // namespace
 
-Result run() {
+Result run(const bool force) {
   Result r;
   const time_t now = time(nullptr);
-  if (gLastDashboardUtc != 0 && now > gLastDashboardUtc && now - gLastDashboardUtc < kMinIntervalSec &&
+  if (!force && gLastDashboardUtc != 0 && now > gLastDashboardUtc && now - gLastDashboardUtc < kMinIntervalSec &&
       Storage.exists(kDashboardPath)) {
     r.dashboard = true;  // fresh enough: no radio this time
     return r;
@@ -106,6 +106,11 @@ Result run() {
   r.dashboard = downloadDashboard(base);
   LOG_INF("DASH", "Sync: clock=%d stats=%d dashboard=%d", r.clock, r.statsUploaded, r.dashboard);
   return r;
+}
+
+void stopRadio() {
+  WiFi.disconnect(true);
+  WiFi.mode(WIFI_OFF);
 }
 
 }  // namespace DashboardSync

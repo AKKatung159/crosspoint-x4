@@ -5,5 +5,5 @@
   "entry": "app.wasm",
   "name": { "en": "2048", "th": "2048" },
   "memory": 16,
-  "save": 32
+  "save": 24
 }

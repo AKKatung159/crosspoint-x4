@@ -15,9 +15,14 @@
 
 #include <stdint.h>
 
-#define X4_SDK_VERSION 1
+#define X4_SDK_VERSION 2  // manifest "sdk": 2 for the v2 calls at the end
+// Host-side tests define these empty and link their own x4_* functions.
+#ifndef X4_IMPORT
 #define X4_IMPORT(name) __attribute__((import_module("x4"), import_name(#name)))
+#endif
+#ifndef X4_EXPORT
 #define X4_EXPORT(name) __attribute__((export_name(#name)))
+#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -68,10 +73,46 @@ X4_IMPORT(x4_fsize) int x4_fsize(const char* path);
 X4_IMPORT(x4_read) int x4_read(const char* path, int offset, void* out, int len);
 
 // Misc.
-X4_IMPORT(x4_rnd) uint32_t x4_rnd(void);       // hardware random
-X4_IMPORT(x4_millis) uint32_t x4_millis(void);  // since boot
-X4_IMPORT(x4_lang) int x4_lang(void);           // 0 English, 1 Thai
+X4_IMPORT(x4_rnd) uint32_t x4_rnd(void);          // hardware random
+X4_IMPORT(x4_millis) uint32_t x4_millis(void);    // since boot
+X4_IMPORT(x4_lang) int x4_lang(void);             // 0 English, 1 Thai
 X4_IMPORT(x4_log) void x4_log(const char* utf8);  // to the serial log
+
+// --- v2 ---------------------------------------------------------------------
+
+// The n-th file (no folders, no dot files) in the app's folder, in card order,
+// copied into out; its length, or -1 past the last one. Only names x4_read
+// accepts are listed ([A-Za-z0-9._-], at most 63 bytes).
+X4_IMPORT(x4_list) int x4_list(int n, char* out, int cap);
+
+// Byte offsets of the rows of a TAB-separated file in the app's folder: lines
+// with a TAB that do not start with '#' (after an optional UTF-8 BOM, which
+// the offset skips). Fills up to max offsets; returns how many, or -1. The
+// firmware scans the file, so a long one costs the app no gas.
+X4_IMPORT(x4_rows) int x4_rows(const char* path, uint32_t* out, int max);
+
+// Reading statistics, as the firmware records them.
+typedef struct {
+  uint32_t total_sec, total_pages, sessions, finished;
+  uint32_t streak;      // consecutive days with reading, ending today or yesterday
+  int32_t clock_known;  // 0: the clock was never set, so week[] is empty
+  struct {
+    char key[12];  // "YYYY-MM-DD", "" if unknown
+    uint32_t sec, pages;
+  } week[7];             // oldest first, week[6] is today
+  uint32_t last_sec;     // time in the most recent book
+  int32_t last_percent;  // its progress, -1 if unknown
+  char last_title[96];   // "" if none
+} x4_stats_t;
+// Fills out; sizeof(x4_stats_t), or -1 when nothing has been read yet.
+X4_IMPORT(x4_stats) int x4_stats(x4_stats_t* out);
+
+// The last dashboard image (Settings -> Display -> Dashboard URL), scaled down
+// into max_w x max_h from (x, y); 1 when drawn. Only inside render().
+X4_IMPORT(x4_dashboard) int x4_dashboard(int x, int y, int max_w, int max_h);
+// Joins the last Wi-Fi network and fetches a new dashboard, showing a popup
+// meanwhile (a few seconds); 1 on success. Not inside render().
+X4_IMPORT(x4_sync) int x4_sync(void);
 
 #ifdef __cplusplus
 }
