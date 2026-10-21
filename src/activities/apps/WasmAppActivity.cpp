@@ -170,6 +170,24 @@ m3ApiRawFunction(xImage) {
   if (bitmap.parseHeaders() != BmpReaderError::Ok) m3ApiReturn(0);
   m3ApiReturn(h_.renderer->drawBitmap(bitmap, x, y, maxW, maxH) ? 1 : 0);
 }
+// x4_image with flags; X4_ROTATE180 turns a 1-bit BMP upside down in the same box.
+m3ApiRawFunction(xImage2) {
+  m3ApiReturnType(int32_t) m3ApiGetArgMem(const char*, rel) m3ApiGetArg(int32_t, x) m3ApiGetArg(int32_t, y)
+      m3ApiGetArg(int32_t, maxW) m3ApiGetArg(int32_t, maxH) m3ApiGetArg(int32_t, flags) Rt& h_ = host(runtime);
+  char path[112];
+  if (!h_.inRender || !app_path::resolve(h_.manifest->dir, str(_mem, rel), path, sizeof(path)) ||
+      !Storage.exists(path)) {
+    m3ApiReturn(0);
+  }
+  HalFile file;
+  if (!Storage.openFileForRead("SDK", path, file)) m3ApiReturn(0);
+  Bitmap bitmap(file);
+  if (bitmap.parseHeaders() != BmpReaderError::Ok) m3ApiReturn(0);
+  const bool rotate = (flags & 1) && bitmap.is1Bit();
+  const bool drawn = rotate ? h_.renderer->drawBitmap1Bit(bitmap, x, y, maxW, maxH, true)
+                            : h_.renderer->drawBitmap(bitmap, x, y, maxW, maxH);
+  m3ApiReturn(drawn ? 1 : 0);
+}
 m3ApiRawFunction(xRefresh) {
   m3ApiGetArg(int32_t, mode) host(runtime).refreshMode = mode;
   m3ApiSuccess();
@@ -396,20 +414,35 @@ struct Import {
   M3RawCall fn;
 };
 constexpr Import IMPORTS[] = {
-    {"x4_fill", "v(iiiii)", &xFill},    {"x4_rfill", "v(iiiiii)", &xRfill},
-    {"x4_frame", "v(iiiiii)", &xFrame}, {"x4_line", "v(iiiiii)", &xLine},
-    {"x4_text", "v(ii*ii)", &xText},    {"x4_textw", "i(*ii)", &xTextW},
-    {"x4_lineh", "i(i)", &xLineH},      {"x4_textbox", "i(iiii*ii)", &xTextBox},
-    {"x4_image", "i(*iiii)", &xImage},  {"x4_refresh", "v(i)", &xRefresh},
-    {"x4_title", "v(*)", &xTitle},      {"x4_hints", "v(****)", &xHints},
-    {"x4_width", "i()", &xWidth},       {"x4_top", "i()", &xTop},
-    {"x4_bottom", "i()", &xBottom},     {"x4_save", "i(*i)", &xSave},
-    {"x4_load", "i(*i)", &xLoad},       {"x4_fsize", "i(*)", &xFsize},
-    {"x4_read", "i(*i*i)", &xRead},     {"x4_rnd", "i()", &xRnd},
-    {"x4_millis", "i()", &xMillis},     {"x4_lang", "i()", &xLang},
-    {"x4_log", "v(*)", &xLog},          {"x4_list", "i(i*i)", &xList},
-    {"x4_stats", "i(*)", &xStats},      {"x4_dashboard", "i(iiii)", &xDashboard},
-    {"x4_sync", "i()", &xSync},         {"x4_rows", "i(**i)", &xRows},
+    {"x4_fill", "v(iiiii)", &xFill},
+    {"x4_rfill", "v(iiiiii)", &xRfill},
+    {"x4_frame", "v(iiiiii)", &xFrame},
+    {"x4_line", "v(iiiiii)", &xLine},
+    {"x4_text", "v(ii*ii)", &xText},
+    {"x4_textw", "i(*ii)", &xTextW},
+    {"x4_lineh", "i(i)", &xLineH},
+    {"x4_textbox", "i(iiii*ii)", &xTextBox},
+    {"x4_image", "i(*iiii)", &xImage},
+    {"x4_refresh", "v(i)", &xRefresh},
+    {"x4_title", "v(*)", &xTitle},
+    {"x4_hints", "v(****)", &xHints},
+    {"x4_width", "i()", &xWidth},
+    {"x4_top", "i()", &xTop},
+    {"x4_bottom", "i()", &xBottom},
+    {"x4_save", "i(*i)", &xSave},
+    {"x4_load", "i(*i)", &xLoad},
+    {"x4_fsize", "i(*)", &xFsize},
+    {"x4_read", "i(*i*i)", &xRead},
+    {"x4_rnd", "i()", &xRnd},
+    {"x4_millis", "i()", &xMillis},
+    {"x4_lang", "i()", &xLang},
+    {"x4_log", "v(*)", &xLog},
+    {"x4_list", "i(i*i)", &xList},
+    {"x4_stats", "i(*)", &xStats},
+    {"x4_dashboard", "i(iiii)", &xDashboard},
+    {"x4_sync", "i()", &xSync},
+    {"x4_rows", "i(**i)", &xRows},
+    {"x4_image2", "i(*iiiii)", &xImage2},
 };
 
 }  // namespace

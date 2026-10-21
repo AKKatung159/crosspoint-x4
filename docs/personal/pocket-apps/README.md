@@ -19,7 +19,8 @@
 แอปทั้งหมดข้างบน (และแดชบอร์ด) มีเวอร์ชัน Pocket SDK ใน [x4-pocket-apps](https://github.com/AKKatung159/x4-pocket-apps)
 แตกไฟล์ `.xpa` ที่ `/apps/` บนการ์ด แอป SDK ที่ id ตรงกับแอปในเครื่อง (`flashcards`, `tarot`, `2048`,
 `minesweeper`, `nonogram`, `stats`) จะแสดงแทนตัวในเครื่อง ส่วนเซฟแยกกัน (`sdk-<id>.sav`)
-API อยู่ใน [sdk/include/x4.h](../../../sdk/include/x4.h) SDK v2 เพิ่ม `x4_list` (รายชื่อไฟล์ในโฟลเดอร์แอป),
+หน้าแอปเป็นตารางไอคอน 3 ช่องต่อแถว (ไอคอนคือ `icon.bmp` ของแต่ละแอป 32×32 1 บิต)
+API อยู่ใน [sdk/include/x4.h](../../../sdk/include/x4.h) SDK v2 เพิ่ม `x4_list` (รายชื่อไฟล์ในโฟลเดอร์แอป), `x4_rows` (ตำแหน่งแถวของไฟล์ TSV), `x4_image2` (รูปหมุน 180°),
 `x4_stats` (สถิติการอ่าน), `x4_dashboard` และ `x4_sync` (ภาพแดชบอร์ด และโหลดใหม่ผ่าน Wi-Fi)
 
 ## รูปแบบไฟล์
@@ -62,7 +63,8 @@ are skipped, `\n` is a line break, rows are at most 1 KB.
 Every app here (and a dashboard viewer) also exists as a Pocket SDK app in
 [x4-pocket-apps](https://github.com/AKKatung159/x4-pocket-apps); an installed SDK app with the same id
 (`flashcards`, `tarot`, `2048`, `minesweeper`, `nonogram`, `stats`) replaces the built-in one in the list, with
-its own save. SDK v2 adds `x4_list`, `x4_stats`, `x4_dashboard` and `x4_sync` (see `sdk/include/x4.h`).
+its own save. SDK v2 adds `x4_list`, `x4_rows`, `x4_image2`, `x4_stats`, `x4_dashboard` and `x4_sync` (see `sdk/include/x4.h`).
+The hub is a grid of app icons, three to a row (an app's `icon.bmp`, 32x32 1-bit).
 
 Controls are in the table above. Tests: `scripts/emu/hub_test.sh` (emulator, all apps) and the `PocketAppsTest`
 host target.

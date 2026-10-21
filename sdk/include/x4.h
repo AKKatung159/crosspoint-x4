@@ -91,6 +91,11 @@ X4_IMPORT(x4_list) int x4_list(int n, char* out, int cap);
 // firmware scans the file, so a long one costs the app no gas.
 X4_IMPORT(x4_rows) int x4_rows(const char* path, uint32_t* out, int max);
 
+// x4_image with flags: X4_ROTATE180 draws a 1-bit BMP upside down in the same
+// box (other BMPs are drawn upright). Only inside render(); 1 when drawn.
+enum { X4_ROTATE180 = 1 };
+X4_IMPORT(x4_image2) int x4_image2(const char* path, int x, int y, int max_w, int max_h, int flags);
+
 // Reading statistics, as the firmware records them.
 typedef struct {
   uint32_t total_sec, total_pages, sessions, finished;
