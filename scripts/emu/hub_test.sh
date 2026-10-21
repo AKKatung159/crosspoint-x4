@@ -29,16 +29,17 @@ if [ -n "${TAROT_PACK:-}" ]; then mkdir -p sdroot/apps/tarot && cp -r "$TAROT_PA
 python3 "$EQ/eink-qemu/mksd.py" sd.img 2050 sdroot >/dev/null
 
 open_hub="press:down wait:2 press:down wait:2 press:confirm wait:6"
-# Hub rows: 0 Flashcards, 1 Tarot, 2 2048, 3 Minesweeper, 4 Nonogram, 5 Reading stats, 6 Counter (test builds).
-downs() { for _ in $(seq "$1"); do printf 'press:down wait:2 '; done; }
-open_app() { echo "$open_hub $(downs "$1")press:confirm wait:6"; }
+# Hub cells, three to a row (Right steps one): 0 Flashcards, 1 Tarot, 2 2048, 3 Minesweeper, 4 Nonogram,
+# 5 Reading stats, 6 Counter (test builds). No SDK apps on this card, so every built-in shows.
+rights() { for _ in $(seq "$1"); do printf 'press:right wait:2 '; done; }
+open_app() { echo "$open_hub $(rights "$1")press:confirm wait:6"; }
 open_counter=$(open_app 6)
 open_nono=$(open_app 4)
 open_mines=$(open_app 3)
 open_tarot=$(open_app 1)
 open_2048=$(open_app 2)
 open_deck="$(open_app 0) press:confirm wait:8"
-cycle="press:confirm wait:5 $(downs 6)press:confirm wait:5 press:back wait:5 press:back wait:11"
+cycle="press:confirm wait:5 $(rights 6)press:confirm wait:5 press:back wait:5 press:back wait:11"
 cycles=""
 for _ in $(seq 10); do cycles="$cycles $cycle"; done
 

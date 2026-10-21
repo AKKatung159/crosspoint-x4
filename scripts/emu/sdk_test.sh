@@ -20,13 +20,14 @@ python3 "$EQ/eink-qemu/mksd.py" sd.img 2050 sdroot >/dev/null
 fails=0
 check() { if grep -q -- "$2" log.txt; then echo "PASS $1"; else echo "FAIL $1 (no '$2')"; fails=$((fails + 1)); fi; }
 
-# Hub rows: 7 built-in apps in x4_th_test, then the SDK apps by name (2048, Runaway).
+# Hub cells (Right steps one): the built-ins of x4_th_test less 2048, which the SDK 2048 replaces
+# (Flashcards, Tarot, Minesweeper, Nonogram, Reading stats, Counter), then the SDK apps by name: 2048, Runaway.
 hub="press:down wait:2 press:down wait:2 press:confirm wait:6"
-downs=$(for _ in $(seq 7); do printf 'press:down wait:2 '; done)
+rights=$(for _ in $(seq 6); do printf 'press:right wait:2 '; done)
 moves=$(for _ in 1 2; do printf 'press:left wait:4 press:up wait:4 press:right wait:4 press:down wait:4 '; done)
-python3 "$EQ/eink-qemu/drive.py" flash.bin sd.img log.txt wait:35 $hub $downs press:confirm wait:10 shot:2048-start.png \
+python3 "$EQ/eink-qemu/drive.py" flash.bin sd.img log.txt wait:35 $hub $rights press:confirm wait:10 shot:2048-start.png \
   $moves shot:2048-moved.png press:back wait:8 press:confirm wait:10 shot:2048-reopened.png press:back wait:8 \
-  press:down wait:3 press:confirm wait:8 press:confirm wait:20 shot:runaway-stopped.png press:back wait:8 >/dev/null
+  press:right wait:3 press:confirm wait:8 press:confirm wait:20 shot:runaway-stopped.png press:back wait:8 >/dev/null
 check "hub lists SDK apps" "2 SDK apps"
 check "2048 starts" "start 2048: ok"
 check "2048 exits" "exit 2048"
