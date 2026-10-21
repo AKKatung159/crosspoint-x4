@@ -1,0 +1,9 @@
+{
+  "name": "wasm3",
+  "version": "0.5.0+28ecb9af",
+  "description": "wasm3 WebAssembly interpreter (github.com/wasm3/wasm3 @ 28ecb9af, MIT), vendored for Pocket Hub apps. M3_IN_IRAM leaves the interpreter in flash: the ESP32 default (IRAM_ATTR on every opcode) costs ~59 KB of heap from boot. Code pages of 4 KB instead of 32 KB: a small app no longer pins 32-64 KB of compiled code.",
+  "build": {
+    "flags": ["-O2", "-DM3_IN_IRAM", "-Dd_m3HasGasMetering=1", "-Dd_m3CodePageAlignSize=4096", "-Dd_m3VerboseErrorMessages=0", "-Wno-unused-function", "-Wno-unused-variable"],
+    "srcFilter": ["+<*>", "-<m3_api_wasi.c>", "-<m3_api_meta_wasi.c>", "-<m3_api_uvwasi.c>", "-<m3_api_tracer.c>"]
+  }
+}

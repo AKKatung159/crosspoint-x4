@@ -23,6 +23,9 @@ struct Result {
   bool dashboard = false;
 };
 
-Result run();
+/// force: fetch even when the last dashboard is younger than kMinIntervalSec.
+Result run(bool force = false);
+/// Turns Wi-Fi off again; for callers that stay awake afterwards (sleep does not need it).
+void stopRadio();
 
 }  // namespace DashboardSync

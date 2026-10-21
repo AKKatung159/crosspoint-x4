@@ -59,15 +59,15 @@ def catalog(px):   # OPDS catalogue: solid cloud with a download arrow knocked o
     d.rectangle([21*u, 14*u, 27*u, 28*u], fill=0)
     d.polygon([(14*u, 26*u), (34*u, 26*u), (24*u, 36*u)], fill=0)
     return _finish(im, px)
-def stats(px):     # reading stats: three solid rising bars on a base line
+def apps(px):      # the Pocket Hub: four solid rounded tiles, the top-right one turned into a diamond
     im, d, n = _canvas(px); u = n / 48
-    d.rounded_rectangle([5*u, 26*u, 15*u, 42*u], 2*u, fill=255)
-    d.rounded_rectangle([19*u, 16*u, 29*u, 42*u], 2*u, fill=255)
-    d.rounded_rectangle([33*u, 6*u, 43*u, 42*u], 2*u, fill=255)
-    d.rectangle([3*u, 43*u, 45*u, 46*u], fill=255)
+    d.rounded_rectangle([4*u, 4*u, 21*u, 21*u], 4*u, fill=255)
+    d.polygon([(35*u, 2*u), (46*u, 13*u), (35*u, 24*u), (24*u, 13*u)], fill=255)
+    d.rounded_rectangle([4*u, 27*u, 21*u, 44*u], 4*u, fill=255)
+    d.rounded_rectangle([27*u, 27*u, 44*u, 44*u], 4*u, fill=255)
     return _finish(im, px)
 ICONS = {"library": library, "folder": folder, "transfer": transfer, "settings": settings, "catalog": catalog,
-         "stats": stats, "resume": resume, "select": select, "prev": prev, "next": nxt}
+         "apps": apps, "resume": resume, "select": select, "prev": prev, "next": nxt}
 def stamp(canvas, mask, x, y, ink=0):
     """Paint the icon mask (white = shape) onto canvas in `ink`."""
     canvas.paste(ink, (x, y), mask)

@@ -3,7 +3,7 @@
 #include "ReadingStats.h"
 #include "activities/Activity.h"
 
-// PERSONAL: the reading statistics screen (home tile "สถิติ"), drawn in the
+// PERSONAL: the reading statistics screen (a Pocket Hub entry), drawn in the
 // personal home themes' style: big numbers, solid grey cards, a 7-day chart.
 class ReadingStatsActivity final : public Activity {
  public:

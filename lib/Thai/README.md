@@ -66,6 +66,7 @@ Every change outside `lib/Thai` is tagged `THAI-HOOK(<name>)` or
 | `thai-words` | `src/ThaiUserDictionary.*`, `ReaderActivity.cpp`, `EpubReaderActivity.cpp`, `TxtReaderActivity.cpp` | Loads personal word lists when a book opens (`ThaiBrk::setUserWords`) and drops a book's cached layout when the list's hash changes |
 | `thai-fallback` | `lib/EpdFont/EpdFontFamily.*`, `SdCardFontManager.cpp`, `main.cpp`, `GfxRenderer.cpp` | SD fonts borrow Thai/C90 glyphs from the built-in Noto Sans family of the nearest size (`resolveGlyph`, coverage checked in RAM) |
 | `progress` (PERSONAL) | `ReaderActivity.*`, EPUB/TXT/XTC readers | Reading position saved every 5 renders and on exit/sleep |
+| `rotate` (PERSONAL) | `lib/GfxRenderer/GfxRenderer.*` `drawBitmap1Bit()` | Optional `rotate180` draws a 1-bit BMP upside down in the same box (Pocket SDK `x4_image2`, reversed tarot cards) |
 | `xtc` (PERSONAL) | `XtcReaderActivity.cpp` | 1-bit XTC pages streamed into the frame buffer |
 | `test-input` (PERSONAL) | `lib/hal/HalGPIO.*`, `main.cpp` | Test builds only: `CMD:PRESS`, `CMD:MEM` over USB |
 | `themes` (PERSONAL) | `CrossPointSettings.h`, `SettingsList.h`, `UITheme.cpp`, i18n | Two more `UI_THEME` values (Cover 5, Minimal 6) built by `src/components/themes/personal/CoverTheme.*` |

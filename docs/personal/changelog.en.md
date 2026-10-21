@@ -119,6 +119,31 @@ reading with Sans only.
 - **Fixes:** OTA compares `-th.N`; six home tiles keep their labels.
 - **CI:** `.github/workflows/personal.yml` tests and builds every push; a `*-th.*` tag publishes the release.
 
+## 1.6.5-th.6: phase 6 (apps and the Pocket SDK)
+
+<p align="center">
+  <img src="../showcase/apps-hub.png" alt="The Apps grid" width="30%">
+  <img src="../showcase/apps-tarot.png" alt="Tarot" width="30%">
+  <img src="../showcase/apps-flashcards.png" alt="Flashcards" width="30%">
+</p>
+
+- **The Apps grid (Pocket Hub).** The home "Apps" tile (with its own icon) opens a grid of app icons, three
+  to a row: Left/Right step a cell, Up/Down a row. Reading stats moved here. Built in: Flashcards, Tarot, 2048,
+  Minesweeper and Nonogram. Every app saves to two alternating slots with a CRC, so a write cut off by power
+  loss falls back to the previous save.
+- **Pocket SDK.** WebAssembly apps (wasm3) in `/apps/<name>/` on the card: `manifest.json`, `app.wasm`,
+  `icon.bmp` (32x32, 1-bit) and the app's data, installed by unzipping a `.xpa`, no reflashing. An SDK app
+  whose id matches a built-in one replaces it in the grid. The full set is in
+  [x4-pocket-apps](https://github.com/AKKatung159/x4-pocket-apps) (Tarot ships all 78 Rider-Waite-Smith 1909
+  cards and turns reversed ones upside down). The API is `sdk/include/x4.h` (v2: folder listing, TSV row
+  index, 180° images, reading stats, the dashboard image and a Wi-Fi update). A per-call gas budget stops
+  runaway apps; each app gets at most 32 KB of memory and returns all of it on exit.
+- **Fixes:** Thai button labels in apps were cut mid-character (`ความหมา�`); the test build (`x4_th_test`)
+  did not compile because `LOG_LEVEL` was defined twice.
+
+Tested in the emulator (eink-qemu: every app, saves, reopening, sleep and wake, a 2,000-card deck, heap
+returned) and on a real X4 (every app, reopening, heap returned).
+
 ## Word breaker: why this one
 
 I compared three breakers on 3,000 paragraphs from two Thai books translated by
@@ -142,5 +167,8 @@ traps, for example `ไปหามเหสี` → `ไป|หาม|เห|�
 - Justified Thai lines with no real space can end a few pixels short of the
   margin (Thai word gaps stretch at most 3 px, `kMaxThaiShareGapPx` in
   `lib/Thai/ThaiJustify.h`).
-- The Thai Back/Home button label `« หน้าหลัก` wraps onto two lines in the button bar.
+- The Thai Back/Home button label `« หน้าหลัก` wraps onto two lines in the button bar, and so does Tarot's
+  `ความหมาย`.
+- The X4 has no USB drive mode (the ESP32-C3 has no USB OTG): apps reach the card by copying files or over
+  the web file transfer, which does not overwrite an existing file.
 - Peak heap during layout of long Thai chapters is about 6 KB lower than stock, because Thai text is split into finer tokens (same-pages emulator run: 30.9 KB vs 36.6 KB minimum free).

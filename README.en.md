@@ -29,10 +29,22 @@ proper Thai reading and a home screen built around the book cover.
 - **Sharp grey covers.** Covers are shown in 4 grey levels. Books sent from
   epub.lan (Send to X4, or OPDS at `http://epub.lan/opds`) come with pictures
   the X4 decodes cleanly.
-- **Clock, reading stats and a dashboard.** The time in the status bar, a "Stats" tile on the home screen,
+- **Clock, reading stats and a dashboard.** The time in the status bar, reading stats in the Apps grid,
   and a dashboard sleep screen (HTML layouts you can edit, from `server/`).
 - **Gentler on the SD card and battery.** The reading position is saved every
   5 pages, and XTC pages stream straight from the card.
+- **Apps (Pocket Hub).** The home "Apps" tile opens a grid of apps: 2048, Minesweeper, Nonogram, Tarot
+  (with the Rider-Waite-Smith 1909 cards), Flashcards, Reading stats and Dashboard. Apps are WebAssembly
+  on the card, installed without reflashing: get them from
+  [x4-pocket-apps](https://github.com/AKKatung159/x4-pocket-apps) or write your own with the Pocket SDK
+  ([guide](docs/personal/pocket-apps/README.md)).
+
+<p align="center">
+  <img src="docs/showcase/apps-hub.png" alt="The Apps grid, three icons to a row" width="23%">
+  <img src="docs/showcase/apps-tarot.png" alt="Tarot: the Two of Cups" width="23%">
+  <img src="docs/showcase/apps-minesweeper.png" alt="Minesweeper" width="23%">
+  <img src="docs/showcase/apps-flashcards.png" alt="An English-Thai flashcard" width="23%">
+</p>
 
 ## Install
 
@@ -44,7 +56,7 @@ Other ways to install, and how to go back: [install.en.md](docs/personal/install
 
 ## What's next
 
-Phases 1–5 are done; see [what each phase changed](docs/personal/changelog.en.md). Possible next steps: waking
+Phases 1–6 are done; see [what each phase changed](docs/personal/changelog.en.md). Possible next steps: waking
 up on a timer so the dashboard stays fresh, and having epub.lan write `thai-words.txt` from each series' glossary.
 
 ## More
