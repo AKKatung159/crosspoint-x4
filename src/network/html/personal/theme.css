@@ -342,6 +342,17 @@ input[type="file"]::file-selector-button,
   .file-table td:nth-child(4) { grid-area: size; color: var(--x4-mid); font-size: 0.9em; }
   .file-table td:nth-child(5) { grid-area: actions; width: auto; }
 
+  /* Upload options (Optimize EPUB, Advanced Mode, PDF to XTC): rows wrap and button groups take the
+     sheet's width, so no control runs off a phone screen. */
+  .convert-options { box-sizing: border-box; max-width: 100%; }
+  .advanced-setting-row { flex-wrap: wrap; row-gap: 8px; }
+  .setting-label { flex-shrink: 1; min-width: 0; }
+  .advanced-setting-row > .setting-controls { flex: 1 1 100%; align-items: stretch; }
+  .advanced-setting-row > .setting-label + .setting-controls { flex: 0 0 auto; }
+  .quality-presets, .rotation-buttons, .overlap-selector { box-sizing: border-box; width: 100%; flex-wrap: wrap; }
+  .quality-preset, .rotation-btn, .overlap-btn { flex: 1 1 0; justify-content: center; padding: 6px 4px; min-width: 52px; }
+  .convert-settings { display: flex; flex-wrap: wrap; gap: 4px 10px; }
+
   .modal-overlay.open { align-items: flex-end; }
   .modal {
     width: 100% !important;

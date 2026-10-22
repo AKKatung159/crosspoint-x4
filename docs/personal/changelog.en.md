@@ -130,6 +130,8 @@ reading with Sans only.
   gives `wasLongPressed` its time, and swipes are the arrows (the edge Back swipe is off there; the bar has Back). It
   is done in `MappedInputManager::mapButton`, so every app, wasm ones included, gets it.
 - **X4 Classic**: env `x4c_th` (`x4c-gh_release` plus the personal flags); CI builds it and releases carry `-x4c.bin`.
+- **The web page on phones** (`theme.css`): upload option rows wrap and button groups take the sheet's width;
+  nothing runs past 390 px.
 - The X4 Pro files of th.7–th.9 were removed from their releases.
 
 ## 1.6.5-th.9: PDF to XTC in the browser
