@@ -35,9 +35,73 @@ void MappedInputManager::update(const bool deferHomeButtonAction) const {
     homeAction = deferredHomeAction;
     deferredHomeAction = HomeButtonAction::Ignore;
   }
+  updateTouchButtons();
   for (uint8_t value = 0; value <= static_cast<uint8_t>(Button::ScreenDown); ++value) {
     if (!isPressed(static_cast<Button>(value))) longPressFiredButtons &= ~(1u << value);
   }
+}
+
+void MappedInputManager::setTouchButtons(const bool enabled) {
+  touchButtons = enabled;
+  if (!enabled) touchHeld = touchPressEdge = touchReleaseEdge = touchPendingRelease = -1;
+}
+
+// PERSONAL-HOOK(touch-buttons): the hint bar's four slots are the X4's four front buttons in hardware
+// order (mapLabels lays the labels out the same way), so a slot presses that button, remapping and all.
+// A contact presses on touch-down, holds while the finger stays, and releases on lift; a swipe outside
+// the bar is a press and, on the next frame, a release of the matching arrow.
+void MappedInputManager::updateTouchButtons() const {
+  touchPressEdge = touchReleaseEdge = -1;
+  if (touchPendingRelease >= 0) {
+    touchReleaseEdge = touchPendingRelease;
+    touchPendingRelease = -1;
+  }
+  if (!touchButtons || !gpio.hasTouch()) return;
+  int x = 0, y = 0;
+  const bool down = isScreenTouchHeld(x, y);
+  if (touchHeld >= 0) {
+    if (!down) {
+      touchReleaseEdge = touchHeld;
+      touchHeld = -1;
+    }
+    return;
+  }
+  const int hintTop = renderer.getScreenHeight() - UITheme::getInstance().getMetrics().buttonHintsHeight;
+  if (down && y >= hintTop) {
+    touchHeld = static_cast<int8_t>(std::clamp(x * 4 / std::max(1, renderer.getScreenWidth()), 0, 3));
+    touchPressEdge = touchHeld;
+    touchHeldSince = millis();
+    return;
+  }
+  int8_t arrow = -1;
+  switch (wasSwipe()) {
+    case SwipeDir::Left:
+      arrow = static_cast<int8_t>(SETTINGS.frontButtonLeft);
+      break;
+    case SwipeDir::Right:  // the edge Back swipe is off here: the bar has Back
+      arrow = static_cast<int8_t>(SETTINGS.frontButtonRight);
+      break;
+    case SwipeDir::Up:
+      arrow = HalGPIO::BTN_UP;
+      break;
+    case SwipeDir::Down:
+      arrow = HalGPIO::BTN_DOWN;
+      break;
+    default:
+      break;
+  }
+  if (arrow >= 0) {
+    touchPressEdge = arrow;
+    touchPendingRelease = arrow;
+  }
+}
+
+bool MappedInputManager::touchButton(bool (HalGPIO::*fn)(uint8_t) const, const uint8_t index) const {
+  if ((gpio.*fn)(index)) return true;
+  if (fn == &HalGPIO::wasPressed) return touchPressEdge == index;
+  if (fn == &HalGPIO::wasReleased) return touchReleaseEdge == index;
+  if (fn == &HalGPIO::isPressed) return touchHeld == index || touchPressEdge == index;
+  return false;
 }
 
 bool MappedInputManager::isNavDirectionSwapped() const {
@@ -86,34 +150,34 @@ bool MappedInputManager::mapButton(const Button button, bool (HalGPIO::*fn)(uint
   switch (button) {
     case Button::Back:
       // Logical Back maps to user-configured front button.
-      return (gpio.*fn)(SETTINGS.frontButtonBack);
+      return touchButton(fn, SETTINGS.frontButtonBack);
     case Button::Confirm:
       // Logical Confirm maps to user-configured front button.
-      return (gpio.*fn)(SETTINGS.frontButtonConfirm);
+      return touchButton(fn, SETTINGS.frontButtonConfirm);
     case Button::Left:
       // Logical Left maps to user-configured front button.
-      return (gpio.*fn)(SETTINGS.frontButtonLeft);
+      return touchButton(fn, SETTINGS.frontButtonLeft);
     case Button::Right:
       // Logical Right maps to user-configured front button.
-      return (gpio.*fn)(SETTINGS.frontButtonRight);
+      return touchButton(fn, SETTINGS.frontButtonRight);
     case Button::Up:
       // Side buttons remain fixed for Up/Down.
-      return (gpio.*fn)(HalGPIO::BTN_UP);
+      return touchButton(fn, HalGPIO::BTN_UP);
     case Button::Down:
       // Side buttons remain fixed for Up/Down.
-      return (gpio.*fn)(HalGPIO::BTN_DOWN);
+      return touchButton(fn, HalGPIO::BTN_DOWN);
     case Button::Power:
       // Power button bypasses remapping.
-      return (gpio.*fn)(HalGPIO::BTN_POWER);
+      return touchButton(fn, HalGPIO::BTN_POWER);
     case Button::PageBack:
       // Reader page navigation uses side buttons and can be swapped via settings.
       switch (sideLayout) {
         case CrossPointSettings::PREV_NEXT:
-          return (gpio.*fn)(isNavDirectionSwapped() ? HalGPIO::BTN_DOWN : HalGPIO::BTN_UP);
+          return touchButton(fn, isNavDirectionSwapped() ? HalGPIO::BTN_DOWN : HalGPIO::BTN_UP);
         case CrossPointSettings::NEXT_PREV:
-          return (gpio.*fn)(isNavDirectionSwapped() ? HalGPIO::BTN_UP : HalGPIO::BTN_DOWN);
+          return touchButton(fn, isNavDirectionSwapped() ? HalGPIO::BTN_UP : HalGPIO::BTN_DOWN);
         case CrossPointSettings::PREV_PREV:
-          return (gpio.*fn)(HalGPIO::BTN_UP) || (gpio.*fn)(HalGPIO::BTN_DOWN);
+          return touchButton(fn, HalGPIO::BTN_UP) || touchButton(fn, HalGPIO::BTN_DOWN);
         case CrossPointSettings::NEXT_NEXT:
         case CrossPointSettings::SIDE_BUTTONS_DISABLED:
         default:
@@ -123,11 +187,11 @@ bool MappedInputManager::mapButton(const Button button, bool (HalGPIO::*fn)(uint
       // Reader page navigation uses side buttons and can be swapped via settings.
       switch (sideLayout) {
         case CrossPointSettings::PREV_NEXT:
-          return (gpio.*fn)(isNavDirectionSwapped() ? HalGPIO::BTN_UP : HalGPIO::BTN_DOWN);
+          return touchButton(fn, isNavDirectionSwapped() ? HalGPIO::BTN_UP : HalGPIO::BTN_DOWN);
         case CrossPointSettings::NEXT_PREV:
-          return (gpio.*fn)(isNavDirectionSwapped() ? HalGPIO::BTN_DOWN : HalGPIO::BTN_UP);
+          return touchButton(fn, isNavDirectionSwapped() ? HalGPIO::BTN_DOWN : HalGPIO::BTN_UP);
         case CrossPointSettings::NEXT_NEXT:
-          return (gpio.*fn)(HalGPIO::BTN_UP) || (gpio.*fn)(HalGPIO::BTN_DOWN);
+          return touchButton(fn, HalGPIO::BTN_UP) || touchButton(fn, HalGPIO::BTN_DOWN);
         case CrossPointSettings::PREV_PREV:
         case CrossPointSettings::SIDE_BUTTONS_DISABLED:
         default:
@@ -352,7 +416,7 @@ bool MappedInputManager::wasPressed(const Button button) const {
   if ((button == Button::NavPrevious || button == Button::Left) && remoteInput.button == RemoteButton::Previous)
     return true;
   if (button == Button::Confirm && homeAction == HomeButtonAction::Confirm) return true;
-  if (button == Button::Back && wasBackGesture()) return true;
+  if (button == Button::Back && !touchButtons && wasBackGesture()) return true;  // bar has Back
 #if FREEINK_CAP_TOUCH
   if (button == Button::Confirm && wasPowerConfirmClick()) return true;
 #endif
@@ -366,7 +430,7 @@ bool MappedInputManager::wasReleased(const Button button) const {
   if ((button == Button::NavPrevious || button == Button::Left) && remoteInput.button == RemoteButton::Previous)
     return true;
   if (button == Button::Confirm && homeAction == HomeButtonAction::Confirm) return true;
-  if (button == Button::Back && wasBackGesture()) return true;
+  if (button == Button::Back && !touchButtons && wasBackGesture()) return true;  // bar has Back
 #if FREEINK_CAP_TOUCH
   if (button == Button::Confirm && wasPowerConfirmClick()) return true;
 #endif
@@ -407,6 +471,7 @@ bool MappedInputManager::wasAnyReleased() const { return gpio.wasAnyReleased(); 
 unsigned long MappedInputManager::getHeldTime() const {
   // A mapped action has its own meaning, independent of the contact duration.
   if (hasRemoteClick() || homeAction != HomeButtonAction::Ignore) return 0;
+  if (touchHeld >= 0) return millis() - touchHeldSince;  // PERSONAL-HOOK(touch-buttons)
   if (!gpio.wasAnyPressed() && !gpio.wasAnyReleased() && touchHeldOverrideValid &&
       millis() - touchHeldOverrideAt <= TOUCH_HELD_OVERRIDE_WINDOW_MS) {
     return touchHeldOverrideMs;

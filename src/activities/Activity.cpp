@@ -1,8 +1,15 @@
 #include "Activity.h"
 
 #include "ActivityManager.h"
+#include "MappedInputManager.h"
+#include "components/UITheme.h"
 
-void Activity::onEnter() { LOG_DBG("ACT", "Entering activity: %s", name.c_str()); }
+void Activity::onEnter() {
+  LOG_DBG("ACT", "Entering activity: %s", name.c_str());
+  // PERSONAL-HOOK(touch-buttons): set before the first render; ActivityManager::loop keeps it in step.
+  UITheme::getInstance().setTouchButtonBar(wantsTouchButtons());
+  mappedInput.setTouchButtons(wantsTouchButtons());
+}
 
 void Activity::onExit() { LOG_DBG("ACT", "Exiting activity: %s", name.c_str()); }
 

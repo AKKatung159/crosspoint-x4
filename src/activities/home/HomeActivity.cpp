@@ -428,6 +428,39 @@ void HomeActivity::loop() {
 
   const int coverColumnCount = std::max(1, metrics.homeRecentBooksCount);
   const int recentCount = std::min(static_cast<int>(recentBooks.size()), coverColumnCount);
+
+  // PERSONAL-HOOK(home-touch): Cover and Minimal show one cover over a row of tiles, which the shared
+  // cover columns and menu rows below do not match: the theme hit-tests its own layout.
+  if (GUI.homeHitTestsItself()) {
+    const int pageWidth = renderer.getScreenWidth();
+    const Rect coverRect{0, metrics.homeTopPadding, pageWidth, metrics.homeCoverTileHeight};
+    const Rect menuRect{0, metrics.homeTopPadding + metrics.homeCoverTileHeight + metrics.homeMenuTopOffset, pageWidth,
+                        renderer.getScreenHeight()};
+    const int tileCount = menuCount - static_cast<int>(recentBooks.size());
+    const auto indexAt = [&](const int x, const int y) {
+      const int book = GUI.homeCoverHit(renderer, coverRect, recentCount, x, y);
+      if (book >= 0) return book;
+      const int tile = GUI.homeMenuHit(renderer, menuRect, tileCount, x, y);
+      return tile >= 0 ? tile + static_cast<int>(recentBooks.size()) : -1;
+    };
+    int x = 0, y = 0;
+    if (mappedInput.wasScreenTapped(x, y)) {
+      const int index = indexAt(x, y);
+      if (index >= 0) {
+        selectorIndex = index;
+        activateSelection();
+        return;
+      }
+    } else if (mappedInput.wasScreenTouchDown(x, y)) {
+      const int index = indexAt(x, y);
+      if (index >= 0 && index != selectorIndex) {
+        selectorIndex = index;
+        requestUpdate();
+      }
+    }
+    if (mappedInput.wasReleased(MappedInputManager::Button::Confirm)) activateSelection();
+    return;
+  }
   const int coverColumnWidth = (renderer.getScreenWidth() - 2 * metrics.contentSidePadding) / coverColumnCount;
   int touchedBook = -1;
   const auto coverTouch = mappedInput.colTouch(touchedBook, metrics.contentSidePadding, coverColumnWidth, recentCount,
@@ -446,15 +479,14 @@ void HomeActivity::loop() {
     return;
   }
 
-  const int menuTop = metrics.homeTopPadding + metrics.homeCoverTileHeight + metrics.homeMenuTopOffset;
   const int renderedMenuCount =
       menuCount - (metrics.homeContinueReadingInMenu ? 0 : static_cast<int>(recentBooks.size()));
   int menuRow = -1;
-  // Row height from the theme, not the metrics table: RoundedRaff draws
-  // font-derived rows and the touch grid must match the visuals exactly.
-  const int menuRowHeight = GUI.getMenuRowHeight(renderer);
-  const auto menuTouch = mappedInput.rowTouch(menuRow, menuTop, menuRowHeight + metrics.menuSpacing, renderedMenuCount,
-                                              0, INT32_MAX, menuRowHeight);
+  // PERSONAL-HOOK(home-fit): the rows the theme draws (font-derived for RoundedRaff, squeezed when they
+  // would not fit), so the touch grid matches the visuals exactly.
+  const auto rows = GUI.homeMenuRows(renderer, homeMenuRect(), renderedMenuCount);
+  const auto menuTouch =
+      mappedInput.rowTouch(menuRow, rows.top, rows.step, renderedMenuCount, 0, INT32_MAX, rows.height);
   if (menuTouch != MappedInputManager::RowTouch::None) {
     const int touchedIndex =
         metrics.homeContinueReadingInMenu ? menuRow : menuRow + static_cast<int>(recentBooks.size());
@@ -473,6 +505,14 @@ void HomeActivity::loop() {
   if (mappedInput.wasReleased(MappedInputManager::Button::Confirm)) {
     activateSelection();
   }
+}
+
+// PERSONAL-HOOK(home-fit): the menu band, from below the cover tile down to the hint bar.
+Rect HomeActivity::homeMenuRect() const {
+  const auto& metrics = UITheme::getInstance().getMetrics();
+  const int top = metrics.homeTopPadding + metrics.homeCoverTileHeight + metrics.homeMenuTopOffset;
+  return Rect{0, top, renderer.getScreenWidth(),
+              renderer.getScreenHeight() - top - metrics.buttonHintsHeight - metrics.verticalSpacing};
 }
 
 void HomeActivity::render(RenderLock&&) {
@@ -550,10 +590,7 @@ void HomeActivity::render(RenderLock&&) {
   }
 
   GUI.drawButtonMenu(
-      renderer,
-      Rect{0, metrics.homeTopPadding + metrics.homeCoverTileHeight + metrics.homeMenuTopOffset, pageWidth,
-           pageHeight - (metrics.headerHeight + metrics.homeTopPadding + metrics.verticalSpacing +
-                         metrics.homeMenuTopOffset + metrics.buttonHintsHeight)},
+      renderer, homeMenuRect(),
       static_cast<int>(menuItems.size()),
       metrics.homeContinueReadingInMenu ? selectorIndex : selectorIndex - recentBooks.size(),
       [&menuItems](int index) { return std::string(menuItems[index]); },

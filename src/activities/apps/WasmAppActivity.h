@@ -10,6 +10,7 @@
 // leaves. The API it may import is documented in sdk/include/x4.h.
 class WasmAppActivity final : public Activity {
  public:
+  bool wantsTouchButtons() const override { return true; }  // PERSONAL-HOOK(touch-buttons)
   WasmAppActivity(GfxRenderer& renderer, MappedInputManager& mappedInput, const AppManifest& manifest);
   ~WasmAppActivity() override;
 

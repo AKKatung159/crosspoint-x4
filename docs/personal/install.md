@@ -11,6 +11,7 @@
 | --- | --- | --- |
 | X4, X3 | `crosspoint-<เวอร์ชัน>-x3-x4.bin` | ESP32-C3 |
 | X4 Pro | `crosspoint-<เวอร์ชัน>-x4pro.bin` | ESP32-S3 |
+| X4 Classic | `crosspoint-<เวอร์ชัน>-x4c.bin` | ESP32-S3 |
 
 ไฟล์เป็น app image ธรรมดา แบบเดียวกับ `crosspoint-1.6.5-x3-x4.bin` / `-x4pro.bin` ของทางการ
 ห้ามแฟลชไฟล์ข้ามรุ่น (OTA และอัปเดตจากการ์ดจะปฏิเสธเอง) X4 Pro ยังเทสบน emulator เท่านั้น

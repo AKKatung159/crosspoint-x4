@@ -8,6 +8,7 @@
 // holding Confirm marks it with a cross. Marks are saved on exit.
 class NonogramPlayActivity final : public Activity {
  public:
+  bool wantsTouchButtons() const override { return true; }  // PERSONAL-HOOK(touch-buttons)
   NonogramPlayActivity(GfxRenderer& renderer, MappedInputManager& mappedInput, int index)
       : Activity("NonogramPlay", renderer, mappedInput), index(index) {}
 

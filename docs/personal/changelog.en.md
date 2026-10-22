@@ -119,6 +119,25 @@ reading with Sans only.
 - **Fixes:** OTA compares `-th.N`; six home tiles keep their labels.
 - **CI:** `.github/workflows/personal.yml` tests and builds every push; a `*-th.*` tag publishes the release.
 
+## 1.6.5-th.10: X4 Pro taps in every theme, apps by touch, and the X4 Classic
+
+- **Home taps on the X4 Pro** (hook `home-touch`): Cover and Minimal draw one cover over a row of tiles, while the
+  home tap grid assumed vertical rows and five cover columns. Themes now hit-test their own layout
+  (`BaseTheme::homeHitTestsItself/homeCoverHit/homeMenuHit`) with the geometry they draw. Cover Grid
+  (`CoverGridHomeUi`) takes its icons in this fork's menu order (Apps included). Tested in eink-qemu x4pro, all 7 themes.
+- **Touch buttons in apps** (hook `touch-buttons`): screens that ask (`Activity::wantsTouchButtons`, the 8 app
+  screens) keep the button-hint bar on touch boards. Slot i is the X4's front button i (remapping included), a hold
+  gives `wasLongPressed` its time, and swipes are the arrows (the edge Back swipe is off there; the bar has Back). It
+  is done in `MappedInputManager::mapButton`, so every app, wasm ones included, gets it.
+- **X4 Classic**: env `x4c_th` (`x4c-gh_release` plus the personal flags); CI builds it and releases carry `-x4c.bin`.
+- **The home menu fits** (hook `home-fit`): `BaseTheme::homeMenuRows` gives the rows both `drawButtonMenu` (Classic,
+  Lyra, RoundedRaff) and `HomeActivity`'s tap grid use. When six rows (OPDS + Apps) do not fit, the step tightens (to
+  no less than 3/4 of the row height). The menu band now runs from below the cover to the hint bar (its height was
+  passed wrong), and Classic's tap grid lines up (it was off by verticalSpacing).
+- **The web page on phones** (`theme.css`): upload option rows wrap and button groups take the sheet's width;
+  nothing runs past 390 px.
+- The X4 Pro files of th.7–th.9 were removed from their releases.
+
 ## 1.6.5-th.9: PDF to XTC in the browser
 
 <p align="center">

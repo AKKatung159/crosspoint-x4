@@ -250,6 +250,18 @@ class BaseTheme {
   // grid from this, so hit bands always match the visuals (RoundedRaff derives
   // its row height from the font, not the metrics table).
   virtual int getMenuRowHeight(const GfxRenderer& renderer) const;
+  // PERSONAL-HOOK(home-fit): the home menu's rows in `menu` (its height is the room down to the hint
+  // bar): the theme's own row height and step when `count` rows fit, else a tighter step so the last
+  // row stays on screen. With OPDS, this fork's Apps tile makes six rows, one more than the upstream
+  // layouts were sized for. drawButtonMenu and HomeActivity's tap grid both use it.
+  struct MenuRows {
+    int top;
+    int step;
+    int height;
+  };
+  MenuRows homeMenuRows(const GfxRenderer& renderer, Rect menu, int count) const;
+  // Space above the first row (Classic leaves verticalSpacing; Lyra and RoundedRaff start at the top).
+  virtual int homeMenuTopInset() const;
   // Also draws the wall clock opposite the battery when the user enabled
   // SETTINGS.clockShowInHeader and an RTC is present. On touch boards a
   // tappable back button leads the band (see HeaderBackTapTarget); root
@@ -293,6 +305,14 @@ class BaseTheme {
   virtual bool homeGreyCovers() const { return false; }
   virtual bool homeCoverIsGrey() const { return false; }
   virtual void homeCoverGreyPass(const GfxRenderer&) const {}
+  // PERSONAL-HOOK(home-touch): themes whose home is not the shared rows and cover columns (Cover,
+  // Minimal: one cover, a row of tiles) hit-test it with the geometry they draw. Returns the book
+  // (homeCoverHit) or menu item (homeMenuHit) under (x, y), or -1.
+  virtual bool homeHitTestsItself() const { return false; }
+  virtual int homeCoverHit(const GfxRenderer&, Rect /*cover*/, int /*bookCount*/, int /*x*/, int /*y*/) const {
+    return -1;
+  }
+  virtual int homeMenuHit(const GfxRenderer&, Rect /*menu*/, int /*count*/, int /*x*/, int /*y*/) const { return -1; }
 
   // Shared constants and helpers for battery drawing (used by all themes)
   static constexpr int batteryPercentSpacing = 4;

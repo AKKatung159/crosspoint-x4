@@ -232,15 +232,11 @@ void CoverTheme::drawButtonMenu(GfxRenderer& renderer, const Rect rect, const in
     LyraTheme::drawButtonMenu(renderer, rect, buttonCount, selectedIndex, buttonLabel, rowIcon);
     return;
   }
-  // Six tiles (with OPDS and Stats) need the tighter spacing for Thai labels.
-  const int side = buttonCount > 5 ? 10 : 24;
-  const int gap = buttonCount > 5 ? 4 : 12;
-  const int tileW = (rect.width - 2 * side - (buttonCount - 1) * gap) / buttonCount;
-
   for (int i = 0; i < buttonCount; i++) {
     const bool selected = i == selectedIndex;
     const uint8_t* icon = rowIcon ? menuIcon(rowIcon(i), false) : nullptr;
-    const int x = rect.x + side + i * (tileW + gap);
+    const Rect tile = menuTile(rect, buttonCount, i);
+    const int x = tile.x, tileW = tile.width;
     if (minimal) {
       // Icons only; the selected one sits knocked out of a solid disc.
       const int cx = x + tileW / 2, cy = rect.y + 46;
@@ -258,6 +254,32 @@ void CoverTheme::drawButtonMenu(GfxRenderer& renderer, const Rect rect, const in
     const int lw = renderer.getTextWidth(UI_10_FONT_ID, label.c_str());
     renderer.drawText(UI_10_FONT_ID, x + (tileW - lw) / 2, rect.y + 54, label.c_str(), !selected);
   }
+}
+
+Rect CoverTheme::menuTile(const Rect menu, const int count, const int i) const {
+  // Six tiles (with OPDS and Stats) need the tighter spacing for Thai labels.
+  const int side = count > 5 ? 10 : 24;
+  const int gap = count > 5 ? 4 : 12;
+  const int tileW = (menu.width - 2 * side - (count - 1) * gap) / count;
+  // Minimal: a 76 px disc centred 46 px down; Cover: an 84 px tile.
+  return Rect{menu.x + side + i * (tileW + gap), menu.y, tileW, minimal ? 92 : 84};
+}
+
+int CoverTheme::homeMenuHit(const GfxRenderer&, const Rect menu, const int count, const int x, const int y) const {
+  for (int i = 0; i < count; i++) {
+    const Rect t = menuTile(menu, count, i);
+    // Half a gap of slack on each side, so a tap between two tiles still picks the nearer one.
+    if (x >= t.x - 6 && x < t.x + t.width + 6 && y >= t.y && y < t.y + t.height) return i;
+  }
+  return -1;
+}
+
+int CoverTheme::homeCoverHit(const GfxRenderer&, const Rect cover, const int bookCount, const int x,
+                             const int y) const {
+  // One cover is shown (the selected book, or the last one selected): the whole cover band opens it.
+  if (bookCount <= 0 || x < cover.x || x >= cover.x + cover.width || y < cover.y || y >= cover.y + cover.height)
+    return -1;
+  return std::clamp(shownBook, 0, bookCount - 1);
 }
 
 void CoverTheme::drawButtonHints(GfxRenderer& renderer, const char* btn1, const char* btn2, const char* btn3,

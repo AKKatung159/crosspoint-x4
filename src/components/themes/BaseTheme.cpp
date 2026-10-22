@@ -200,7 +200,7 @@ void BaseTheme::drawHintLabel(const GfxRenderer& renderer, const int fontId, con
 
 void BaseTheme::drawButtonHints(GfxRenderer& renderer, const char* btn1, const char* btn2, const char* btn3,
                                 const char* btn4) const {
-  if (gpio.hasTouch()) {
+  if (UITheme::getInstance().hidesButtonHints()) {  // PERSONAL-HOOK(touch-buttons)
     return;
   }
 
@@ -688,21 +688,35 @@ void BaseTheme::drawRecentBookCover(GfxRenderer& renderer, Rect rect, const std:
 
 int BaseTheme::getMenuRowHeight(const GfxRenderer&) const { return UITheme::getInstance().getMetrics().menuRowHeight; }
 
+int BaseTheme::homeMenuTopInset() const { return BaseMetrics::values.verticalSpacing; }
+
+BaseTheme::MenuRows BaseTheme::homeMenuRows(const GfxRenderer& renderer, const Rect menu, const int count) const {
+  const int gap = UITheme::getInstance().getMetrics().menuSpacing;
+  const int height = getMenuRowHeight(renderer);
+  MenuRows rows{menu.y + homeMenuTopInset(), height + gap, height};
+  const int room = menu.y + menu.height - rows.top;
+  if (count > 0 && rows.step * count > room) {
+    rows.step = std::max(height * 3 / 4 + 2, room / count);  // a row never shrinks below 3/4 of its height
+    rows.height = std::min(rows.step - 2, std::max(height * 3 / 4, rows.step - gap));
+  }
+  return rows;
+}
+
 void BaseTheme::drawButtonMenu(GfxRenderer& renderer, Rect rect, int buttonCount, int selectedIndex,
                                const std::function<std::string(int index)>& buttonLabel,
                                const std::function<UIIcon(int index)>& rowIcon) const {
+  const MenuRows rows = homeMenuRows(renderer, rect, buttonCount);  // PERSONAL-HOOK(home-fit)
   for (int i = 0; i < buttonCount; ++i) {
-    const int tileY = BaseMetrics::values.verticalSpacing + rect.y +
-                      static_cast<int>(i) * (BaseMetrics::values.menuRowHeight + BaseMetrics::values.menuSpacing);
+    const int tileY = rows.top + i * rows.step;
 
     const bool selected = selectedIndex == i;
 
     if (selected) {
       renderer.fillRect(rect.x + BaseMetrics::values.contentSidePadding, tileY,
-                        rect.width - BaseMetrics::values.contentSidePadding * 2, BaseMetrics::values.menuRowHeight);
+                        rect.width - BaseMetrics::values.contentSidePadding * 2, rows.height);
     } else {
       renderer.drawRect(rect.x + BaseMetrics::values.contentSidePadding, tileY,
-                        rect.width - BaseMetrics::values.contentSidePadding * 2, BaseMetrics::values.menuRowHeight);
+                        rect.width - BaseMetrics::values.contentSidePadding * 2, rows.height);
     }
 
     std::string labelStr = buttonLabel(i);
@@ -711,7 +725,7 @@ void BaseTheme::drawButtonMenu(GfxRenderer& renderer, Rect rect, int buttonCount
     const int textX = rect.x + (rect.width - textWidth) / 2;
     const int lineHeight = renderer.getLineHeight(UI_10_FONT_ID);
     const int textY =
-        tileY + (BaseMetrics::values.menuRowHeight - lineHeight) / 2;  // vertically centered assuming y is top of text
+        tileY + (rows.height - lineHeight) / 2;  // vertically centered assuming y is top of text
     // Invert text when the tile is selected, to contrast with the filled background
     renderer.drawText(UI_10_FONT_ID, textX, textY, label, selectedIndex != i);
   }
