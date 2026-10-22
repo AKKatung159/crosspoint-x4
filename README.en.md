@@ -31,6 +31,7 @@ proper Thai reading and a home screen built around the book cover.
   the X4 decodes cleanly.
 - **Clock, reading stats and a dashboard.** The time in the status bar, reading stats in the Apps grid,
   and a dashboard sleep screen (HTML layouts you can edit, from `server/`).
+- **Bluetooth page turner.** Pair a BLE remote in Settings and turn pages or chapters with it (X4/X3).
 - **Gentler on the SD card and battery.** The reading position is saved every
   5 pages, and XTC pages stream straight from the card.
 - **Apps (Pocket Hub).** The home "Apps" tile opens a grid of apps: 2048, Minesweeper, Nonogram, Tarot
