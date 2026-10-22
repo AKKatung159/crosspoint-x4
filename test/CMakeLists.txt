@@ -75,6 +75,7 @@ add_subdirectory(ligature_guard)
 add_subdirectory(page_link)
 add_subdirectory(content_opf_parser)
 add_subdirectory(chapter_position)
+add_subdirectory(book_metadata_cache)
 add_subdirectory(home_button)
 
 add_subdirectory(inflate_stream)
@@ -84,3 +85,12 @@ add_subdirectory(absolute_grayscale)
 
 add_subdirectory(sd_card_font)
 add_subdirectory(glyph_bitmap)
+
+find_package(Python3 REQUIRED COMPONENTS Interpreter)
+add_test(NAME RemoteButtonInputIntegration COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/test_remote_button_input.py)
+add_test(NAME BleLearning COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/test_ble_learning.py)
+add_subdirectory(ble_link_note_title)
+add_subdirectory(ble_chapter_build_gate)
+add_subdirectory(ble_remote_turn_gate)
+
+add_subdirectory(${REPO_ROOT}/lib/BlePageTurner/test BlePageTurnerTests)
