@@ -164,9 +164,11 @@ Epub-Translate's Python converter on the same file.
 
 ## Releasing
 
-`.github/workflows/personal.yml` runs the host tests and builds `x4_th` and `x4pro_th` on every
-push to `main` and every PR (upstream's workflows are limited to the upstream
-repo). To release:
+`.github/workflows/personal.yml` runs the host tests and builds `x4_th`, `x4pro_th` and `x4c_th` on every
+PR that changes more than `docs/` and `*.md` (a `changes` job decides), and on every tag. A push to `main`
+does not build again (the PR did); x4-hub tests and its image follow `server/` changes. A new push to a PR
+cancels its run in progress. Compiled objects (`build_cache_dir = .cache`) are cached per env, so a build
+compiles only what changed.
 
 1. Bump `version` in `platformio.personal.ini` (e.g. `1.6.5-th.5`).
 2. Write `docs/personal/releases/<version>.md`: Thai first, then English inside
