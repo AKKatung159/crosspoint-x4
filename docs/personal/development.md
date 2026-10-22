@@ -7,7 +7,8 @@ Back to the README: [ไทย](../../README.md) · [English](../../README.en.md
 
 ```bash
 pip install https://github.com/pioarduino/platformio-core/archive/refs/tags/v6.1.19.zip
-pio run -e x4_th     # -> .pio/build/x4_th/firmware.bin
+pio run -e x4_th     # X3/X4  -> .pio/build/x4_th/firmware.bin
+pio run -e x4pro_th  # X4 Pro -> .pio/build/x4pro_th/firmware.bin
 ```
 
 - Run it from **PowerShell or cmd**, not Git Bash: ESP-IDF's installer refuses
@@ -20,8 +21,11 @@ pio run -e x4_th     # -> .pio/build/x4_th/firmware.bin
   6.2.x installs SCons 4.11 in the middle of the build, and the link step fails
   with `No module named 'SCons.Tool.FortranCommon'`.
 
-The `x4_th` env lives in `platformio.personal.ini`. It is upstream's
-`gh_release` profile plus this fork's version and OTA URL.
+The `x4_th` and `x4pro_th` envs live in `platformio.personal.ini`. They are upstream's
+`gh_release` and `x4pro-gh_release` profiles plus this fork's flags (`[personal_flags]`: version, OTA
+URL, sans-only fonts, soft clock). `x4pro_th` extends `base`, not `firmware_tuned`, like upstream's
+X4 Pro envs: it uses the prebuilt `dio_opi` Arduino libraries, whose TinyUSB is needed for USB Drive,
+so `custom_sdkconfig` changes do not reach it.
 
 Current size (1.6.5-th.4, Noto Sans only): 5,189,648 bytes = 77% of the 6.4 MiB
 app partition, about 1.5 MB of headroom (stock 1.6.5: 5,589,776 bytes). With the
@@ -50,7 +54,10 @@ docker exec x4dev bash -c 'cd /work/crosspoint-x4 && pio run -e x4_th_test'
   the toolchain unpacked half way: delete `~/.platformio/packages/toolchain-riscv32-esp`
   and `~/.platformio/tools/toolchain-riscv32-esp*` and build again.
 - For the emulator use the `eink-qemu-riscv32-softmmu-<version>-aarch64-linux-gnu`
-  release archive; `drive.py`, `mkflash.py` and `mksd.py` are in its `eink-qemu/` folder.
+  release archive (X4), or `eink-qemu-xtensa-softmmu-<version>-aarch64-linux-gnu` (X4 Pro);
+  `drive.py`, `mkflash.py` and `mksd.py` are in its `eink-qemu/` folder.
+- Adding or changing an env changes PlatformIO's project checksum, which wipes every
+  `.pio/build/<env>`, not just the one you edited.
 
 ## Host tests
 
@@ -110,13 +117,28 @@ python scripts/emu/mksd_win.py sd.img 512 books/       # FAT32 card; pyfatfs, no
 python scripts/emu/drive_win.py <eink-qemu> flash.bin sd.img log.txt wait:30 press:confirm wait:8 press:confirm wait:45 press:down wait:10 shot:page.png
 ```
 
+The X4 Pro (eink-qemu 0.8.1+, `qemu-system-xtensa`) runs the same way in Linux/Docker. Its card needs
+at least 2050 MB with mksd.py's default clusters, and touch is driven through the monitor:
+
+```bash
+python3 <eink-qemu>/eink-qemu/mkflash.py --machine x4pro .pio/build/x4pro_th/firmware.bin flash.bin
+python3 <eink-qemu>/eink-qemu/mksd.py sd.img 2050 books/
+python3 <eink-qemu>/eink-qemu/drive.py flash.bin sd.img log.txt wait:40 shot:home.png \
+  'hmp:qom-set /machine/gt911 tap 240,420' wait:6 shot:library.png \
+  'hmp:qom-set /machine/gt911 tap 160,195' wait:25 shot:page.png press:down wait:8 shot:page2.png \
+  'hmp:qom-set /machine/gt911 tap home' wait:6
+```
+
+On a fresh card's Lyra home, `240,420` is Library and `160,195` the first book in it; `tap home` is the
+capacitive Home key, and `press:up|down|power` are the side keys.
+
 Put `.crosspoint/settings.json` with `{"language":"TH","textAntiAliasing":0}` in
 `books/` to boot in Thai. The X4 panel model shows only the anti-aliasing gray
 planes in screen dumps, so turn anti-aliasing off for clean captures.
 
 ## Releasing
 
-`.github/workflows/personal.yml` runs the host tests and builds `x4_th` on every
+`.github/workflows/personal.yml` runs the host tests and builds `x4_th` and `x4pro_th` on every
 push to `main` and every PR (upstream's workflows are limited to the upstream
 repo). To release:
 
@@ -126,4 +148,5 @@ repo). To release:
 3. Commit, then `git tag <version> && git push origin <version>`.
 
 The tag build checks that the tag matches the version, then publishes the
-release with `crosspoint-<version>-x3-x4.bin` and its SHA-256.
+release with `crosspoint-<version>-x3-x4.bin` and `crosspoint-<version>-x4pro.bin`, each with its
+SHA-256. These are the names each model's OTA asks for (`src/network/OtaUpdater.cpp`).

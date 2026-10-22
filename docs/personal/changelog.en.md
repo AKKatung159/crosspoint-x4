@@ -119,6 +119,22 @@ reading with Sans only.
 - **Fixes:** OTA compares `-th.N`; six home tiles keep their labels.
 - **CI:** `.github/workflows/personal.yml` tests and builds every push; a `*-th.*` tag publishes the release.
 
+## 1.6.5-th.7: X4 Pro support
+
+- **An X4 Pro build** (`x4pro_th` in `platformio.personal.ini`): upstream's `x4pro-gh_release` profile
+  (ESP32-S3, PSRAM, GT911 touch, SDMMC card, USB Drive) plus the same personal flags as `x4_th`, now shared
+  in `[personal_flags]`. Releases carry two files, `-x3-x4.bin` and `-x4pro.bin`. Each model's OTA picks its
+  file by board tag, and OTA and the SD-card update both refuse the other model's image.
+- **The clock on the X4 Pro** uses its RTC chip (BM8563). `PERSONAL_SOFT_CLOCK` only applies when no RTC
+  is found.
+- **Fix:** the Lyra theme had no icon for the "Apps" tile (`UIIcon::Stats`); it now draws `icons/apps.h`
+  (lucide layout-grid).
+- **CI** builds both `x4_th` and `x4pro_th` on every push and PR.
+
+The X4 Pro is tested in the emulator only (eink-qemu 0.8.1, machine `x4pro`): boot, card, RTC, touch, the
+Home key, opening a Thai book, page turns and the Apps grid, with about 200 KB of free heap (plus 8 MB of
+PSRAM). It has not been tested on a real device yet.
+
 ## 1.6.5-th.6: phase 6 (apps and the Pocket SDK)
 
 <p align="center">

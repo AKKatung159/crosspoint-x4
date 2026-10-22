@@ -2,7 +2,7 @@
 
 **ภาษาไทย** · [English](README.en.md)
 
-เฟิร์มแวร์ส่วนตัวสำหรับ **Xteink X4** ต่อยอดจาก
+เฟิร์มแวร์ส่วนตัวสำหรับ **Xteink X4** (และ **X4 Pro**) ต่อยอดจาก
 [CrossPoint Reader 1.6.5](https://github.com/crosspoint-reader/crosspoint-reader/tree/1.6.5)
 อ่านภาษาไทยได้ถูกต้อง และมีหน้าหลักที่เน้นปกหนังสือ
 
@@ -42,15 +42,16 @@
 
 ## ติดตั้ง
 
-ดาวน์โหลดไฟล์ `crosspoint-…-x3-x4.bin` ตัวล่าสุดจาก
-[Releases](https://github.com/AKKatung159/crosspoint-x4/releases) แล้วแฟลชผ่าน
+ดาวน์โหลดไฟล์ตัวล่าสุดจาก [Releases](https://github.com/AKKatung159/crosspoint-x4/releases):
+`crosspoint-…-x3-x4.bin` สำหรับ X4 หรือ `crosspoint-…-x4pro.bin` สำหรับ X4 Pro แล้วแฟลชผ่าน
 [CrossPoint web flasher](https://crosspointreader.com/#flash-tools)
-(**X4 → Custom .bin**) จากนั้นไปที่ **Settings → System → Language → ไทย**
+(เลือกรุ่นเครื่อง → **Custom .bin**) จากนั้นไปที่ **Settings → System → Language → ไทย**
+(X4 Pro ยังเทสบน emulator เท่านั้น)
 วิธีติดตั้งแบบอื่น และวิธีย้อนกลับ: [install.md](docs/personal/install.md)
 
 ## ต่อไปจะทำอะไร
 
-เฟส 1–6 เสร็จแล้ว ดู[สิ่งที่แต่ละเฟสเปลี่ยน](docs/personal/changelog.md) ต่อไปอาจทำ: ปลุกเครื่องเองเป็นระยะให้แดชบอร์ดสดตลอด
+เฟส 1–6 และ build สำหรับ X4 Pro เสร็จแล้ว ดู[สิ่งที่แต่ละเฟสเปลี่ยน](docs/personal/changelog.md) ต่อไปอาจทำ: ปลุกเครื่องเองเป็นระยะให้แดชบอร์ดสดตลอด
 และให้ epub.lan สร้าง `thai-words.txt` จากอภิธานศัพท์ของแต่ละชุด
 
 ## อ่านเพิ่ม
