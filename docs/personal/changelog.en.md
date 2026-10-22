@@ -130,6 +130,10 @@ reading with Sans only.
   gives `wasLongPressed` its time, and swipes are the arrows (the edge Back swipe is off there; the bar has Back). It
   is done in `MappedInputManager::mapButton`, so every app, wasm ones included, gets it.
 - **X4 Classic**: env `x4c_th` (`x4c-gh_release` plus the personal flags); CI builds it and releases carry `-x4c.bin`.
+- **The home menu fits** (hook `home-fit`): `BaseTheme::homeMenuRows` gives the rows both `drawButtonMenu` (Classic,
+  Lyra, RoundedRaff) and `HomeActivity`'s tap grid use. When six rows (OPDS + Apps) do not fit, the step tightens (to
+  no less than 3/4 of the row height). The menu band now runs from below the cover to the hint bar (its height was
+  passed wrong), and Classic's tap grid lines up (it was off by verticalSpacing).
 - **The web page on phones** (`theme.css`): upload option rows wrap and button groups take the sheet's width;
   nothing runs past 390 px.
 - The X4 Pro files of th.7–th.9 were removed from their releases.
