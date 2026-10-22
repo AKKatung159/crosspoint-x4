@@ -2,7 +2,7 @@
 
 [ภาษาไทย](README.md) · **English**
 
-Personal firmware for the **Xteink X4**, built on
+Personal firmware for the **Xteink X4** (and **X4 Pro**), built on
 [CrossPoint Reader 1.6.5](https://github.com/crosspoint-reader/crosspoint-reader/tree/1.6.5):
 proper Thai reading and a home screen built around the book cover.
 
@@ -48,15 +48,16 @@ proper Thai reading and a home screen built around the book cover.
 
 ## Install
 
-Download the latest `crosspoint-…-x3-x4.bin` from
-[Releases](https://github.com/AKKatung159/crosspoint-x4/releases) and flash it
-with the [CrossPoint web flasher](https://crosspointreader.com/#flash-tools)
-(**X4 → Custom .bin**). Then pick **Settings → System → Language → ไทย**.
+Download the latest file from [Releases](https://github.com/AKKatung159/crosspoint-x4/releases):
+`crosspoint-…-x3-x4.bin` for the X4, or `crosspoint-…-x4pro.bin` for the X4 Pro. Flash it with the
+[CrossPoint web flasher](https://crosspointreader.com/#flash-tools) (pick your device, then
+**Custom .bin**). Then pick **Settings → System → Language → ไทย**. (The X4 Pro build is tested in the
+emulator only so far.)
 Other ways to install, and how to go back: [install.en.md](docs/personal/install.en.md).
 
 ## What's next
 
-Phases 1–6 are done; see [what each phase changed](docs/personal/changelog.en.md). Possible next steps: waking
+Phases 1–6 and the X4 Pro build are done; see [what each phase changed](docs/personal/changelog.en.md). Possible next steps: waking
 up on a timer so the dashboard stays fresh, and having epub.lan write `thai-words.txt` from each series' glossary.
 
 ## More

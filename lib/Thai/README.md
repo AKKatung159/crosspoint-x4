@@ -72,8 +72,9 @@ Every change outside `lib/Thai` is tagged `THAI-HOOK(<name>)` or
 | `themes` (PERSONAL) | `CrossPointSettings.h`, `SettingsList.h`, `UITheme.cpp`, i18n | Two more `UI_THEME` values (Cover 5, Minimal 6) built by `src/components/themes/personal/CoverTheme.*` |
 | `home-summary` (PERSONAL) | `ReaderActivity.*`, EPUB/TXT/XTC readers, `src/HomeSummary.*` | On exit a book writes percent and chapter to `<cache>/home-summary.txt` for the home screen |
 | `grey-covers` (PERSONAL) | `lib/Epub/Epub.*`, `BaseTheme.h`, `HomeActivity.cpp` | `generateThumbBmp(height, grey)` writes a 2-bit `thumbg_<h>.bmp`; themes that ask for it get one grey pass over the home cover after the B/W refresh |
+| `lyra-apps` (PERSONAL) | `src/components/themes/lyra/LyraTheme.cpp` | The Apps tile's `Stats` icon draws `src/components/icons/apps.h` (lucide layout-grid), so the default theme shows it |
 | `sans-only` (PERSONAL) | `main.cpp`, `CrossPointSettings.cpp`, `TextSettingsActivity.cpp` | `PERSONAL_SANS_ONLY`: Noto Serif ids map to Noto Sans, the Serif choice is hidden |
-| `PERSONAL` | `platformio.ini` | `extra_configs` also loads `platformio.personal.ini` (this fork's `x4_th` env) |
+| `PERSONAL` | `platformio.ini` | `extra_configs` also loads `platformio.personal.ini` (this fork's `x4_th` and `x4pro_th` envs) |
 | `PERSONAL` | `src/network/OtaUpdater.cpp` | Release URL is overridable (`CROSSPOINT_RELEASES_API`), so OTA never swaps this build for stock upstream |
 
 Other additions outside `lib/Thai`: `lib/I18n/translations/thai.yaml` (picked up

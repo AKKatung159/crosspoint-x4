@@ -1,8 +1,9 @@
 name: X4 Thai (build, test, release)
 
 # This fork's CI. Upstream's workflows only run in crosspoint-reader/crosspoint-reader.
-#  - every push to main and every PR: host tests + the x4_th firmware build
-#  - a tag like 1.6.5-th.5: the same, then a GitHub release with the firmware and
+#  - every push to main and every PR: host tests + the x4_th (X3/X4) and
+#    x4pro_th (X4 Pro) firmware builds
+#  - a tag like 1.6.5-th.5: the same, then a GitHub release with both images and
 #    the notes in docs/personal/releases/<tag>.md (Thai first, English below)
 #  - server/ (x4-hub, the homelab side): tests on every push/PR, and on main the
 #    image ghcr.io/akkatung159/x4-hub (:latest and :sha-<short>)
@@ -48,8 +49,19 @@ jobs:
           ctest --test-dir build/test --output-on-failure -j
 
   firmware:
-    name: Build x4_th
+    name: Build ${{ matrix.env }}
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # asset: the suffix OtaUpdater looks for (crosspoint-<tag>-<asset>.bin)
+          - env: x4_th
+            asset: x3-x4
+            cache: x4th
+          - env: x4pro_th
+            asset: x4pro
+            cache: x4pro
     outputs:
       version: ${{ steps.version.outputs.version }}
     steps:
@@ -65,8 +77,8 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.platformio
-          key: pio-x4th-v3-${{ runner.os }}-${{ hashFiles('platformio.ini', 'platformio.personal.ini') }}
-          restore-keys: pio-x4th-v3-${{ runner.os }}-
+          key: pio-${{ matrix.cache }}-v3-${{ runner.os }}-${{ hashFiles('platformio.ini', 'platformio.personal.ini') }}
+          restore-keys: pio-${{ matrix.cache }}-v3-${{ runner.os }}-
 
       - name: Install uv
         uses: astral-sh/setup-uv@v7
@@ -89,7 +101,7 @@ jobs:
         # 'SCons.Tool.FortranCommon'"); see pioarduino/platform-espressif32#529.
         run: |
           set -euo pipefail
-          pio pkg install -e x4_th
+          pio pkg install -e ${{ matrix.env }}
           uv pip install --python ~/.platformio/penv/bin/python "pioarduino==6.1.19"
           ~/.platformio/penv/bin/pio --version
 
@@ -104,17 +116,17 @@ jobs:
           fi
 
       - name: Build
-        run: pio run -e x4_th
+        run: pio run -e ${{ matrix.env }}
 
       - name: Size
         run: |
-          size=$(stat -c %s .pio/build/x4_th/firmware.bin)
-          echo "firmware.bin: $size bytes ($((size * 100 / 6710886))% of the 6.4 MiB app partition)" >> "$GITHUB_STEP_SUMMARY"
+          size=$(stat -c %s .pio/build/${{ matrix.env }}/firmware.bin)
+          echo "${{ matrix.env }} firmware.bin: $size bytes ($((size * 100 / 6710886))% of the 6.4 MiB app partition)" >> "$GITHUB_STEP_SUMMARY"
 
       - uses: actions/upload-artifact@v4
         with:
-          name: crosspoint-${{ steps.version.outputs.version }}-x3-x4
-          path: .pio/build/x4_th/firmware.bin
+          name: crosspoint-${{ steps.version.outputs.version }}-${{ matrix.asset }}
+          path: .pio/build/${{ matrix.env }}/firmware.bin
           if-no-files-found: error
 
   server:
@@ -202,6 +214,12 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           name: crosspoint-${{ needs.firmware.outputs.version }}-x3-x4
+          path: x3-x4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: crosspoint-${{ needs.firmware.outputs.version }}-x4pro
+          path: x4pro
 
       - name: Create the release
         env:
@@ -213,8 +231,13 @@ jobs:
             echo "::error::missing $notes (write the Thai + English notes before tagging)"
             exit 1
           fi
-          bin="crosspoint-$TAG-x3-x4.bin"
-          mv firmware.bin "$bin"
-          sha=$(sha256sum "$bin" | cut -d' ' -f1)
-          { cat "$notes"; printf '\n\nSHA-256 (`%s`): `%s`\n' "$bin" "$sha"; } > notes.md
-          gh release create "$TAG" "$bin" --title "$TAG" --notes-file notes.md --verify-tag
+          cp "$notes" notes.md
+          printf '\n\nSHA-256:\n' >> notes.md
+          bins=()
+          for asset in x3-x4 x4pro; do
+            bin="crosspoint-$TAG-$asset.bin"
+            mv "$asset/firmware.bin" "$bin"
+            printf -- '- `%s`: `%s`\n' "$bin" "$(sha256sum "$bin" | cut -d' ' -f1)" >> notes.md
+            bins+=("$bin")
+          done
+          gh release create "$TAG" "${bins[@]}" --title "$TAG" --notes-file notes.md --verify-tag

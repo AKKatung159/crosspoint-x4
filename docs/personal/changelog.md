@@ -5,6 +5,19 @@
 รายละเอียดเพิ่มเติมจาก [README](../../README.md) ส่วนการออกแบบโค้ดภาษาไทย และทุกจุดที่แก้ไฟล์ของต้นฉบับ
 อยู่ใน [lib/Thai/README.md](../../lib/Thai/README.md) (ภาษาอังกฤษ)
 
+## 1.6.5-th.7: รองรับ X4 Pro
+
+- **build สำหรับ X4 Pro** (`x4pro_th` ใน `platformio.personal.ini`) คือ profile `x4pro-gh_release`
+  ของต้นฉบับ (ESP32-S3, PSRAM, จอสัมผัส GT911, การ์ด SDMMC, USB Drive) บวก flag ส่วนตัวชุดเดียวกับ `x4_th`
+  (รวมไว้ใน `[personal_flags]`) release มีสองไฟล์: `-x3-x4.bin` และ `-x4pro.bin`
+  OTA ของแต่ละรุ่นเลือกไฟล์ตาม board tag และ OTA กับอัปเดตจากการ์ดไม่ยอมรับไฟล์ของอีกรุ่น
+- **นาฬิกาบน X4 Pro** ใช้ชิป RTC (BM8563) `PERSONAL_SOFT_CLOCK` ทำงานเฉพาะเมื่อไม่พบ RTC
+- **แก้:** ธีม Lyra ไม่มีไอคอนของปุ่ม "แอป" (`UIIcon::Stats`) ตอนนี้ใช้ `icons/apps.h` (lucide layout-grid)
+- **CI** build ทั้ง `x4_th` และ `x4pro_th` ทุก push และ PR
+
+X4 Pro เทสบน emulator (eink-qemu 0.8.1, machine `x4pro`) เท่านั้น: บูต การ์ด RTC จอสัมผัส ปุ่ม Home
+เปิดหนังสือไทย พลิกหน้า หน้าแอป heap ว่างราว 200 KB (บวก PSRAM 8 MB) ยังไม่ได้เทสบนเครื่องจริง
+
 ## 1.6.5-th.6: เฟส 6 (แอปและ Pocket SDK)
 
 <p align="center">
