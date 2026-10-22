@@ -54,7 +54,7 @@
 ## ติดตั้ง
 
 ดาวน์โหลดไฟล์ตัวล่าสุดจาก [Releases](https://github.com/AKKatung159/crosspoint-x4/releases):
-`crosspoint-…-x3-x4.bin` สำหรับ X4 หรือ `crosspoint-…-x4pro.bin` สำหรับ X4 Pro แล้วแฟลชผ่าน
+`crosspoint-…-x3-x4.bin` สำหรับ X4, `crosspoint-…-x4pro.bin` สำหรับ X4 Pro หรือ `crosspoint-…-x4c.bin` สำหรับ X4 Classic แล้วแฟลชผ่าน
 [CrossPoint web flasher](https://crosspointreader.com/#flash-tools)
 (เลือกรุ่นเครื่อง → **Custom .bin**) จากนั้นไปที่ **Settings → System → Language → ไทย**
 (X4 Pro ยังเทสบน emulator เท่านั้น)

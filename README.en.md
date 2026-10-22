@@ -60,7 +60,7 @@ proper Thai reading and a home screen built around the book cover.
 ## Install
 
 Download the latest file from [Releases](https://github.com/AKKatung159/crosspoint-x4/releases):
-`crosspoint-…-x3-x4.bin` for the X4, or `crosspoint-…-x4pro.bin` for the X4 Pro. Flash it with the
+`crosspoint-…-x3-x4.bin` for the X4, `crosspoint-…-x4pro.bin` for the X4 Pro, or `crosspoint-…-x4c.bin` for the X4 Classic. Flash it with the
 [CrossPoint web flasher](https://crosspointreader.com/#flash-tools) (pick your device, then
 **Custom .bin**). Then pick **Settings → System → Language → ไทย**. (The X4 Pro build is tested in the
 emulator only so far.)

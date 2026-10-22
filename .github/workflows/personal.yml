@@ -1,9 +1,9 @@
 name: X4 Thai (build, test, release)
 
 # This fork's CI. Upstream's workflows only run in crosspoint-reader/crosspoint-reader.
-#  - every push to main and every PR: host tests + the x4_th (X3/X4) and
-#    x4pro_th (X4 Pro) firmware builds
-#  - a tag like 1.6.5-th.5: the same, then a GitHub release with both images and
+#  - every push to main and every PR: host tests + the x4_th (X3/X4),
+#    x4pro_th (X4 Pro) and x4c_th (X4 Classic) firmware builds
+#  - a tag like 1.6.5-th.5: the same, then a GitHub release with the three images and
 #    the notes in docs/personal/releases/<tag>.md (Thai first, English below)
 #  - server/ (x4-hub, the homelab side): tests on every push/PR, and on main the
 #    image ghcr.io/akkatung159/x4-hub (:latest and :sha-<short>)
@@ -62,6 +62,9 @@ jobs:
           - env: x4pro_th
             asset: x4pro
             cache: x4pro
+          - env: x4c_th
+            asset: x4c
+            cache: x4c
     outputs:
       version: ${{ steps.version.outputs.version }}
     steps:
@@ -222,6 +225,11 @@ jobs:
           name: crosspoint-${{ needs.firmware.outputs.version }}-x4pro
           path: x4pro
 
+      - uses: actions/download-artifact@v4
+        with:
+          name: crosspoint-${{ needs.firmware.outputs.version }}-x4c
+          path: x4c
+
       - name: Create the release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -235,7 +243,7 @@ jobs:
           cp "$notes" notes.md
           printf '\n\nSHA-256:\n' >> notes.md
           bins=()
-          for asset in x3-x4 x4pro; do
+          for asset in x3-x4 x4pro x4c; do
             bin="crosspoint-$TAG-$asset.bin"
             mv "$asset/firmware.bin" "$bin"
             printf -- '- `%s`: `%s`\n' "$bin" "$(sha256sum "$bin" | cut -d' ' -f1)" >> notes.md

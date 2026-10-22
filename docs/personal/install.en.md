@@ -11,6 +11,7 @@ Download the file for your model from this repo's
 | --- | --- | --- |
 | X4, X3 | `crosspoint-<version>-x3-x4.bin` | ESP32-C3 |
 | X4 Pro | `crosspoint-<version>-x4pro.bin` | ESP32-S3 |
+| X4 Classic | `crosspoint-<version>-x4c.bin` | ESP32-S3 |
 
 Each is a normal app image, the same kind of file as the official `crosspoint-1.6.5-x3-x4.bin` /
 `-x4pro.bin`. Never flash the other model's file (OTA and the SD-card update refuse it). The X4 Pro build

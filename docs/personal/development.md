@@ -9,6 +9,7 @@ Back to the README: [ไทย](../../README.md) · [English](../../README.en.md
 pip install https://github.com/pioarduino/platformio-core/archive/refs/tags/v6.1.19.zip
 pio run -e x4_th     # X3/X4  -> .pio/build/x4_th/firmware.bin
 pio run -e x4pro_th  # X4 Pro -> .pio/build/x4pro_th/firmware.bin
+pio run -e x4c_th    # X4 Classic -> .pio/build/x4c_th/firmware.bin
 ```
 
 - Run it from **PowerShell or cmd**, not Git Bash: ESP-IDF's installer refuses
