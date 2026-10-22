@@ -192,6 +192,37 @@ void BleSettingsActivity::refresh() {
     }
   }
   if (nav.selected >= static_cast<int>(rows.size())) nav.selected = static_cast<int>(rows.size()) - 1;
+  // PERSONAL-HOOK(ble-port): a row that just became unselectable (the radio went off) hands the
+  // highlight back up the list.
+  if (!rows.empty()) nav.selected = nearestEnabled(nav.selected, -1);
+}
+
+int BleSettingsActivity::nearestEnabled(const int from, const int step) const {
+  const int count = static_cast<int>(rows.size());
+  if (count == 0) return 0;
+  int i = from;
+  for (int tried = 0; tried < count; ++tried) {
+    if (i >= 0 && i < count && rows[i].enabled) return i;
+    i = (i + step + count) % count;
+  }
+  return nav.selected;
+}
+
+// PERSONAL-HOOK(ble-port): Up/Down skip disabled rows (Scan and Paired while the radio is off, Map
+// Buttons with no remote linked); the theme draws no highlight on them, so the cursor looked lost.
+void BleSettingsActivity::navigateButtons() {
+  const int count = listCount();
+  auto& n = activeNav();
+  buttonNavigator.onNextRelease(
+      [this, count, &n] { moveSelectionTo(nearestEnabled(ButtonNavigator::nextIndex(n.selected, count), 1)); });
+  buttonNavigator.onPreviousRelease(
+      [this, count, &n] { moveSelectionTo(nearestEnabled(ButtonNavigator::previousIndex(n.selected, count), -1)); });
+  buttonNavigator.onNextContinuous([this, count, &n] {
+    moveSelectionTo(nearestEnabled(ButtonNavigator::nextPageIndex(n.selected, count, n.inputPageRows()), 1));
+  });
+  buttonNavigator.onPreviousContinuous([this, count, &n] {
+    moveSelectionTo(nearestEnabled(ButtonNavigator::previousPageIndex(n.selected, count, n.inputPageRows()), -1));
+  });
 }
 
 void BleSettingsActivity::activateIndex(const int index) {

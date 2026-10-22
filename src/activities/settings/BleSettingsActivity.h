@@ -25,6 +25,9 @@ class BleSettingsActivity final : public UiListActivity {
   void buildScreen(UiScreen& screen) override;
   void activateIndex(int index) override;
   const char* headerTitle() const override;
+  void navigateButtons() override;
+  // First enabled row from `from` on, stepping by `step` with wrap-around; the selection when none is.
+  int nearestEnabled(int from, int step) const;
 
   enum class View { Menu, Scan, Paired, Mapping };
   View view = View::Menu;
