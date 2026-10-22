@@ -93,6 +93,11 @@ void ActivityManager::renderTaskLoop() {
 }
 
 void ActivityManager::loop() {
+  // PERSONAL-HOOK(touch-buttons): read by the next MappedInputManager::update(); a screen resumed
+  // from a child that did not want the bar is laid out again with it (and the other way round).
+  const bool touchButtons = currentActivity && currentActivity->wantsTouchButtons();
+  mappedInput.setTouchButtons(touchButtons);
+  if (UITheme::getInstance().setTouchButtonBar(touchButtons)) requestUpdate();
   if (mappedInput.consumeSuppressedRelease()) return;
 
   if (currentActivity && currentActivity->requiresExclusiveStorageLoop()) {

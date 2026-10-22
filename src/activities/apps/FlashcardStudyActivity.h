@@ -12,6 +12,7 @@ constexpr char DECK_DIR[] = "/apps/flashcards";
 // Left/Right move. The position in each recent deck is saved on exit.
 class FlashcardStudyActivity final : public Activity {
  public:
+  bool wantsTouchButtons() const override { return true; }  // PERSONAL-HOOK(touch-buttons)
   FlashcardStudyActivity(GfxRenderer& renderer, MappedInputManager& mappedInput, std::string deckName)
       : Activity("FlashcardStudy", renderer, mappedInput), deckName(std::move(deckName)) {}
 

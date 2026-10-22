@@ -52,6 +52,8 @@ class MappedInputManager {
   void setPowerConfirmClickFrame(const bool clicked) { powerConfirmClickFrame = clicked; }
 #endif
   bool injectRemoteClick(RemoteButton button);
+  // PERSONAL-HOOK(touch-buttons): see Activity::wantsTouchButtons(). Off clears any touch-made press.
+  void setTouchButtons(bool enabled);
   bool hasRemoteClick() const { return remoteInput.button != RemoteButton::None; }
   bool wasPressed(Button button) const;
   bool wasReleased(Button button) const;
@@ -161,6 +163,15 @@ class MappedInputManager {
   mutable unsigned long touchHeldOverrideAt = 0;
   mutable uint16_t longPressFiredButtons = 0;
   mutable uint16_t suppressedReleaseButtons = 0;
+  // PERSONAL-HOOK(touch-buttons): hardware button indexes (HalGPIO::BTN_*) pressed by touch.
+  bool touchButtons = false;
+  mutable int8_t touchHeld = -1;            // a hint-bar slot held by the finger
+  mutable int8_t touchPressEdge = -1;       // pressed this frame
+  mutable int8_t touchReleaseEdge = -1;     // released this frame
+  mutable int8_t touchPendingRelease = -1;  // a swipe: its release comes on the next frame
+  mutable unsigned long touchHeldSince = 0;
+  void updateTouchButtons() const;
+  bool touchButton(bool (HalGPIO::*fn)(uint8_t) const, uint8_t index) const;
 #if FREEINK_CAP_TOUCH
   bool powerConfirmClickFrame = false;
 #endif

@@ -8,6 +8,7 @@
 // Left/Right (or Up/Down) move through a three-card spread.
 class TarotReadingActivity final : public Activity {
  public:
+  bool wantsTouchButtons() const override { return true; }  // PERSONAL-HOOK(touch-buttons)
   TarotReadingActivity(GfxRenderer& renderer, MappedInputManager& mappedInput, int count)
       : Activity("TarotReading", renderer, mappedInput), count(count) {}
 

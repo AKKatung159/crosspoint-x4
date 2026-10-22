@@ -92,7 +92,7 @@ const ThemeMetrics& UITheme::getMetrics() const {
   const bool touch = gpio.hasTouch();
   if (!metricsValid || touch != metricsForTouch) {
     adjustedMetrics = *currentMetrics;
-    if (touch) {
+    if (touch && !touchButtonBar) {
       adjustedMetrics.buttonHintsHeight = 0;
     }
     metricsForTouch = touch;
@@ -100,6 +100,15 @@ const ThemeMetrics& UITheme::getMetrics() const {
   }
   return adjustedMetrics;
 }
+
+bool UITheme::setTouchButtonBar(const bool shown) {
+  if (shown == touchButtonBar) return false;
+  touchButtonBar = shown;
+  metricsValid = false;
+  return gpio.hasTouch();
+}
+
+bool UITheme::hidesButtonHints() const { return gpio.hasTouch() && !touchButtonBar; }
 
 // Screen area excluding the button hints
 Rect UITheme::getScreenSafeArea(const GfxRenderer& renderer, bool hasFrontButtonHints, bool hasSideButtonHints) {

@@ -21,6 +21,11 @@ class UITheme {
   static UITheme& getInstance() { return instance; }
 
   const ThemeMetrics& getMetrics() const;
+  // PERSONAL-HOOK(touch-buttons): touch boards hide the front button hints; a screen that asks for
+  // touch buttons (Activity::wantsTouchButtons) keeps them as a bar of four tap targets. Returns
+  // true when the setting changed (the screen then needs a fresh layout).
+  bool setTouchButtonBar(bool shown);
+  bool hidesButtonHints() const;
   const BaseTheme& getTheme() const { return currentTheme ? *currentTheme : fallbackTheme; }
   Rect getScreenSafeArea(const GfxRenderer& renderer, bool hasFrontButtonHints = false,
                          bool hasSideButtonHints = false);
@@ -48,6 +53,7 @@ class UITheme {
   mutable ThemeMetrics adjustedMetrics;
   mutable bool metricsValid = false;
   mutable bool metricsForTouch = false;
+  bool touchButtonBar = false;  // PERSONAL-HOOK(touch-buttons)
 };
 
 // Helper macro to access current theme

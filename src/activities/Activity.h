@@ -48,6 +48,9 @@ class Activity {
   virtual bool requiresExclusiveStorageLoop() const { return false; }
   virtual bool isReaderActivity() const { return false; }
   virtual bool acceptsRemoteInput() const { return false; }
+  // PERSONAL-HOOK(touch-buttons): on touch boards, taps on the button-hint bar act as the four front
+  // buttons and swipes as the arrows (apps written for the X4's buttons, played on the X4 Pro).
+  virtual bool wantsTouchButtons() const { return false; }
   // Returns true when the activity schedules its own forced refresh.
   virtual bool handleForcedRefresh() { return false; }
   virtual bool isHomeActivity() const { return false; }

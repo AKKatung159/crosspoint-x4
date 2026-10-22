@@ -8,6 +8,7 @@
 // a win or loss.
 class MinesweeperActivity final : public Activity {
  public:
+  bool wantsTouchButtons() const override { return true; }  // PERSONAL-HOOK(touch-buttons)
   MinesweeperActivity(GfxRenderer& renderer, MappedInputManager& mappedInput)
       : Activity("Minesweeper", renderer, mappedInput) {}
 

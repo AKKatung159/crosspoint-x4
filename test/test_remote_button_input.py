@@ -9,7 +9,7 @@ source = (ROOT / "src/MappedInputManager.cpp").read_text()
 # Exercise production frame/dispatch methods with physical input under test control.
 methods = []
 for signature, following in (
-    ("void MappedInputManager::update(", "bool MappedInputManager::isNavDirectionSwapped("),
+    ("void MappedInputManager::update(", "void MappedInputManager::setTouchButtons("),
     ("bool MappedInputManager::injectRemoteClick(", "bool MappedInputManager::wasLongPressed("),
     ("bool MappedInputManager::isPressed(", "MappedInputManager::Labels MappedInputManager::mapLabels("),
 ):
@@ -55,6 +55,7 @@ bool MappedInputManager::mapButton(Button b, bool (HalGPIO::*fn)(uint8_t) const)
 }
 bool MappedInputManager::wasBackGesture() const { return false; }
 MappedInputManager::SwipeDir MappedInputManager::wasSwipe() const { return SwipeDir::None; }
+void MappedInputManager::updateTouchButtons() const {}  // PERSONAL: touch-buttons, not under test here
 """ + "\n".join(methods) + r"""
 int main() {
   HalGPIO gpio;

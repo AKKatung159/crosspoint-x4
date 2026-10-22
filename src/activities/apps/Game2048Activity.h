@@ -7,6 +7,7 @@
 // The board is saved on exit; Confirm starts a new game once no move is left.
 class Game2048Activity final : public Activity {
  public:
+  bool wantsTouchButtons() const override { return true; }  // PERSONAL-HOOK(touch-buttons)
   Game2048Activity(GfxRenderer& renderer, MappedInputManager& mappedInput)
       : Activity("Game2048", renderer, mappedInput) {}
 

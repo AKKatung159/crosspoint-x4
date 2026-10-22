@@ -200,7 +200,7 @@ void BaseTheme::drawHintLabel(const GfxRenderer& renderer, const int fontId, con
 
 void BaseTheme::drawButtonHints(GfxRenderer& renderer, const char* btn1, const char* btn2, const char* btn3,
                                 const char* btn4) const {
-  if (gpio.hasTouch()) {
+  if (UITheme::getInstance().hidesButtonHints()) {  // PERSONAL-HOOK(touch-buttons)
     return;
   }
 

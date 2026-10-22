@@ -13,6 +13,7 @@
 // the hub, so Back (finish()) returns here and sleep runs every app's onExit().
 class PocketHubActivity final : public Activity {
  public:
+  bool wantsTouchButtons() const override { return true; }  // PERSONAL-HOOK(touch-buttons)
   PocketHubActivity(GfxRenderer& renderer, MappedInputManager& mappedInput)
       : Activity("PocketHub", renderer, mappedInput) {}
   void onEnter() override;

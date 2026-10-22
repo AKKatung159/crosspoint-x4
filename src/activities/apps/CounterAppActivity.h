@@ -7,6 +7,7 @@
 // and emulator runs can check the save path across Back, sleep and wake.
 class CounterAppActivity final : public Activity {
  public:
+  bool wantsTouchButtons() const override { return true; }  // PERSONAL-HOOK(touch-buttons)
   CounterAppActivity(GfxRenderer& renderer, MappedInputManager& mappedInput)
       : Activity("CounterApp", renderer, mappedInput) {}
 
