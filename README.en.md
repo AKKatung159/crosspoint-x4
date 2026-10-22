@@ -31,6 +31,7 @@ proper Thai reading and a home screen built around the book cover.
   the X4 decodes cleanly.
 - **Clock, reading stats and a dashboard.** The time in the status bar, reading stats in the Apps grid,
   and a dashboard sleep screen (HTML layouts you can edit, from `server/`).
+- **PDF to XTC on upload.** The device upload page converts a PDF into large-text strips in the browser (online the first time).
 - **Bluetooth page turner.** Pair a BLE remote in Settings and turn pages or chapters with it (X4/X3).
 - **Gentler on the SD card and battery.** The reading position is saved every
   5 pages, and XTC pages stream straight from the card.
@@ -47,6 +48,15 @@ proper Thai reading and a home screen built around the book cover.
   <img src="docs/showcase/apps-flashcards.png" alt="An English-Thai flashcard" width="23%">
 </p>
 
+<p align="center">
+  <img src="docs/showcase/bt-settings.png" alt="Bluetooth page turner settings" width="23%">
+  <img src="docs/showcase/pdf-upload.png" alt="The upload dialog with the PDF to XTC options" width="25%">
+  <img src="docs/showcase/pdf-cover.png" alt="The cover of a book converted from PDF, on the device" width="23%">
+  <img src="docs/showcase/pdf-strip.png" alt="A strip page converted from PDF, read sideways" width="23%">
+</p>
+
+<sub>Emulator (eink-qemu) captures, except the upload dialog, which is the device's web page in Chrome. The sample PDF was written for testing.</sub>
+
 ## Install
 
 Download the latest file from [Releases](https://github.com/AKKatung159/crosspoint-x4/releases):
@@ -58,7 +68,7 @@ Other ways to install, and how to go back: [install.en.md](docs/personal/install
 
 ## What's next
 
-Phases 1–6 and the X4 Pro build are done; see [what each phase changed](docs/personal/changelog.en.md). Possible next steps: waking
+Phases 1–6, the X4 Pro build, the Bluetooth page turner and PDF conversion are done; see [what each phase changed](docs/personal/changelog.en.md). Possible next steps: waking
 up on a timer so the dashboard stays fresh, and having epub.lan write `thai-words.txt` from each series' glossary.
 
 ## More

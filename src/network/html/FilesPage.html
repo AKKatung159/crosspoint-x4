@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Files - CrossPoint Reader</title>
   <script src="/js/jszip.min.js"></script>
+  <script src="/js/pdfxtc.js" defer></script><!-- PERSONAL-HOOK(pdf-xtc) -->
   <style>
     :root {
       --font-color: #333;
@@ -1562,6 +1563,41 @@
       <div class="drop-zone" id="dropZone">
         <input type="file" id="fileInput" onchange="validateFile()" multiple>
         <p class="drop-zone-hint">⬇ Drop files here — or click to browse</p>
+      </div>
+      <!-- PERSONAL-HOOK(pdf-xtc): PDF -> XTC in the browser (html/personal/pdfxtc.js) -->
+      <div class="convert-options" id="pdfXtcOptions" style="display:none;">
+        <div class="convert-row">
+          <label class="convert-checkbox">
+            <input type="checkbox" id="pdfToXtc" checked>
+            <span>Convert PDF to XTC</span>
+          </label>
+        </div>
+        <div class="advanced-setting-row">
+          <div class="setting-label" style="flex-shrink:1;min-width:0;">
+            <div class="setting-title">Layout</div>
+            <div class="setting-desc">Strips: read sideways, larger text. Max 3/4: fewer turns on big pages</div>
+          </div>
+          <div class="setting-controls">
+            <select id="pdfXtcMode" style="max-width:170px;">
+              <option value="auto" selected>Strips (auto)</option>
+              <option value="3">Max 3 strips</option>
+              <option value="4">Max 4 strips</option>
+              <option value="page">Whole page</option>
+            </select>
+          </div>
+        </div>
+        <div class="advanced-setting-row">
+          <div class="setting-label" style="flex-shrink:1;min-width:0;">
+            <div class="setting-title">Turn the device</div>
+            <div class="setting-desc">Which way strips are rotated</div>
+          </div>
+          <div class="setting-controls">
+            <select id="pdfXtcRotate" style="max-width:170px;">
+              <option value="cw" selected>Clockwise</option>
+              <option value="ccw">Counter-clockwise</option>
+            </select>
+          </div>
+        </div>
       </div>
       <div class="picker-columns" id="pickerColumns">
         <div class="convert-options" id="convertOptions" style="display:none;">
@@ -3239,6 +3275,10 @@
     const files = fileInput.files;
     const convertOptions = document.getElementById('convertOptions');
     fileInput.classList.toggle('has-files', files.length > 0);
+
+    // PERSONAL-HOOK(pdf-xtc)
+    document.getElementById('pdfXtcOptions').style.display =
+        Array.from(files).some(f => f.name.toLowerCase().endsWith('.pdf')) ? 'block' : 'none';
 
     // Show convert options only when at least one selected file is an EPUB.
     const hasEpub = Array.from(files).some(f => f.name.toLowerCase().endsWith('.epub'));
@@ -5727,6 +5767,7 @@ async function uploadFile() {
 
     // Check if file is an EPUB and conversion is enabled
     const isEpub = file.name.toLowerCase().endsWith('.epub');
+    const isPdf = file.name.toLowerCase().endsWith('.pdf');  // PERSONAL-HOOK(pdf-xtc)
     const needsConversion = isEpub && convertEnabled;
     let conversionSucceeded = false;
     let conversionFailed = false;  // Track if conversion actually failed
@@ -5818,6 +5859,41 @@ async function uploadFile() {
     };
 
     try {
+      // PERSONAL-HOOK(pdf-xtc): PDF -> XTC in the browser (html/personal/pdfxtc.js); a long book becomes
+      // several parts, uploaded one after another.
+      if (isPdf && document.getElementById('pdfToXtc').checked) {
+        if (!window.PdfXtc) throw new Error('PDF converter did not load (/js/pdfxtc.js)');
+        const pdfName = file.name;
+        progressFill.style.backgroundColor = '#9b59b6';
+        progressText.textContent = `Loading PDF converter for ${pdfName}...`;
+        const parts = await window.PdfXtc.convert(file, {
+          mode: document.getElementById('pdfXtcMode').value,
+          rotate: document.getElementById('pdfXtcRotate').value,
+          onStatus: (text) => { progressText.textContent = text; },
+        }, (done, total, screens) => {
+          progressFill.style.width = Math.round((done / total) * 50) + '%';
+          progressText.textContent = `Converting ${pdfName} to XTC: page ${done}/${total} (${screens} screens)`;
+        }, () => operationCancelled);
+        conversionSucceeded = true;
+        progressFill.style.backgroundColor = '#27ae60';
+        for (const part of parts) {
+          file = new File([part.blob], reserveAvailableUploadFilename(part.name, usedFileNames),
+                          { type: 'application/octet-stream' });
+          try {
+            if (useWebSocket) await uploadFileWebSocket(file, onProgress, null, null);
+            else await uploadFileHTTP(file, onProgress, null, null);
+          } catch (partError) {
+            if (!useWebSocket || partError.message !== 'WebSocket connection failed') throw partError;
+            useWebSocket = false;
+            await uploadFileHTTP(file, onProgress, null, null);
+          }
+        }
+        progressFill.style.width = '100%';
+        progressText.textContent = parts.length > 1 ? `Upload complete: ${parts.length} XTC files` : `Upload complete: ${file.name}`;
+        onComplete();
+        return;
+      }
+
       // Convert EPUB if needed
       if (needsConversion) {
         progressFill.style.backgroundColor = '#9b59b6'; // Purple for conversion

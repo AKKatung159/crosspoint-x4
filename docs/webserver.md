@@ -90,6 +90,7 @@ The File Manager page can:
 
 - Browse SD-card folders
 - Upload files, using WebSocket upload when available and HTTP upload as a fallback
+- Convert PDF files to XTC in the browser before upload (**Convert PDF to XTC**; pdf.js is kept in `/pdfjs` on the card after the first online use)
 - Create folders
 - Download files
 - Rename files

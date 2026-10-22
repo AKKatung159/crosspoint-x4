@@ -119,7 +119,30 @@ reading with Sans only.
 - **Fixes:** OTA compares `-th.N`; six home tiles keep their labels.
 - **CI:** `.github/workflows/personal.yml` tests and builds every push; a `*-th.*` tag publishes the release.
 
+## 1.6.5-th.9: PDF to XTC in the browser
+
+<p align="center">
+  <img src="../showcase/pdf-upload.png" alt="The upload dialog with the PDF to XTC options" width="32%">
+  <img src="../showcase/pdf-cover.png" alt="A cover converted from PDF" width="30%">
+  <img src="../showcase/pdf-strip.png" alt="A strip page" width="30%">
+</p>
+
+- **PDF -> XTC before upload** (`src/network/html/personal/pdfxtc.js`, hook `pdf-xtc`), a JavaScript port of
+  Epub-Translate's `pdfslice.py`, `xtc.py` and `xtccover.py`: pdf.js renders each page; running headers/footers
+  and white margins are dropped; page bodies are flowed and cut into 800x480 strips in the gaps between lines
+  (or whole pages in "page" mode); pictures get a Bayer dither, text a 170 threshold; chapters come from the
+  outline or "บทที่ N" lines; files are split at 600 screens.
+- 1-bit XTC only: an XTCH page needs a 96 KB block on the device.
+- pdf.js 4.10.38 from jsDelivr; the first time, it is saved gzipped to `/pdfjs/` on the card (99 KB + 404 KB) and
+  used when the CDN cannot be reached.
+- Device: `/js/pdfxtc.js`, 10.4 KB gzipped in flash; no RAM.
+- Tested in eink-qemu (x4) through the device web server from Chrome: a Thai test PDF gives the same page and
+  chapter counts as the Python converter, uploads over WebSocket and reads on the device; the card copy is
+  written once and gives byte-identical output offline.
+
 ## 1.6.5-th.8: Bluetooth page turner
+
+<p align="center"><img src="../showcase/bt-settings.png" alt="Bluetooth page turner settings" width="30%"></p>
 
 - **BLE page-turner remotes** (X3/X4), ported from upstream CrossPoint: crosspoint-reader#3785
   (`lib/BlePageTurner`) and #4074 (no radio in a book until a remote is chosen). *Settings → System →

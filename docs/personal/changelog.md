@@ -5,7 +5,27 @@
 รายละเอียดเพิ่มเติมจาก [README](../../README.md) ส่วนการออกแบบโค้ดภาษาไทย และทุกจุดที่แก้ไฟล์ของต้นฉบับ
 อยู่ใน [lib/Thai/README.md](../../lib/Thai/README.md) (ภาษาอังกฤษ)
 
+## 1.6.5-th.9: แปลง PDF เป็น XTC ในเบราว์เซอร์
+
+<p align="center">
+  <img src="../showcase/pdf-upload.png" alt="หน้าอัปโหลด ตัวเลือกแปลง PDF เป็น XTC" width="32%">
+  <img src="../showcase/pdf-cover.png" alt="ปกที่แปลงจาก PDF" width="30%">
+  <img src="../showcase/pdf-strip.png" alt="หน้าแถบตัวหนังสือ" width="30%">
+</p>
+
+- **PDF → XTC ก่อนอัปโหลด** (`src/network/html/personal/pdfxtc.js`, hook `pdf-xtc`) พอร์ต `pdfslice.py`,
+  `xtc.py` และ `xtccover.py` ของ Epub-Translate เป็น JavaScript: pdf.js เรนเดอร์ทีละหน้า ตัดหัว/ท้ายกระดาษ
+  และขอบขาว ต่อเนื้อหาเป็นสายยาวแล้วหั่นเป็นแถบ 800×480 ตรงช่องว่างระหว่างบรรทัด (หรือทั้งหน้าในโหมด page)
+  รูป dither แบบ Bayer ตัวหนังสือ threshold 170 สารบัญจาก outline หรือบรรทัด "บทที่ N" แบ่งไฟล์ละ 600 หน้าจอ
+- ได้ XTC ขาวดำอย่างเดียว เพราะหน้า XTCH ต้องการบล็อก 96 KB บนเครื่อง
+- pdf.js 4.10.38 จาก jsDelivr ครั้งแรกเก็บแบบ gzip ไว้ที่ `/pdfjs/` บนการ์ด (99 KB + 404 KB) ใช้เมื่อโหลด CDN ไม่ได้
+- เครื่อง: `/js/pdfxtc.js` 10.4 KB (gzip) ใน flash ไม่ใช้ RAM เพิ่ม
+- เทสบน eink-qemu (x4) ผ่าน web server ของเครื่องจาก Chrome: PDF ไทยทดสอบได้จำนวนหน้าและบทตรงกับตัวแปลง Python
+  อัปโหลดผ่าน WebSocket แล้วเปิดอ่านบนเครื่องได้ สำเนาบนการ์ดเขียนครั้งเดียว ใช้แบบออฟไลน์ได้ผลเหมือนกันทุกไบต์
+
 ## 1.6.5-th.8: รีโมตเปลี่ยนหน้า Bluetooth
+
+<p align="center"><img src="../showcase/bt-settings.png" alt="หน้าตั้งค่ารีโมตเปลี่ยนหน้า Bluetooth" width="30%"></p>
 
 - **รีโมตเปลี่ยนหน้า BLE** (X3/X4) พอร์ตจาก CrossPoint ต้นฉบับ: crosspoint-reader#3785 (`lib/BlePageTurner`)
   และ #4074 (ไม่เปิดวิทยุในหนังสือถ้ายังไม่ได้เลือกรีโมต) หน้า *ตั้งค่า → ระบบ → รีโมตเปลี่ยนหน้า Bluetooth*

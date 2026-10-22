@@ -136,6 +136,31 @@ Put `.crosspoint/settings.json` with `{"language":"TH","textAntiAliasing":0}` in
 `books/` to boot in Thai. The X4 panel model shows only the anti-aliasing gray
 planes in screen dumps, so turn anti-aliasing off for clean captures.
 
+### The web upload page in the emulator (PDF to XTC)
+
+The device's real web server can be reached from a browser on the Mac. QEMU's user network forwards the
+HTTP and WebSocket ports (the page uses HTTP port + 1 for uploads), and OrbStack makes the container
+reachable as `x4dev.orb.local`:
+
+```bash
+docker exec -w /scratch/run x4dev sh -c 'export X4MACHINE=x4 \
+  QEMU_EXTRA="-nic user,model=esp32_wifi,hostfwd=tcp::8080-:80,hostfwd=tcp::8081-:81"; \
+  python3 <eink-qemu>/eink-qemu/drive.py flash.bin sd.img web.txt wait:40 \
+  press:down wait:2 press:down wait:2 press:down wait:2 press:confirm wait:6 \
+  press:confirm wait:12 press:confirm wait:25 wait:3500'
+# then open http://x4dev.orb.local:8080/files on the Mac
+```
+
+The steps open File Transfer, Join a Network and the emulator's open `PICSimLabWifi`. Once a book has been
+opened, Home lists it first, so add one more `press:down`. `drive.py` holds QEMU's only monitor connection,
+so a second script cannot press keys in the same session: stop it and start another (writes to `sd.img`
+are kept). When stopping it with `pkill -f`, keep the pattern out of the same `sh -c` line, or the shell
+kills itself.
+
+The converter itself (`src/network/html/personal/pdfxtc.js`) runs in any page that loads it: a static page
+next to a PDF (`python3 -m http.server`) is enough to check page and chapter counts against
+Epub-Translate's Python converter on the same file.
+
 ## Releasing
 
 `.github/workflows/personal.yml` runs the host tests and builds `x4_th` and `x4pro_th` on every
