@@ -51,6 +51,9 @@ class CoverTheme : public LyraTheme {
   bool homeGreyCovers() const override { return true; }
   bool homeCoverIsGrey() const override { return !greyCoverPath.empty(); }
   void homeCoverGreyPass(const GfxRenderer& renderer) const override;
+  bool homeHitTestsItself() const override { return true; }
+  int homeCoverHit(const GfxRenderer& renderer, Rect cover, int bookCount, int x, int y) const override;
+  int homeMenuHit(const GfxRenderer& renderer, Rect menu, int count, int x, int y) const override;
 
  private:
   bool minimal;
@@ -58,6 +61,8 @@ class CoverTheme : public LyraTheme {
   // marks the pass so the hint bar (shared with every screen) knows it is on home.
   mutable bool onHome = false;
   mutable int shownBook = 0;
+  // Tile i of a home menu of `count` tiles in `menu`: what drawButtonMenu fills and what a tap hits.
+  Rect menuTile(Rect menu, int count, int i) const;
   // The grey thumb drawn on the last home pass and where, for the grey pass.
   mutable std::string greyCoverPath;
   mutable Rect greyCoverSlot{};

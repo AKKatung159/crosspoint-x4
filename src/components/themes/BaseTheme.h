@@ -293,6 +293,14 @@ class BaseTheme {
   virtual bool homeGreyCovers() const { return false; }
   virtual bool homeCoverIsGrey() const { return false; }
   virtual void homeCoverGreyPass(const GfxRenderer&) const {}
+  // PERSONAL-HOOK(home-touch): themes whose home is not the shared rows and cover columns (Cover,
+  // Minimal: one cover, a row of tiles) hit-test it with the geometry they draw. Returns the book
+  // (homeCoverHit) or menu item (homeMenuHit) under (x, y), or -1.
+  virtual bool homeHitTestsItself() const { return false; }
+  virtual int homeCoverHit(const GfxRenderer&, Rect /*cover*/, int /*bookCount*/, int /*x*/, int /*y*/) const {
+    return -1;
+  }
+  virtual int homeMenuHit(const GfxRenderer&, Rect /*menu*/, int /*count*/, int /*x*/, int /*y*/) const { return -1; }
 
   // Shared constants and helpers for battery drawing (used by all themes)
   static constexpr int batteryPercentSpacing = 4;

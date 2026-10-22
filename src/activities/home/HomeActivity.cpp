@@ -428,6 +428,39 @@ void HomeActivity::loop() {
 
   const int coverColumnCount = std::max(1, metrics.homeRecentBooksCount);
   const int recentCount = std::min(static_cast<int>(recentBooks.size()), coverColumnCount);
+
+  // PERSONAL-HOOK(home-touch): Cover and Minimal show one cover over a row of tiles, which the shared
+  // cover columns and menu rows below do not match: the theme hit-tests its own layout.
+  if (GUI.homeHitTestsItself()) {
+    const int pageWidth = renderer.getScreenWidth();
+    const Rect coverRect{0, metrics.homeTopPadding, pageWidth, metrics.homeCoverTileHeight};
+    const Rect menuRect{0, metrics.homeTopPadding + metrics.homeCoverTileHeight + metrics.homeMenuTopOffset, pageWidth,
+                        renderer.getScreenHeight()};
+    const int tileCount = menuCount - static_cast<int>(recentBooks.size());
+    const auto indexAt = [&](const int x, const int y) {
+      const int book = GUI.homeCoverHit(renderer, coverRect, recentCount, x, y);
+      if (book >= 0) return book;
+      const int tile = GUI.homeMenuHit(renderer, menuRect, tileCount, x, y);
+      return tile >= 0 ? tile + static_cast<int>(recentBooks.size()) : -1;
+    };
+    int x = 0, y = 0;
+    if (mappedInput.wasScreenTapped(x, y)) {
+      const int index = indexAt(x, y);
+      if (index >= 0) {
+        selectorIndex = index;
+        activateSelection();
+        return;
+      }
+    } else if (mappedInput.wasScreenTouchDown(x, y)) {
+      const int index = indexAt(x, y);
+      if (index >= 0 && index != selectorIndex) {
+        selectorIndex = index;
+        requestUpdate();
+      }
+    }
+    if (mappedInput.wasReleased(MappedInputManager::Button::Confirm)) activateSelection();
+    return;
+  }
   const int coverColumnWidth = (renderer.getScreenWidth() - 2 * metrics.contentSidePadding) / coverColumnCount;
   int touchedBook = -1;
   const auto coverTouch = mappedInput.colTouch(touchedBook, metrics.contentSidePadding, coverColumnWidth, recentCount,
