@@ -119,6 +119,21 @@ reading with Sans only.
 - **Fixes:** OTA compares `-th.N`; six home tiles keep their labels.
 - **CI:** `.github/workflows/personal.yml` tests and builds every push; a `*-th.*` tag publishes the release.
 
+## 1.6.5-th.8: Bluetooth page turner
+
+- **BLE page-turner remotes** (X3/X4), ported from upstream CrossPoint: crosspoint-reader#3785
+  (`lib/BlePageTurner`) and #4074 (no radio in a book until a remote is chosen). *Settings → System →
+  Bluetooth Page Turner* pairs, forgets and maps remote buttons. The radio runs only with a book open, stops
+  before screen changes, sleep and chapter builds, and starts only with room on the heap (64 KB free and a
+  32 KB block).
+- **Books with thousands of chapters**: #3733 (chapter sizes looked up 2,048 at a time) and #3784 (cumulative
+  chapter sizes read from `book.bin` instead of kept in RAM).
+- Differences from upstream (hook `ble-port` in `lib/Thai/README.md`): `BleKeyboardHost` is vendored from SDK
+  `084fdfb` in `lib/BleKeyboardHost` (this fork's SDK pin predates it); no Save Clipping action (no clippings
+  here); the Bluetooth row shows On/Off like Night mode; all 26 strings in Thai.
+- **Fix:** the Bluetooth settings cursor moved onto rows that cannot be chosen (upstream too).
+- RAM: +9,560 B static (`x4_th` 68,240 B); about 53 KB more heap while the radio runs; flash 90.4%.
+
 ## 1.6.5-th.7: X4 Pro support
 
 - **An X4 Pro build** (`x4pro_th` in `platformio.personal.ini`): upstream's `x4pro-gh_release` profile
