@@ -26,6 +26,7 @@
 #include "html/HomePageHtml.generated.h"
 #include "html/SettingsPageHtml.generated.h"
 #include "html/js/jszip_minJs.generated.h"
+#include "html/personal/pdfxtcJs.generated.h"  // PERSONAL-HOOK(pdf-xtc)
 #include "util/BookCacheUtils.h"
 #include "util/TaskWatchdog.h"
 
@@ -152,6 +153,7 @@ void CrossPointWebServer::begin() {
   server->on("/", HTTP_GET, [this] { handleRoot(); });
   server->on("/files", HTTP_GET, [this] { handleFileList(); });
   server->on("/js/jszip.min.js", HTTP_GET, [this] { handleJszip(); });
+  server->on("/js/pdfxtc.js", HTTP_GET, [this] { handlePdfXtc(); });  // PERSONAL-HOOK(pdf-xtc)
 
   server->on("/api/status", HTTP_GET, [this] { handleStatus(); });
   server->on("/api/files", HTTP_GET, [this] { handleFileListData(); });
@@ -385,6 +387,11 @@ void CrossPointWebServer::handleRoot() const {
 void CrossPointWebServer::handleJszip() const {
   sendStaticContent(server.get(), jszip_minJs, jszip_minJsCompressedSize, jszip_minJsETag, "application/javascript");
   LOG_DBG("WEB", "Served jszip.min.js");
+}
+
+// PERSONAL-HOOK(pdf-xtc): the browser-side PDF -> XTC converter (html/personal/pdfxtc.js).
+void CrossPointWebServer::handlePdfXtc() const {
+  sendStaticContent(server.get(), pdfxtcJs, pdfxtcJsCompressedSize, pdfxtcJsETag, "application/javascript");
 }
 
 void CrossPointWebServer::handleNotFound() const {
