@@ -149,6 +149,8 @@ The File Transfer screen allows you to upload and manage files on the device. Wh
 
 See the [web server docs](./docs/webserver.md) for more information on how to connect to the web server and upload files.
 
+PDF files can be converted to XTC in the browser before they are uploaded: select a `.pdf` in the upload dialog and keep **Convert PDF to XTC** ticked. Pages are cut into large-text strips that are read with the device turned sideways (or kept whole with **Whole page**). The first conversion needs an internet connection to load pdf.js; a copy is then kept in `/pdfjs` on the SD card for offline use.
+
 The web interface also supports **WebDAV**, allowing you to mount the device as a network drive and manage files directly from your computer's file manager.
 
 Download links for files already on the device are available in the web interface, so you can retrieve books or screenshots over Wi-Fi without connecting a cable.

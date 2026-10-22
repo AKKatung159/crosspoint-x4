@@ -48,6 +48,15 @@ proper Thai reading and a home screen built around the book cover.
   <img src="docs/showcase/apps-flashcards.png" alt="An English-Thai flashcard" width="23%">
 </p>
 
+<p align="center">
+  <img src="docs/showcase/bt-settings.png" alt="Bluetooth page turner settings" width="23%">
+  <img src="docs/showcase/pdf-upload.png" alt="The upload dialog with the PDF to XTC options" width="25%">
+  <img src="docs/showcase/pdf-cover.png" alt="The cover of a book converted from PDF, on the device" width="23%">
+  <img src="docs/showcase/pdf-strip.png" alt="A strip page converted from PDF, read sideways" width="23%">
+</p>
+
+<sub>Emulator (eink-qemu) captures, except the upload dialog, which is the device's web page in Chrome. The sample PDF was written for testing.</sub>
+
 ## Install
 
 Download the latest file from [Releases](https://github.com/AKKatung159/crosspoint-x4/releases):
@@ -59,7 +68,7 @@ Other ways to install, and how to go back: [install.en.md](docs/personal/install
 
 ## What's next
 
-Phases 1–6 and the X4 Pro build are done; see [what each phase changed](docs/personal/changelog.en.md). Possible next steps: waking
+Phases 1–6, the X4 Pro build, the Bluetooth page turner and PDF conversion are done; see [what each phase changed](docs/personal/changelog.en.md). Possible next steps: waking
 up on a timer so the dashboard stays fresh, and having epub.lan write `thai-words.txt` from each series' glossary.
 
 ## More

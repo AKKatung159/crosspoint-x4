@@ -42,6 +42,15 @@
   <img src="docs/showcase/apps-flashcards.png" alt="แฟลชการ์ดอังกฤษ-ไทย" width="23%">
 </p>
 
+<p align="center">
+  <img src="docs/showcase/bt-settings.png" alt="หน้าตั้งค่ารีโมตเปลี่ยนหน้า Bluetooth" width="23%">
+  <img src="docs/showcase/pdf-upload.png" alt="หน้าอัปโหลด ตัวเลือกแปลง PDF เป็น XTC" width="25%">
+  <img src="docs/showcase/pdf-cover.png" alt="ปกหนังสือที่แปลงจาก PDF บนเครื่อง" width="23%">
+  <img src="docs/showcase/pdf-strip.png" alt="หน้าแถบตัวหนังสือที่แปลงจาก PDF อ่านโดยหมุนเครื่อง" width="23%">
+</p>
+
+<sub>ภาพจาก emulator (eink-qemu) ยกเว้นหน้าอัปโหลดซึ่งเป็นหน้าเว็บของเครื่องใน Chrome หนังสือ PDF ตัวอย่างเขียนขึ้นเพื่อทดสอบ</sub>
+
 ## ติดตั้ง
 
 ดาวน์โหลดไฟล์ตัวล่าสุดจาก [Releases](https://github.com/AKKatung159/crosspoint-x4/releases):
@@ -53,7 +62,7 @@
 
 ## ต่อไปจะทำอะไร
 
-เฟส 1–6 และ build สำหรับ X4 Pro เสร็จแล้ว ดู[สิ่งที่แต่ละเฟสเปลี่ยน](docs/personal/changelog.md) ต่อไปอาจทำ: ปลุกเครื่องเองเป็นระยะให้แดชบอร์ดสดตลอด
+เฟส 1–6, build สำหรับ X4 Pro, รีโมต Bluetooth และแปลง PDF เสร็จแล้ว ดู[สิ่งที่แต่ละเฟสเปลี่ยน](docs/personal/changelog.md) ต่อไปอาจทำ: ปลุกเครื่องเองเป็นระยะให้แดชบอร์ดสดตลอด
 และให้ epub.lan สร้าง `thai-words.txt` จากอภิธานศัพท์ของแต่ละชุด
 
 ## อ่านเพิ่ม
