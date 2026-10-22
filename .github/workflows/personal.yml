@@ -1,12 +1,14 @@
 name: X4 Thai (build, test, release)
 
 # This fork's CI. Upstream's workflows only run in crosspoint-reader/crosspoint-reader.
-#  - every push to main and every PR: host tests + the x4_th (X3/X4),
-#    x4pro_th (X4 Pro) and x4c_th (X4 Classic) firmware builds
-#  - a tag like 1.6.5-th.5: the same, then a GitHub release with the three images and
-#    the notes in docs/personal/releases/<tag>.md (Thai first, English below)
-#  - server/ (x4-hub, the homelab side): tests on every push/PR, and on main the
-#    image ghcr.io/akkatung159/x4-hub (:latest and :sha-<short>)
+#  - every PR that touches more than docs/ and *.md: host tests + the x4_th (X3/X4),
+#    x4pro_th (X4 Pro) and x4c_th (X4 Classic) firmware builds. A push to main does not
+#    build them again: the PR that brought the commit already did.
+#  - a tag like 1.6.5-th.5: always the tests and builds, then a GitHub release with the three
+#    images and the notes in docs/personal/releases/<tag>.md (Thai first, English below)
+#  - server/ (x4-hub, the homelab side): tests when server/ changes, and on main the image
+#    ghcr.io/akkatung159/x4-hub (:latest and :sha-<short>)
+#  - a new push to a PR cancels that PR's run still in progress
 
 on:
   push:
@@ -19,12 +21,46 @@ permissions:
   contents: read
 
 concurrency:
-  group: personal-${{ github.ref }}
+  # One group per PR (or per branch / tag): a newer push replaces a run still in progress,
+  # except a tag, whose release must finish.
+  group: personal-${{ github.event.pull_request.number && format('pr-{0}', github.event.pull_request.number) || github.ref }}
   cancel-in-progress: ${{ !startsWith(github.ref, 'refs/tags/') }}
 
 jobs:
+  changes:
+    name: What changed
+    runs-on: ubuntu-latest
+    outputs:
+      code: ${{ steps.diff.outputs.code }}
+      server: ${{ steps.diff.outputs.server }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - id: diff
+        env:
+          EVENT: ${{ github.event_name }}
+          BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: |
+          set -euo pipefail
+          if [[ "$GITHUB_REF" == refs/tags/* || "$EVENT" == workflow_dispatch ]]; then
+            echo "code=true" >> "$GITHUB_OUTPUT"; echo "server=true" >> "$GITHUB_OUTPUT"; exit 0
+          fi
+          if ! git cat-file -e "$BASE^{commit}" 2>/dev/null; then BASE=$(git rev-parse HEAD~1); fi
+          files=$(git diff --name-only "$BASE" HEAD)
+          printf '%s\n' "$files"
+          code=false
+          # main gets its builds from the PR that brought the commit
+          if [[ "$EVENT" == pull_request ]] && grep -qvE '^(docs/|server/)|\.md$' <<< "$files"; then code=true; fi
+          server=false
+          if grep -qE '^server/' <<< "$files"; then server=true; fi
+          echo "code=$code" >> "$GITHUB_OUTPUT"; echo "server=$server" >> "$GITHUB_OUTPUT"
+          echo "code=$code server=$server" >> "$GITHUB_STEP_SUMMARY"
+
   tests:
     name: Host tests
+    needs: changes
+    if: needs.changes.outputs.code == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -50,6 +86,8 @@ jobs:
 
   firmware:
     name: Build ${{ matrix.env }}
+    needs: changes
+    if: needs.changes.outputs.code == 'true'
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -82,6 +120,15 @@ jobs:
           path: ~/.platformio
           key: pio-${{ matrix.cache }}-v3-${{ runner.os }}-${{ hashFiles('platformio.ini', 'platformio.personal.ini') }}
           restore-keys: pio-${{ matrix.cache }}-v3-${{ runner.os }}-
+
+      - name: Cache compiled objects
+        # platformio.ini sets build_cache_dir = .cache: unchanged sources are not compiled again.
+        # Saved under each commit, restored from the newest one.
+        uses: actions/cache@v4
+        with:
+          path: .cache
+          key: pio-objs-${{ matrix.cache }}-${{ runner.os }}-${{ github.sha }}
+          restore-keys: pio-objs-${{ matrix.cache }}-${{ runner.os }}-
 
       - name: Install uv
         uses: astral-sh/setup-uv@v7
@@ -134,6 +181,8 @@ jobs:
 
   server:
     name: x4-hub (homelab service)
+    needs: changes
+    if: needs.changes.outputs.server == 'true'
     # Playwright has no Chromium build for ubuntu-latest (26.04) yet.
     runs-on: ubuntu-24.04
     permissions:
