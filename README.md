@@ -3,7 +3,7 @@
 **ภาษาไทย** · [English](README.en.md)
 
 เฟิร์มแวร์ส่วนตัวสำหรับ **Xteink X4** (และ **X4 Pro**) ต่อยอดจาก
-[CrossPoint Reader 1.6.5](https://github.com/crosspoint-reader/crosspoint-reader/tree/1.6.5)
+[CrossPoint Reader 2.0](https://github.com/crosspoint-reader/crosspoint-reader/tree/2.0.0rc)
 อ่านภาษาไทยได้ถูกต้อง และมีหน้าหลักที่เน้นปกหนังสือ
 
 <p align="center">
@@ -62,7 +62,7 @@
 
 ## ต่อไปจะทำอะไร
 
-เฟส 1–6, build สำหรับ X4 Pro, รีโมต Bluetooth และแปลง PDF เสร็จแล้ว ดู[สิ่งที่แต่ละเฟสเปลี่ยน](docs/personal/changelog.md) ต่อไปอาจทำ: ปลุกเครื่องเองเป็นระยะให้แดชบอร์ดสดตลอด
+เฟส 1–6, build สำหรับ X4 Pro, รีโมต Bluetooth, แปลง PDF และย้ายมาใช้ CrossPoint 2.0 (2.0.0-th.1) เสร็จแล้ว ดู[สิ่งที่แต่ละเฟสเปลี่ยน](docs/personal/changelog.md) ต่อไปอาจทำ: ปลุกเครื่องเองเป็นระยะให้แดชบอร์ดสดตลอด
 และให้ epub.lan สร้าง `thai-words.txt` จากอภิธานศัพท์ของแต่ละชุด
 
 ## อ่านเพิ่ม

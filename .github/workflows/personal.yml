@@ -171,7 +171,7 @@ jobs:
       - name: Size
         run: |
           size=$(stat -c %s .pio/build/${{ matrix.env }}/firmware.bin)
-          echo "${{ matrix.env }} firmware.bin: $size bytes ($((size * 100 / 6710886))% of the 6.4 MiB app partition)" >> "$GITHUB_STEP_SUMMARY"
+          echo "${{ matrix.env }} firmware.bin: $size bytes ($((size * 1000 / 6553600 / 10)).$((size * 1000 / 6553600 % 10))% of the 0x640000 app slot)" >> "$GITHUB_STEP_SUMMARY"
 
       - uses: actions/upload-artifact@v4
         with:

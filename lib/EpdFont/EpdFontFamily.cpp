@@ -57,6 +57,16 @@ EpdFontFamily::GlyphSource EpdFontFamily::resolveGlyph(const uint32_t cp, const 
   return {font->getGlyph(cp), font->data};
 }
 
+EpdFontFamily::GlyphSource EpdFontFamily::resolveGlyph(const uint32_t cp, EpdGlyph& solidFallback,
+                                                       const Style style) const {
+  // Solid symbols first: getGlyph() falls back to U+FFFD and would never return null. They are never Thai.
+  if (syntheticGlyph::isSolid(cp)) {
+    const EpdFont* font = getFont(style);
+    return {font->getGlyphMetrics(cp, solidFallback), font->data};
+  }
+  return resolveGlyph(cp, style);
+}
+
 void EpdFontFamily::registerBuiltinThaiFallback(const uint8_t pointSize, const EpdFontFamily* family) {
   for (size_t i = 0; i < sizeof(kFallbackSizes); ++i) {
     if (kFallbackSizes[i] == pointSize) gThaiFallbacks[i] = family;

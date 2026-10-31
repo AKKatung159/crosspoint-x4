@@ -13,7 +13,7 @@ Download the file for your model from this repo's
 | X4 Pro | `crosspoint-<version>-x4pro.bin` | ESP32-S3 |
 | X4 Classic | `crosspoint-<version>-x4c.bin` | ESP32-S3 |
 
-Each is a normal app image, the same kind of file as the official `crosspoint-1.6.5-x3-x4.bin` /
+Each is a normal app image, the same kind of file as the official `crosspoint-<version>-x3-x4.bin` /
 `-x4pro.bin`. Never flash the other model's file (OTA and the SD-card update refuse it). The X4 Pro build
 is tested in the emulator only so far.
 
@@ -38,13 +38,13 @@ is tested in the emulator only so far.
 ## Option C: esptool
 
 ```bash
-esptool.py --chip esp32c3 --port COM5 --baud 921600 write_flash 0x10000 crosspoint-1.6.5-th.4-x3-x4.bin
+esptool.py --chip esp32c3 --port COM5 --baud 921600 write_flash 0x10000 crosspoint-2.0.0-th.1-x3-x4.bin
 ```
 
 On the X4 Pro use `--chip esp32s3` and the `-x4pro.bin` file:
 
 ```bash
-esptool.py --chip esp32s3 --port COM5 --baud 921600 write_flash 0x10000 crosspoint-1.6.5-th.7-x4pro.bin
+esptool.py --chip esp32s3 --port COM5 --baud 921600 write_flash 0x10000 crosspoint-2.0.0-th.1-x4pro.bin
 ```
 
 Use `0x10000` only. Writing elsewhere can break the bootloader or the partition table.
@@ -53,7 +53,8 @@ Use `0x10000` only. Writing elsewhere can break the bootloader or the partition 
 
 Flash the Halo 2 `firmware.bin` (or the official `crosspoint-1.6.5-x3-x4.bin`)
 the same way; on the X4 Pro, the official `crosspoint-1.6.5-x4pro.bin`. Books, progress and settings on the SD card are kept. Each
-firmware rebuilds its own layout cache the first time a book is opened.
+firmware rebuilds its own layout cache the first time a book is opened. Going back from 2.0.0-th.x to
+1.6.5-th.10 or the official 1.6.5 is not tested; some settings may reset.
 
 After installing: **Settings → System → Language → ไทย**. Built-in fonts already
 include Thai. SD-card fonts without Thai borrow Thai from the built-in fonts.

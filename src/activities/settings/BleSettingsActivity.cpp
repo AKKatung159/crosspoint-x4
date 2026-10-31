@@ -19,10 +19,10 @@ enum class MenuAction : int16_t { Enable, Scan, Paired, Mapping };
 constexpr bleturner::Action MAP_ACTIONS[] = {bleturner::Action::NextPage,    bleturner::Action::PrevPage,
                                              bleturner::Action::NextChapter, bleturner::Action::PrevChapter,
                                              bleturner::Action::Confirm,     bleturner::Action::Back,
-                                             bleturner::Action::ReaderMenu};
+                                             bleturner::Action::ReaderMenu,  bleturner::Action::SaveQuote};
 constexpr StrId MAP_LABELS[] = {StrId::STR_NEXT_PAGE,       StrId::STR_PREV_PAGE,    StrId::STR_BT_NEXT_CHAPTER,
                                 StrId::STR_BT_PREV_CHAPTER, StrId::STR_CONFIRM,      StrId::STR_BACK,
-                                StrId::STR_READER_MENU};  // PERSONAL: no clippings in this fork
+                                StrId::STR_READER_MENU,     StrId::STR_SAVE_CLIPPING};
 static_assert(std::size(MAP_ACTIONS) == std::size(MAP_LABELS));
 constexpr uint32_t SCAN_MS = 15000;
 constexpr unsigned long CLEAR_HOLD_MS = 700;
@@ -211,17 +211,18 @@ int BleSettingsActivity::nearestEnabled(const int from, const int step) const {
 // PERSONAL-HOOK(ble-port): Up/Down skip disabled rows (Scan and Paired while the radio is off, Map
 // Buttons with no remote linked); the theme draws no highlight on them, so the cursor looked lost.
 void BleSettingsActivity::navigateButtons() {
-  const int count = listCount();
-  auto& n = activeNav();
-  buttonNavigator.onNextRelease(
-      [this, count, &n] { moveSelectionTo(nearestEnabled(ButtonNavigator::nextIndex(n.selected, count), 1)); });
-  buttonNavigator.onPreviousRelease(
-      [this, count, &n] { moveSelectionTo(nearestEnabled(ButtonNavigator::previousIndex(n.selected, count), -1)); });
-  buttonNavigator.onNextContinuous([this, count, &n] {
-    moveSelectionTo(nearestEnabled(ButtonNavigator::nextPageIndex(n.selected, count, n.inputPageRows()), 1));
+  buttonNavigator.onNextPress(
+      [this] { moveSelectionTo(nearestEnabled(ButtonNavigator::nextIndex(activeNav().selected, listCount()), 1)); });
+  buttonNavigator.onPreviousPress([this] {
+    moveSelectionTo(nearestEnabled(ButtonNavigator::previousIndex(activeNav().selected, listCount()), -1));
   });
-  buttonNavigator.onPreviousContinuous([this, count, &n] {
-    moveSelectionTo(nearestEnabled(ButtonNavigator::previousPageIndex(n.selected, count, n.inputPageRows()), -1));
+  buttonNavigator.onNextContinuous([this] {
+    const auto& n = activeNav();
+    moveSelectionTo(nearestEnabled(ButtonNavigator::nextPageIndex(n.selected, listCount(), n.inputPageRows()), 1));
+  });
+  buttonNavigator.onPreviousContinuous([this] {
+    const auto& n = activeNav();
+    moveSelectionTo(nearestEnabled(ButtonNavigator::previousPageIndex(n.selected, listCount(), n.inputPageRows()), -1));
   });
 }
 

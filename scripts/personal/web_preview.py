@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Preview the X4's web pages on the PC, without a device.
 
-Serves src/network/html/*.html with the personal theme put in exactly as
+Serves src/network/html/*.html with the shared includes put in exactly as
 scripts/build_html.py does, and answers the read-only APIs from the captured
 fixtures in scripts/personal/web_fixtures/ (writes just answer OK).
 
@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import http.server
 import json
+import re
 import sys
 from pathlib import Path
 from urllib.parse import urlparse
@@ -23,11 +24,14 @@ API = {"/api/status": "status", "/api/settings": "settings", "/api/files": "file
        "/api/opds": "opds", "/api/wifi": "wifi"}
 
 
+STATIC = {".css": "text/css", ".svg": "image/svg+xml", ".js": "application/javascript"}
+
+
 def page(name: str) -> bytes:
     content = (HTML / name).read_text(encoding="utf-8")
-    css = (HTML / "personal" / "theme.css").read_text(encoding="utf-8")
-    js = (HTML / "personal" / "theme.js").read_text(encoding="utf-8")
-    return content.replace("<!-- PERSONAL:THEME -->", f"<style>{css}</style><script>{js}</script>").encode("utf-8")
+    content = re.sub(r'<!--\s*#include\s+file="([^"]+)"\s*-->',
+                     lambda m: (HTML / m.group(1)).read_text(encoding="utf-8"), content)
+    return content.encode("utf-8")
 
 
 class Handler(http.server.BaseHTTPRequestHandler):
@@ -45,8 +49,11 @@ class Handler(http.server.BaseHTTPRequestHandler):
             return self._send(200, page(PAGES[path]), "text/html; charset=utf-8")
         if path in API and (FIX / f"{API[path]}.json").exists():
             return self._send(200, (FIX / f"{API[path]}.json").read_bytes(), "application/json")
-        if path == "/js/jszip.min.js":
-            return self._send(200, (HTML / "js" / "jszip.min.js").read_bytes(), "application/javascript")
+        if path == "/js/pdfxtc.js":
+            return self._send(200, (HTML / "personal" / "pdfxtc.js").read_bytes(), STATIC[".js"])
+        static = HTML / path.lstrip("/")
+        if path.startswith(("/assets/", "/js/")) and static.is_file() and static.suffix in STATIC:
+            return self._send(200, static.read_bytes(), STATIC[static.suffix])
         return self._send(404, b"not found", "text/plain")
 
     def do_POST(self):  # noqa: N802

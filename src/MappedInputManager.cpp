@@ -4,6 +4,7 @@
 #include <FreeInkUICore.h>
 #include <GfxRenderer.h>
 #include <HalFrontlight.h>
+#include <HalHaptics.h>
 
 #include <algorithm>
 #include <cstdlib>
@@ -17,6 +18,9 @@ namespace fui = freeink::ui;
 void MappedInputManager::update(const bool deferHomeButtonAction) const {
   remoteInput.reset();
   gpio.update();
+  const bool pagePressed =
+      SETTINGS.vibration == CrossPointSettings::VIBRATION_TOUCH_PAGE && gpio.wasCapacitivePagePressed();
+  HalHaptics::feedback(SETTINGS.vibration != CrossPointSettings::VIBRATION_OFF, pagePressed, SETTINGS.hapticIntensity);
   homeAction = HomeButtonAction::Ignore;
   if (gpio.hasHomeKey()) {
     homeAction = homeButtonInput.update(millis(), gpio.wasHomeKeyTapped(), gpio.wasHomeKeyLongPressed(),
@@ -24,6 +28,28 @@ void MappedInputManager::update(const bool deferHomeButtonAction) const {
                                         static_cast<HomeButtonAction>(SETTINGS.homeButtonTapAction),
                                         static_cast<HomeButtonAction>(SETTINGS.homeButtonDoubleTapAction),
                                         static_cast<HomeButtonAction>(SETTINGS.homeButtonLongPressAction));
+    if (gpio.wasHomeKeyLongPressed() && homeAction != HomeButtonAction::Ignore) {
+      HalHaptics::longPress(SETTINGS.vibration != CrossPointSettings::VIBRATION_OFF, SETTINGS.hapticIntensity);
+    } else if (homeAction != HomeButtonAction::Ignore) {
+      HalHaptics::feedback(SETTINGS.vibration != CrossPointSettings::VIBRATION_OFF, true, SETTINGS.hapticIntensity);
+    }
+  }
+  // Touch boards without a home key: a short power click can carry a reader
+  // shortcut (see SHORT_PWRBTN).
+  if (homeAction == HomeButtonAction::Ignore && mapButton(Button::Power, &HalGPIO::wasReleased)) {
+    switch (SETTINGS.shortPwrBtn) {
+      case CrossPointSettings::PWR_BOOKMARK:
+        homeAction = HomeButtonAction::Bookmark;
+        break;
+      case CrossPointSettings::PWR_SYNC:
+        homeAction = HomeButtonAction::Sync;
+        break;
+      case CrossPointSettings::PWR_READER_MENU:
+        homeAction = HomeButtonAction::ReaderMenu;
+        break;
+      default:
+        break;
+    }
   }
   if (deferHomeButtonAction) {
     // Keep the first action observed during a synchronous transfer. Home must
@@ -233,8 +259,24 @@ bool MappedInputManager::wasScreenTapped(int& x, int& y) const {
   float nx = 0.0f;
   float ny = 0.0f;
   if (!gpio.wasTouchTap(nx, ny)) return false;
-  renderer.tapToLogical(nx, ny, x, y);
+  int tapX = 0;
+  int tapY = 0;
+  renderer.tapToLogical(nx, ny, tapX, tapY);
+  // A tap on the header back button is Button::Back (wasBackGesture), not a
+  // screen tap: screens that route every tap (the keyboard's key router)
+  // would otherwise swallow it before their Back check.
+  if (HeaderBackTapTarget::contains(tapX, tapY)) return false;
+  x = tapX;
+  y = tapY;
   rememberTouchHeldTime();
+  return true;
+}
+
+bool MappedInputManager::wasScreenTouchPressed(int& x, int& y) const {
+  float nx = 0.0f;
+  float ny = 0.0f;
+  if (!gpio.wasTouchDown(nx, ny)) return false;
+  renderer.tapToLogical(nx, ny, x, y);
   return true;
 }
 
@@ -269,12 +311,6 @@ bool MappedInputManager::isScreenTouchHeld(int& x, int& y) const {
 }
 
 bool MappedInputManager::wasScreenTouchReleased() const { return gpio.wasTouchReleased(); }
-
-bool MappedInputManager::wasTapInRect(const int x, const int y, const int width, const int height) const {
-  int tx = 0;
-  int ty = 0;
-  return wasScreenTapped(tx, ty) && tx >= x && tx < x + width && ty >= y && ty < y + height;
-}
 
 MappedInputManager::RowTouch MappedInputManager::rowTouch(int& row, const int top, const int rowStep,
                                                           const int rowCount, const int xStart, const int xEnd,
@@ -325,12 +361,14 @@ bool MappedInputManager::decodeSwipe(int& sx, int& sy, int& ex, int& ey) const {
   return true;
 }
 
-MappedInputManager::SwipeDir MappedInputManager::wasSwipe() const {
+MappedInputManager::SwipeDir MappedInputManager::wasSwipe(int* startX, int* startY) const {
   int sx = 0;
   int sy = 0;
   int ex = 0;
   int ey = 0;
   if (!decodeSwipe(sx, sy, ex, ey)) return SwipeDir::None;
+  if (startX) *startX = sx;
+  if (startY) *startY = sy;
   switch (fui::swipeDirection(sx, sy, ex, ey)) {
     case fui::SwipeDir::Left:
       return SwipeDir::Left;
@@ -363,11 +401,16 @@ bool MappedInputManager::wasBackGesture() const {
   // Tap on the header back button (rect recorded by BaseTheme::drawHeader;
   // empty on screens without one). Folded into Button::Back alongside the
   // swipe so every activity's existing Back handling picks it up.
-  int tapX = 0;
-  int tapY = 0;
-  if (wasScreenTapped(tapX, tapY) && HeaderBackTapTarget::contains(tapX, tapY)) {
-    rememberTouchHeldTime();
-    return true;
+  float nx = 0.0f;
+  float ny = 0.0f;
+  if (gpio.wasTouchTap(nx, ny)) {
+    int tapX = 0;
+    int tapY = 0;
+    renderer.tapToLogical(nx, ny, tapX, tapY);
+    if (HeaderBackTapTarget::contains(tapX, tapY)) {
+      rememberTouchHeldTime();
+      return true;
+    }
   }
   // Back = left-to-right swipe starting near the left edge. Edge-anchored so that
   // mid-screen horizontal swipes stay available to activities that consume
@@ -443,6 +486,9 @@ bool MappedInputManager::wasLongPressed(const Button button, const unsigned long
   if ((longPressFiredButtons & bit) != 0 || getHeldTime() < thresholdMs) return false;
   longPressFiredButtons |= bit;
   suppressNextRelease(button);
+  if (mapButton(button, &HalGPIO::isCapacitivePagePressed)) {
+    HalHaptics::longPress(SETTINGS.vibration == CrossPointSettings::VIBRATION_TOUCH_PAGE, SETTINGS.hapticIntensity);
+  }
   return true;
 }
 
@@ -463,10 +509,6 @@ bool MappedInputManager::consumeSuppressedRelease() const {
 }
 
 bool MappedInputManager::isPressed(const Button button) const { return mapButton(button, &HalGPIO::isPressed); }
-
-bool MappedInputManager::wasAnyPressed() const { return gpio.wasAnyPressed(); }
-
-bool MappedInputManager::wasAnyReleased() const { return gpio.wasAnyReleased(); }
 
 unsigned long MappedInputManager::getHeldTime() const {
   // A mapped action has its own meaning, independent of the contact duration.
