@@ -17,6 +17,7 @@ class EpdFontFamily {
     SUP = 16,            // superscript: glyph scaled 50%, raised ~40% of ascender
     SUB = 32,            // subscript: glyph scaled 50%, lowered ~25% of ascender
     RUBY_CONTINUE = 64,  // Group ruby follower marker (used internally by Epub layout)
+    SMALL_CAPS = 128,    // lowercase letters drawn as uppercase glyphs at 3/4 scale
   };
   static constexpr uint8_t TEXT_DECORATION_MASK = static_cast<uint8_t>(UNDERLINE | STRIKETHROUGH);
 
@@ -27,6 +28,9 @@ class EpdFontFamily {
   void getTextDimensions(const char* string, int* w, int* h, Style style = REGULAR) const;
   const EpdFontData* getData(Style style = REGULAR) const;
   const EpdGlyph* getGlyph(uint32_t cp, Style style = REGULAR) const;
+  const EpdGlyph* getGlyphMetrics(uint32_t cp, EpdGlyph& solidFallback, Style style = REGULAR) const {
+    return getFont(style)->getGlyphMetrics(cp, solidFallback);
+  }
 
   // PERSONAL-HOOK(thai-fallback): SD-card fonts without Thai borrow Thai and the
   // C90 variant glyphs from a built-in family of the nearest point size.
@@ -39,13 +43,16 @@ class EpdFontFamily {
   /// Like getGlyph()/getData(), but a Thai or C90 PUA codepoint this family
   /// lacks comes from its Thai fallback family, when one is set.
   GlyphSource resolveGlyph(uint32_t cp, Style style = REGULAR) const;
+  /// resolveGlyph() plus getGlyphMetrics()'s synthetic solid glyphs: a solid
+  /// symbol the font lacks comes back as `solidFallback`, which has no bitmap.
+  GlyphSource resolveGlyph(uint32_t cp, EpdGlyph& solidFallback, Style style = REGULAR) const;
   void setThaiFallback(const EpdFontFamily* family) { thaiFallback = family; }
   /// Built-in Thai-capable families by point size, registered once at boot.
   static void registerBuiltinThaiFallback(uint8_t pointSize, const EpdFontFamily* family);
   /// The registered family of `pointSize`, else the nearest size; nullptr if none.
   static const EpdFontFamily* builtinThaiFallback(uint8_t pointSize);
-  /// Returns true if the resolved style's font can render `cp` directly
-  /// (interval coverage only — see EpdFont::hasCodepoint).
+  /// Returns true if the resolved style's font can render `cp`: interval coverage
+  /// (see EpdFont::hasCodepoint), plus Thai borrowed from the Thai fallback (PERSONAL-HOOK(thai-fallback)).
   bool hasCodepoint(uint32_t cp, Style style = REGULAR) const;
   int8_t getKerning(uint32_t leftCp, uint32_t rightCp, Style style = REGULAR) const;
   uint32_t applyLigatures(uint32_t cp, const char*& text, Style style = REGULAR) const;

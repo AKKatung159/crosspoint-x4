@@ -43,6 +43,8 @@ unsigned long millis() { return 1000; }
 constexpr unsigned long TOUCH_HELD_OVERRIDE_WINDOW_MS = 250;
 struct CrossPointSettings {
   enum { VIBRATION_OFF, VIBRATION_TOUCH_PAGE };
+  enum { IGNORE = 0, PWR_BOOKMARK = 7, PWR_SYNC = 8, PWR_READER_MENU = 9 };
+  int shortPwrBtn = IGNORE;
   int vibration = VIBRATION_OFF, hapticIntensity = 0;
   int homeButtonTapAction = 0, homeButtonDoubleTapAction = 0, homeButtonLongPressAction = 0;
 } SETTINGS;
@@ -54,7 +56,7 @@ bool MappedInputManager::mapButton(Button b, bool (HalGPIO::*fn)(uint8_t) const)
   return (gpio.*fn)(static_cast<uint8_t>(b));
 }
 bool MappedInputManager::wasBackGesture() const { return false; }
-MappedInputManager::SwipeDir MappedInputManager::wasSwipe() const { return SwipeDir::None; }
+MappedInputManager::SwipeDir MappedInputManager::wasSwipe(int*, int*) const { return SwipeDir::None; }
 void MappedInputManager::updateTouchButtons() const {}  // PERSONAL: touch-buttons, not under test here
 """ + "\n".join(methods) + r"""
 int main() {

@@ -31,6 +31,7 @@ lib/EpdFont/scripts/output/
 /dependencies.lock
 /sdkconfig.*
 sdkconfig.sticky
+sdkconfig.x4pro
 flake.*
 sdk/examples/*/app.wasm
 scripts/emu/sdk-apps/*/app.wasm

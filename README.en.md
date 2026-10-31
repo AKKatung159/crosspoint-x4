@@ -3,7 +3,7 @@
 [ภาษาไทย](README.md) · **English**
 
 Personal firmware for the **Xteink X4** (and **X4 Pro**), built on
-[CrossPoint Reader 1.6.5](https://github.com/crosspoint-reader/crosspoint-reader/tree/1.6.5):
+[CrossPoint Reader 2.0](https://github.com/crosspoint-reader/crosspoint-reader/tree/2.0.0rc):
 proper Thai reading and a home screen built around the book cover.
 
 <p align="center">
@@ -68,7 +68,7 @@ Other ways to install, and how to go back: [install.en.md](docs/personal/install
 
 ## What's next
 
-Phases 1–6, the X4 Pro build, the Bluetooth page turner and PDF conversion are done; see [what each phase changed](docs/personal/changelog.en.md). Possible next steps: waking
+Phases 1–6, the X4 Pro build, the Bluetooth page turner, PDF conversion and the move to CrossPoint 2.0 (2.0.0-th.1) are done; see [what each phase changed](docs/personal/changelog.en.md). Possible next steps: waking
 up on a timer so the dashboard stays fresh, and having epub.lan write `thai-words.txt` from each series' glossary.
 
 ## More

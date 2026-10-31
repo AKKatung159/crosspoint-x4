@@ -5,7 +5,6 @@ set -e
 cd "$(dirname "$0")"
 
 READER_FONT_STYLES=("Regular" "Italic" "Bold" "BoldItalic")
-NOTOSERIF_FONT_SIZES=(12 14 16 18)
 NOTOSANS_FONT_SIZES=(12 14 16 18)
 
 # THAI-HOOK(fonts): every built-in font also carries Thai from SarabunTH (Sarabun
@@ -14,16 +13,6 @@ NOTOSANS_FONT_SIZES=(12 14 16 18)
 # every glyph it has; only the Thai block and U+F700-F71A come from Sarabun.
 THAI_DIR="../builtinFonts/source/SarabunTH"
 THAI_INTERVALS=(--additional-intervals 0x0E01,0x0E5B --additional-intervals 0xF700,0xF71A)
-
-for size in ${NOTOSERIF_FONT_SIZES[@]}; do
-  for style in ${READER_FONT_STYLES[@]}; do
-    font_name="notoserif_${size}_$(echo $style | tr '[:upper:]' '[:lower:]')"
-    font_path="../builtinFonts/source/NotoSerif/NotoSerif-${style}.ttf"
-    output_path="../builtinFonts/${font_name}.h"
-    python fontconvert.py $font_name $size $font_path "${THAI_DIR}/SarabunTH-${style}.ttf" --2bit --compress --pnum --zopfli "${THAI_INTERVALS[@]}" > $output_path
-    echo "Generated $output_path"
-  done
-done
 
 for size in ${NOTOSANS_FONT_SIZES[@]}; do
   for style in ${READER_FONT_STYLES[@]}; do
@@ -72,6 +61,7 @@ for size in ${UI_FONT_SIZES[@]}; do
   for style in ${UI_FONT_STYLES[@]}; do
     font_name="ubuntu_${size}_$(echo $style | tr '[:upper:]' '[:lower:]')"
     font_path="../builtinFonts/source/Ubuntu/Ubuntu-${style}.ttf"
+    latin_fallback_path="../builtinFonts/source/NotoSans/NotoSans-${style}.ttf"
     hebrew_path="../builtinFonts/source/NotoSansHebrew/NotoSansHebrew-${style}.ttf"
     arabic_path="../builtinFonts/source/NotoSansArabic/NotoSansArabic-${style}.ttf"
     # Ubuntu lacks the Latin Extended Additional block (U+1EA0-U+1EF9) used for
@@ -80,7 +70,7 @@ for size in ${UI_FONT_SIZES[@]}; do
     # (fontstack is ordered by descending priority).
     viet_path="../builtinFonts/source/Ubuntu/Ubuntu-Vietnamese-${style}.ttf"
     output_path="../builtinFonts/${font_name}.h"
-    python fontconvert.py $font_name $size $font_path $hebrew_path $arabic_path $viet_path \
+    python fontconvert.py $font_name $size $font_path $latin_fallback_path $hebrew_path $arabic_path $viet_path \
       "${THAI_DIR}/SarabunTH-${style}.ttf" \
       --additional-intervals 0x05D0,0x05EA "${ARABIC_INTERVALS[@]}" "${THAI_INTERVALS[@]}" > $output_path
     echo "Generated $output_path"

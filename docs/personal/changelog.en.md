@@ -119,6 +119,23 @@ reading with Sans only.
 - **Fixes:** OTA compares `-th.N`; six home tiles keep their labels.
 - **CI:** `.github/workflows/personal.yml` tests and builds every push; a `*-th.*` tag publishes the release.
 
+## 2.0.0-th.1: moved to CrossPoint 2.0
+
+- **Based on 2.0.0rc** (117 upstream commits merged). What users see is in the
+  [release note](releases/2.0.0-th.1.md); the fork's changes to upstream files are listed in
+  [lib/Thai/README.md](../../lib/Thai/README.md).
+- **Fonts:** the th.10 Thai font headers are kept, because the SarabunTH source fonts are not in the repository
+  yet, so 2.0's Ə/ə and the Latin fallback for UI fonts are missing. `resolveGlyph` now combines the Thai fallback
+  with upstream's synthetic solid glyphs (#3882).
+- **The fork's TXT reader is gone**, as upstream removed it (#3704); every Thai hook already runs on the EPUB path.
+- **Bluetooth:** upstream's code throughout; the vendored `lib/BleKeyboardHost` is deleted (the new SDK has
+  `084fdfb`). Only the fork's fix that makes the cursor skip disabled rows remains.
+- **Web pages:** upstream's look; the fork's parts live in `html/personal/*.inc`. The old web theme
+  (`theme.css`, `theme.js`) is removed.
+- **Reading position** is written before 2.0's sleep-time plugin delivery.
+- **A stored `fontFamily` 0 from th.x** stays Noto Sans instead of following upstream's move to the SD NotoSerif.
+- **Size:** only English and Thai UI strings are built in (`custom_i18n_builtin_langs = en,th`); `x4_th` 5,967,897 bytes = 91.1% of the app slot (97.2% with every language).
+
 ## 1.6.5-th.10: X4 Pro taps in every theme, apps by touch, and the X4 Classic
 
 - **Home taps on the X4 Pro** (hook `home-touch`): Cover and Minimal draw one cover over a row of tiles, while the

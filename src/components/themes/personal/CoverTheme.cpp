@@ -45,7 +45,8 @@ const uint8_t* menuIcon(const UIIcon icon, const bool small) {
       return small ? HomeTransfer28 : HomeTransfer44;
     case Settings:
       return small ? HomeSettings28 : HomeSettings44;
-    case Blocks:  // OPDS catalogue
+    case Blocks:   // OPDS catalogue
+    case Plugins:  // the same slot when plugins are on
       return small ? HomeCatalog28 : HomeCatalog44;
     case Stats:  // the Apps tile (Pocket Hub)
       return small ? HomeApps28 : HomeApps44;
@@ -69,6 +70,8 @@ const char* tileLabel(const UIIcon icon) {
       return tr(STR_TILE_SETTINGS);
     case Blocks:
       return "OPDS";
+    case Plugins:
+      return tr(STR_PLUGINS);
     case Stats:  // the Apps tile (Pocket Hub)
       return tr(STR_TILE_APPS);
     default:

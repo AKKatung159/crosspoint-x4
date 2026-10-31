@@ -24,13 +24,14 @@ pio run -e x4c_th    # X4 Classic -> .pio/build/x4c_th/firmware.bin
 
 The `x4_th` and `x4pro_th` envs live in `platformio.personal.ini`. They are upstream's
 `gh_release` and `x4pro-gh_release` profiles plus this fork's flags (`[personal_flags]`: version, OTA
-URL, sans-only fonts, soft clock). `x4pro_th` extends `base`, not `firmware_tuned`, like upstream's
+URL, soft clock). `x4pro_th` extends `base`, not `firmware_tuned`, like upstream's
 X4 Pro envs: it uses the prebuilt `dio_opi` Arduino libraries, whose TinyUSB is needed for USB Drive,
 so `custom_sdkconfig` changes do not reach it.
 
-Current size (1.6.5-th.4, Noto Sans only): 5,189,648 bytes = 77% of the 6.4 MiB
-app partition, about 1.5 MB of headroom (stock 1.6.5: 5,589,776 bytes). With the
-Pocket Hub, wasm3 and the SDK (1.6.5-th.6) the test build is 5,578,695 bytes (85%).
+Current size (2.0.0-th.1, `custom_i18n_builtin_langs = en,th` in every `_th` env), as a share of the 0x640000
+(6,553,600 B) app slot: `x4_th` 5,967,897 B = 91.1% (about 586 KB free), `x4_th_test` 91.9%, `x4pro_th` 88.3%,
+`x4c_th` 87.9%. With every UI language built in, `x4_th` was 97.2%. Before adding anything large, decide what
+moves to the SD card first: the Thai word list in `ThaiDictData.h`, the Thai glyphs in every built-in font, wasm3.
 
 ## Build and emulator on macOS (Docker)
 
@@ -70,10 +71,10 @@ cmake -S test -B build/test -G Ninja && cmake --build build/test && ctest --test
 ```
 
 `test/thai` has 25 tests (word breaking, shaping, justification). The upstream
-suites pass as on stock 1.6.5. On Windows, upstream's
+suites pass as on stock 2.0.0rc. On Windows, upstream's
 `CssParserTest.FailedPromotionRestoresTheOnlyBackupCache` fails (fake-storage
 path matching), and `ChapterHtmlSlimParserTest` does not compile
-(`path.c_str()` is `wchar_t*`). Both fail the same way on stock 1.6.5. With a
+(`path.c_str()` is `wchar_t*`). Both failed the same way on stock 1.6.5 (not rechecked on 2.0). With a
 local `.string()` fix, the latter's 16 tests pass with this fork's layout code.
 
 ## Testing on a real X4 over USB
@@ -170,11 +171,11 @@ does not build again (the PR did); x4-hub tests and its image follow `server/` c
 cancels its run in progress. Compiled objects (`build_cache_dir = .cache`) are cached per env, so a build
 compiles only what changed.
 
-1. Bump `version` in `platformio.personal.ini` (e.g. `1.6.5-th.5`).
+1. Bump `version` in `platformio.personal.ini` (e.g. `2.0.0-th.2`).
 2. Write `docs/personal/releases/<version>.md`: Thai first, then English inside
    `<details><summary>English</summary> … </details>`.
 3. Commit, then `git tag <version> && git push origin <version>`.
 
 The tag build checks that the tag matches the version, then publishes the
-release with `crosspoint-<version>-x3-x4.bin` and `crosspoint-<version>-x4pro.bin`, each with its
+release with `crosspoint-<version>-x3-x4.bin`, `crosspoint-<version>-x4pro.bin` and `crosspoint-<version>-x4c.bin`, each with its
 SHA-256. These are the names each model's OTA asks for (`src/network/OtaUpdater.cpp`).
