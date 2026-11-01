@@ -119,6 +119,16 @@ reading with Sans only.
 - **Fixes:** OTA compares `-th.N`; six home tiles keep their labels.
 - **CI:** `.github/workflows/personal.yml` tests and builds every push; a `*-th.*` tag publishes the release.
 
+## 2.0.0-th.2: built-in fonts match 2.0
+
+- **The SarabunTH sources are in the repository** (`lib/EpdFont/builtinFonts/source/SarabunTH/`: Sarabun from
+  CrosspointTH + `thai_pua_patch.py`, with the OFL). With th.10's script they reproduce th.10's headers byte for byte.
+- **The 21 font headers are regenerated** as upstream 2.0 plus Thai: Noto Sans gains Ə/ə, the UI fonts gain 254
+  Latin fallback codepoints, and every non-Thai glyph matches upstream (8 Arabic kerning pairs per UI font differ;
+  see [lib/Thai/README.md](../../lib/Thai/README.md)).
+- **`src/fontIds.h` is regenerated**, so every book is laid out again once.
+- **Size:** `x4_th` 91.7% of the app slot (+38.7 KB).
+
 ## 2.0.0-th.1: moved to CrossPoint 2.0
 
 - **Based on 2.0.0rc** (117 upstream commits merged). What users see is in the
