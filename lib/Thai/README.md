@@ -93,19 +93,28 @@ automatically by `scripts/gen_i18n.py`), `test/thai/` plus one
 1. Resolve conflicts at the hook sites above. If upstream changed
    `SECTION_FILE_VERSION`, take upstream's value + 1.
 2. If upstream changed a font source or `fontconvert.py`, regenerate:
-   `bash lib/EpdFont/scripts/convert-builtin-fonts.sh`. This needs the SarabunTH TTFs in
-   `lib/EpdFont/builtinFonts/source/SarabunTH/`, which are not in the repository yet (2.0.0-th.1 kept the
-   1.6.5-th.10 headers instead). To commit them, add `!SarabunTH/` and `!SarabunTH/**` to
-   `lib/EpdFont/builtinFonts/source/.gitignore`.
+   `bash lib/EpdFont/scripts/convert-builtin-fonts.sh` (needs `pip install -r lib/EpdFont/scripts/requirements.txt`),
+   then `bash lib/EpdFont/scripts/build-font-ids.sh > src/fontIds.h` (needs Ruby). The new IDs make every
+   book lay out again once, so no `SECTION_FILE_VERSION` bump is needed for a font change.
+   The SarabunTH TTFs are in `lib/EpdFont/builtinFonts/source/SarabunTH/`. Each is unpatched Sarabun from
+   CrosspointTH (v1.6.0-th.1.0, `thai-fonts/`) run through
+   `python scripts/thai/thai_pua_patch.py Sarabun-<Style>.ttf SarabunTH-<Style>.ttf` (prints "+27 cmap
+   entries"). SHA-256 of the unpatched inputs:
+   Regular `226d4f368fbc0457990ddef2692679badfd2c1a4e89e5ac4d43c10ba7743b2f1`,
+   Bold `d38308ca27d067b9a1b79006337c1f9a66c29aa016d96a9d88d3801da7fa83b9`,
+   Italic `595a968e97a8b8179a6bde2d74d4f91b11475dcfb6cf270037d76d8ed71160ea`,
+   BoldItalic `5ef1b930f9a3afed5ec83374b5617cad3a89d91a8fc5e372dc028c2aa2950f8d`.
+   `OFL.txt` is google/fonts `ofl/sarabun/OFL.txt`. With 1.6.5-th.10's script and sources these TTFs
+   reproduce that release's headers byte for byte; on 2.0 every non-Thai glyph matches upstream's headers.
+   `server/x4hub/fonts/Sarabun-*.ttf` is a different, unrelated copy for the x4-hub service.
 3. If upstream added UI strings, translate them in `thai.yaml` (missing keys fall
    back to English, with a build warning).
 4. Run the host tests (`test/thai` and the rest) and `pio run -e x4_th`.
 
 ## Known limits
 
-- Built-in fonts lack upstream 2.0's Azerbaijani Ə/ə and the Noto Sans Latin
-  fallback for UI fonts until the headers are regenerated (see above).
-
+- Adding SarabunTH to the UI font stack changes the kerning of 8 Arabic pairs per UI font (U+FB8C/U+FEAD
+  and similar before U+06D5 or U+FEE9) against upstream; every Latin pair matches.
 - SD fonts without Thai borrow it from the built-in fonts, but keep their own
   line height, which can be tight for stacked Thai marks.
 - Rotated text (`drawTextRotated90CW`) and scaled sup/sub glyphs are not shaped.
@@ -116,8 +125,8 @@ automatically by `scripts/gen_i18n.py`), `test/thai/` plus one
 
 ## Credits and licences
 
-- Shaping rules and test cases, SarabunTH fonts, the high-tone lowering and the
-  dictionary trie format come from
+- Shaping rules and test cases, the SarabunTH PUA mapping (the fonts stay under
+  Sarabun's OFL, below), the high-tone lowering and the dictionary trie format come from
   [JTIAPBNAI/CrosspointTH](https://github.com/JTIAPBNAI/CrosspointTH) (MIT).
 - The DP objective (fewest unknowns, then fewest segments) and syllable-aware
   fallback follow
@@ -126,4 +135,5 @@ automatically by `scripts/gen_i18n.py`), `test/thai/` plus one
 - Word list: [PyThaiNLP](https://github.com/PyThaiNLP/pythainlp) `words_th.txt`,
   CC0-1.0.
 - Sarabun: Cadson Demak / The Sarabun Project, SIL OFL 1.1
-  (`lib/EpdFont/builtinFonts/source/SarabunTH/OFL.txt`).
+  (`lib/EpdFont/builtinFonts/source/SarabunTH/OFL.txt`), committed as `SarabunTH-*.ttf`, modified (PUA cmap
+  entries added by `scripts/thai/thai_pua_patch.py`).
