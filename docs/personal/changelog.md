@@ -5,6 +5,15 @@
 รายละเอียดเพิ่มเติมจาก [README](../../README.md) ส่วนการออกแบบโค้ดภาษาไทย และทุกจุดที่แก้ไฟล์ของต้นฉบับ
 อยู่ใน [lib/Thai/README.md](../../lib/Thai/README.md) (ภาษาอังกฤษ)
 
+## 2.0.0-th.2: ฟอนต์ในเครื่องครบตาม 2.0
+
+- **ไฟล์ SarabunTH อยู่ใน repo แล้ว** (`lib/EpdFont/builtinFonts/source/SarabunTH/`, Sarabun จาก CrosspointTH +
+  `thai_pua_patch.py` พร้อม OFL) ใช้ script ของ th.10 กับไฟล์นี้ได้ header ตรงกับ th.10 ทุก byte
+- **header ฟอนต์ 21 ไฟล์สร้างใหม่** เป็นของต้นทาง 2.0 + ไทย: Noto Sans ได้ Ə/ə ฟอนต์ UI ได้ตัวละตินสำรอง 254 ตัว
+  ตัวที่ไม่ใช่ไทยตรงกับต้นทางทุกตัว (kerning อาหรับต่าง 8 คู่ต่อฟอนต์ UI ดู [lib/Thai/README.md](../../lib/Thai/README.md))
+- **`src/fontIds.h` สร้างใหม่** หนังสือทุกเล่มจัดหน้าใหม่หนึ่งครั้ง
+- **ขนาด:** `x4_th` 91.7% ของ app slot (+38.7 KB)
+
 ## 2.0.0-th.1: ย้ายมาใช้ CrossPoint 2.0
 
 - **ต่อยอดจาก 2.0.0rc** (merge ต้นทาง 117 commit) รายละเอียดสำหรับผู้ใช้อยู่ใน
