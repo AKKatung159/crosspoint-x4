@@ -5,6 +5,15 @@
 รายละเอียดเพิ่มเติมจาก [README](../../README.md) ส่วนการออกแบบโค้ดภาษาไทย และทุกจุดที่แก้ไฟล์ของต้นฉบับ
 อยู่ใน [lib/Thai/README.md](../../lib/Thai/README.md) (ภาษาอังกฤษ)
 
+## 1.6.5-th.11: กันไฟล์รหัสผ่านจาก File Transfer
+
+- **ไฟล์รหัสผ่าน** (hook `protected-paths`): `src/network/ProtectedPaths.h` คัดลอกจาก upstream (#3824)
+  `isSensitivePath` เทียบ path แบบที่ SdFat เปิดจริง (ตัดเว้นวรรคนำ จุด/เว้นวรรคท้าย, `..`, `//`, ไม่สนตัวพิมพ์)
+  และถือว่าชื่อสั้น 8.3 (`CROSSP~1`) ในสองชั้นแรกเป็นของต้องห้าม ใช้กับ `/download`, `/upload` (HTTP และ WebSocket),
+  `/rename`, `/move`, `/delete`, `/api/files` และ `WebDAVHandler::isProtectedPath` ซึ่ง PROPFIND ก็เช็คแล้ว
+  (upstream ยังไม่แก้ส่วน WebDAV: #4207) เทสบน eink-qemu x4: เฟิร์มแวร์ th.10 ส่ง `wifi.json` ให้ (200)
+  ทั้ง 6 แบบ build นี้ตอบ 403 ทั้งหมด และไฟล์ปกติยังโหลดได้ เทสบนคอม `test/protected_paths`
+
 ## 1.6.5-th.10: X4 Pro แตะตรงทุกธีม แอปใช้จอสัมผัสได้ และ X4 Classic
 
 - **แตะหน้าหลักบน X4 Pro** (hook `home-touch`) ธีมปกเต็ม/มินิมอลวาดเมนูเป็นแถวไอคอนแนวนอนและปกเล่มเดียว

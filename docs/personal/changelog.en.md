@@ -119,6 +119,16 @@ reading with Sans only.
 - **Fixes:** OTA compares `-th.N`; six home tiles keep their labels.
 - **CI:** `.github/workflows/personal.yml` tests and builds every push; a `*-th.*` tag publishes the release.
 
+## 1.6.5-th.11: credential stores kept off File Transfer
+
+- **Credential stores** (hook `protected-paths`): `src/network/ProtectedPaths.h` is upstream's (#3824).
+  `isSensitivePath` compares the path SdFat would actually open (leading spaces, trailing dots and spaces, `..`, `//`,
+  any case) and refuses an 8.3 alias (`CROSSP~1`) in the first two levels. It gates `/download`, `/upload` (HTTP and
+  WebSocket), `/rename`, `/move`, `/delete`, `/api/files` and `WebDAVHandler::isProtectedPath`, which PROPFIND now
+  checks too (upstream's WebDAV is still open: #4207). In eink-qemu x4 the th.10 firmware served `wifi.json` (200)
+  for all six probes; this build answers 403 to each, and ordinary files still download. Host test:
+  `test/protected_paths`.
+
 ## 1.6.5-th.10: X4 Pro taps in every theme, apps by touch, and the X4 Classic
 
 - **Home taps on the X4 Pro** (hook `home-touch`): Cover and Minimal draw one cover over a row of tiles, while the
